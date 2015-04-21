@@ -1,0 +1,22 @@
+{
+  "name": "cweagans/composer-patches",
+  "description": "Provides a way to patch Composer packages.",
+  "minimum-stability": "dev",
+  "license": "BSD",
+  "authors": [
+    {
+      "name": "Cameron Eagans",
+      "email": "me@cweagans.net"
+    }
+  ],
+  "require": {
+    "composer-plugin-api": "~1.0"
+  },
+  "require-dev": {
+    "composer/composer": "~1.0",
+    "phpunit/phpunit": "~4.6"
+  },
+  "autoload": {
+    "psr-4": {"cweagans\\Composer\\": "src"}
+  }
+}
