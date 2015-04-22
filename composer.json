@@ -4,6 +4,9 @@
   "minimum-stability": "dev",
   "license": "BSD",
   "type": "composer-plugin",
+  "extra": {
+    "class": "cweagans\\Composer\\Patches"
+  },
   "authors": [
     {
       "name": "Cameron Eagans",
