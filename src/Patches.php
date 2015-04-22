@@ -89,4 +89,20 @@ class Patches implements PluginInterface, EventSubscriberInterface {
 
   }
 
+  /**
+   * This is a ridiculous hack. Composer wasn't calling my method with the
+   * event subscriber for some reason, so adding a static wrapper around
+   * activate and postInstall() seemed like the least annoying thing to do.
+   *
+   * @param PackageEvent $event
+   * @throws Exception
+   */
+  public static function postInstallStatic(PackageEvent $event) {
+    $obj = new Patches();
+    $composer = $event->getComposer();
+    $io = $event->getIO();
+    $obj->activate($composer, $io);
+    $obj->postInstall($event);
+  }
+
 }
