@@ -3,6 +3,7 @@
   "description": "Provides a way to patch Composer packages.",
   "minimum-stability": "dev",
   "license": "BSD",
+  "type": "composer-plugin",
   "authors": [
     {
       "name": "Cameron Eagans",
