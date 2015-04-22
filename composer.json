@@ -10,6 +10,7 @@
     }
   ],
   "require": {
+    "php": ">=5.4.0",
     "composer-plugin-api": "~1.0"
   },
   "require-dev": {
@@ -18,5 +19,8 @@
   },
   "autoload": {
     "psr-4": {"cweagans\\Composer\\": "src"}
+  },
+  "autoload-dev": {
+    "psr-4": {"cweagans\\Composer\\Tests\\": "tests"}
   }
 }
