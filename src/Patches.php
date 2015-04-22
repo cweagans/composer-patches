@@ -94,9 +94,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
      */
     $extra = $this->composer->getPackage()->getExtra();
     $package_name = $package->getName();
-    $this->io->write("Currently working on " . $package_name);
     if (!isset($extra['patches']) || !isset($extra['patches'][$package_name])) {
-      $this->io->write('<info>No patches found for ' . $package_name . '.</info>');
+      if ($this->io->isVerbose()) {
+        $this->io->write('<info>No patches found for ' . $package_name . '.</info>');
+      }
       return;
     }
 
