@@ -75,6 +75,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       $this->io->write('<comment>No patches found.</comment>');
       return;
     }
+    else {
+      $this->io->write('<comment>Patches found for ' . $package_name . '.</comment>');
+      return;
+    }
 
     foreach ($extra['patches'][$package_name] as $description => $url) {
       $message = '<comment>' . $description . ' (fetching from ' . $url . ')</comment>';
