@@ -71,12 +71,8 @@ class Patches implements PluginInterface, EventSubscriberInterface {
      */
     $extra = $this->composer->getPackage()->getExtra();
     $package_name = $package->getName();
-    if (isset($extra['patches']) && isset($extra['patches'][$package_name])) {
+    if (!isset($extra['patches']) || !isset($extra['patches'][$package_name])) {
       $this->io->write('<comment>No patches found.</comment>');
-      return;
-    }
-    else {
-      $this->io->write('<comment>Patches found for ' . $package_name . '.</comment>');
       return;
     }
 
