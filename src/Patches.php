@@ -10,6 +10,7 @@ namespace cweagans\Composer;
 use Composer\Composer;
 use Composer\DependencyResolver\Operation\InstallOperation;
 use Composer\DependencyResolver\Operation\UpdateOperation;
+use Composer\DependencyResolver\Operation\OperationInterface;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
 use Composer\Package\PackageInterface;
@@ -33,6 +34,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * @var ProcessExecutor $executor
    */
   protected $executor;
+  /**
+   * @var array $patches
+   */
+  protected $patches;
 
   /**
    * Apply plugin modifications to composer
@@ -44,6 +49,18 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     $this->composer = $composer;
     $this->io = $io;
     $this->executor = new ProcessExecutor($this->io);
+    $this->patches = array();
+//    $lock_data = $this->composer->getLocker()->getLockData();
+//    $all_packages = isset($lock_data['packages']) ? $lock_data['packages'] : array();
+//    $all_packages = array();
+
+//    foreach ($all_packages as $package) {
+//      $patches = (isset($package['extra']) && isset($package['extra']['patches'])) ? $package['extra']['patches'] : array();
+//      $this->patches = array_merge_recursive($this->patches, $patches);
+//    }
+
+//    var_dump($this->patches);
+//    die();
   }
 
   /**
@@ -51,9 +68,55 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    */
   public static function getSubscribedEvents() {
     return [
+      PackageEvents::PRE_PACKAGE_INSTALL => "gatherPatches",
+      PackageEvents::PRE_PACKAGE_UPDATE => "gatherPatches",
       PackageEvents::POST_PACKAGE_INSTALL => "postInstall",
-      PackageEvents::POST_PACKAGE_UPDATE => "postInstall"
+      PackageEvents::POST_PACKAGE_UPDATE => "postInstall",
     ];
+  }
+
+  /**
+   * Gather patches from dependencies and store them for later use.
+   *
+   * @param PackageEvent $event
+   */
+  public function gatherPatches(PackageEvent $event) {
+    // If we've already done this, then don't do it again.
+    if (isset($this->patches['_patchesGathered'])) {
+      return;
+    }
+
+    // Get patches from the root package first.
+    $extra = $this->composer->getPackage()->getExtra();
+    if (isset($extra['patches'])) {
+      $this->io->write('<info>Gathering patches for root package.</info>');
+      $this->patches = $extra['patches'];
+    }
+
+    // Now add all the patches from dependencies that will be installed.
+    $operations = $event->getOperations();
+    $this->io->write('<info>Gathering patches for dependencies. This might take a minute.</info>');
+    foreach ($operations as $operation) {
+      if ($operation->getJobType() == 'install' || $operation->getJobType() == 'update') {
+        $package = $this->getPackageFromOperation($operation);
+        $extra = $package->getExtra();
+        if (isset($extra['patches'])) {
+          $this->patches = array_merge_recursive($this->patches, $extra['patches']);
+        }
+      }
+    }
+
+    // If we're in verbose mode, list the projects we're going to patch.
+    if ($this->io->isVerbose()) {
+      foreach ($this->patches as $package => $patches) {
+        $number = count($patches);
+        $this->io->write('<info>Found ' . $number . ' patches for ' . $package . '.</info>');
+      }
+    }
+
+    // Make sure we don't gather patches again. Extra keys in $this->patches
+    // won't hurt anything, so we'll just stash it there.
+    $this->patches['_patchesGathered'] = TRUE;
   }
 
   /**
@@ -63,22 +126,13 @@ class Patches implements PluginInterface, EventSubscriberInterface {
   public function postInstall(PackageEvent $event) {
     // Get the package object for the current operation.
     $operation = $event->getOperation();
-    if ($operation instanceof InstallOperation) {
-      $package = $event->getOperation()->getPackage();
-    }
-    elseif ($operation instanceof UpdateOperation) {
-      $package = $event->getOperation()->getTargetPackage();
-    }
-    else {
-      throw new Exception('Unknown operation: ' . get_class($operation));
-    }
+    $package = $this->getPackageFromOperation($operation);
 
     /**
      * @var PackageInterface $package
      */
-    $extra = $this->composer->getPackage()->getExtra();
     $package_name = $package->getName();
-    if (!isset($extra['patches']) || !isset($extra['patches'][$package_name])) {
+    if (!isset($this->patches[$package_name])) {
       if ($this->io->isVerbose()) {
         $this->io->write('<info>No patches found for ' . $package_name . '.</info>');
       }
@@ -92,7 +146,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     // Set up a downloader.
     $downloader = new RemoteFilesystem($this->io, $this->composer->getConfig());
 
-    foreach ($extra['patches'][$package_name] as $description => $url) {
+    foreach ($this->patches[$package_name] as $description => $url) {
       $message = '<comment>Applying patch: ' . $description . ' (fetching from ' . $url . ')</comment>';
       $this->io->write($message);
       try {
@@ -103,7 +157,28 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       }
     }
 
-    $this->writePatchReport($extra['patches'][$package_name], $install_path);
+    $this->writePatchReport($this->patches[$package_name], $install_path);
+  }
+
+  /**
+   * Get a Package object from an OperationInterface object.
+   *
+   * @param OperationInterface $operation
+   * @return PackageInterface
+   * @throws Exception
+   */
+  protected function getPackageFromOperation(OperationInterface $operation) {
+    if ($operation instanceof InstallOperation) {
+      $package = $operation->getPackage();
+    }
+    elseif ($operation instanceof UpdateOperation) {
+      $package = $operation->getTargetPackage();
+    }
+    else {
+      throw new Exception('Unknown operation: ' . get_class($operation));
+    }
+
+    return $package;
   }
 
   /**
@@ -124,7 +199,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
 
     // Modified from drush6:make.project.inc
     $patched = FALSE;
-    $patch_levels = array('-p1', '-p0');
+    // The order here is intentional. p1 is most likely to apply with git apply.
+    // p0 is next likely. p2 is extremely unlikely, but for some special cases,
+    // it might be useful.
+    $patch_levels = array('-p1', '-p0', '-p2');
     foreach ($patch_levels as $patch_level) {
       $checked = $this->executeCommand('cd %s && GIT_DIR=. git apply --check %s %s', $install_path, $patch_level, $filename);
       if ($checked) {
