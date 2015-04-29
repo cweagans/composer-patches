@@ -50,17 +50,6 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     $this->io = $io;
     $this->executor = new ProcessExecutor($this->io);
     $this->patches = array();
-//    $lock_data = $this->composer->getLocker()->getLockData();
-//    $all_packages = isset($lock_data['packages']) ? $lock_data['packages'] : array();
-//    $all_packages = array();
-
-//    foreach ($all_packages as $package) {
-//      $patches = (isset($package['extra']) && isset($package['extra']['patches'])) ? $package['extra']['patches'] : array();
-//      $this->patches = array_merge_recursive($this->patches, $patches);
-//    }
-
-//    var_dump($this->patches);
-//    die();
   }
 
   /**
