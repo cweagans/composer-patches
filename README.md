@@ -21,9 +21,6 @@ Example composer.json:
         "Add startup configuration for PHP server": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch"
       }
     }
-  },
-  "scripts": {
-    "post-package-install": "cweagans\\Composer\\Patches::postInstallStatic"
   }
 }
 
@@ -36,6 +33,7 @@ Note that the post-package-install part is mandatory for now. For some reason, C
 * This plugin is much more simple to use and maintain
 * This plugin doesn't require you to specify which package version you're patching
 * This plugin is easy to use with Drupal modules (which don't use semantic versioning).
+* This plugin will gather patches from all dependencies and apply them as if they were in the root composer.json
 
 ## Credits
 
