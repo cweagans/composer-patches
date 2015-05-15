@@ -9,14 +9,17 @@ namespace cweagans\Composer;
 
 use Composer\Composer;
 use Composer\DependencyResolver\Operation\InstallOperation;
+use Composer\DependencyResolver\Operation\UninstallOperation;
 use Composer\DependencyResolver\Operation\UpdateOperation;
 use Composer\DependencyResolver\Operation\OperationInterface;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
 use Composer\Package\PackageInterface;
 use Composer\Plugin\PluginInterface;
-use Composer\Installer\PackageEvent;
 use Composer\Installer\PackageEvents;
+use Composer\Script\Event;
+use Composer\Script\ScriptEvents;
+use Composer\Script\PackageEvent;
 use Composer\Util\ProcessExecutor;
 use Composer\Util\RemoteFilesystem;
 
@@ -57,11 +60,51 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    */
   public static function getSubscribedEvents() {
     return [
+      ScriptEvents::PRE_INSTALL_CMD => "checkPatches",
       PackageEvents::PRE_PACKAGE_INSTALL => "gatherPatches",
       PackageEvents::PRE_PACKAGE_UPDATE => "gatherPatches",
       PackageEvents::POST_PACKAGE_INSTALL => "postInstall",
       PackageEvents::POST_PACKAGE_UPDATE => "postInstall",
     ];
+  }
+
+  /**
+   * Before running composer install,
+   * @param Event $event
+   */
+  public function checkPatches(Event $event) {
+    try {
+      $repositoryManager = $this->composer->getRepositoryManager();
+      $localRepository = $repositoryManager->getLocalRepository();
+      $installationManager = $this->composer->getInstallationManager();
+      $packages = $localRepository->getPackages();
+
+      $tmp_patches = array();
+      $extra = $this->composer->getPackage()->getExtra();
+      if (isset($extra['patches'])) {
+        $this->io->write('<info>Gathering patches for root package.</info>');
+        $tmp_patches = $extra['patches'];
+      }
+
+      foreach ($packages as $package) {
+        $extra = $package->getExtra();
+        $patches = isset($extra['patches']) ? $extra['patches'] : array();
+        $tmp_patches = array_merge_recursive($tmp_patches, $patches);
+      }
+
+      foreach ($packages as $package) {
+        if (array_key_exists($package->getName(), $tmp_patches) && !empty($tmp_patches[$package->getName()])) {
+          $uninstallOperation = new UninstallOperation($package, 'Removing package so it can be re-installed and re-patched.');
+          $this->io->write('<info>Removing package ' . $package->getName() . ' so that it can be re-installed and re-patched.</info>');
+          $installationManager->uninstall($localRepository, $uninstallOperation);
+        }
+      }
+    }
+      // If the Locker isn't available, then we don't need to do this.
+      // It's the first time packages have been installed.
+    catch (\LogicException $e) {
+      return;
+    }
   }
 
   /**
