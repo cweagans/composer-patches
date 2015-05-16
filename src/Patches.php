@@ -22,6 +22,7 @@ use Composer\Script\ScriptEvents;
 use Composer\Script\PackageEvent;
 use Composer\Util\ProcessExecutor;
 use Composer\Util\RemoteFilesystem;
+use Symfony\Component\Process\Process;
 
 class Patches implements PluginInterface, EventSubscriberInterface {
 
@@ -178,16 +179,17 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     // Set up a downloader.
     $downloader = new RemoteFilesystem($this->io, $this->composer->getConfig());
 
+    $this->io->write('  - Applying patches for <info>' . $package_name . '</info>');
     foreach ($this->patches[$package_name] as $description => $url) {
-      $message = '<comment>Applying patch: ' . $description . ' (fetching from ' . $url . ')</comment>';
-      $this->io->write($message);
+      $this->io->write('    <info>' . $url . '</info> (<comment>' . $description. '</comment>)');
       try {
         $this->getAndApplyPatch($downloader, $install_path, $url);
       }
       catch (Exception $e) {
-        $this->io->write('<error>Could not apply patch! Skipping.</error>');
+        $this->io->write('   <error>Could not apply patch! Skipping.</error>');
       }
     }
+    $this->io->write('');
 
     $this->writePatchReport($this->patches[$package_name], $install_path);
   }
@@ -264,9 +266,6 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     if (!$patched) {
       throw new \Exception("Cannot apply patch $patch_url");
     }
-    else {
-      $this->io->write("<info>Success!</info>");
-    }
   }
 
   /**
@@ -302,6 +301,19 @@ class Patches implements PluginInterface, EventSubscriberInterface {
 
     // And replace the arguments.
     $command = call_user_func_array('sprintf', $args);
-    return ($this->executor->execute($command) == 0);
+    $output = '';
+    if ($this->io->isVerbose()) {
+      $this->io->write('<comment>' . $command . '</comment>');
+      $io = $this->io;
+      $output = function ($type, $data) use ($io) {
+        if ($type == Process::ERR) {
+          $io->write('<error>' . $data . '</error>');
+        }
+        else {
+          $io->write('<comment>' . $data . '</comment>');
+        }
+      };
+    }
+    return ($this->executor->execute($command, $output) == 0);
   }
 }
