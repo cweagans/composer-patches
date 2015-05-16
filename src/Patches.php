@@ -14,6 +14,7 @@ use Composer\DependencyResolver\Operation\UpdateOperation;
 use Composer\DependencyResolver\Operation\OperationInterface;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
+use Composer\Package\AliasPackage;
 use Composer\Package\PackageInterface;
 use Composer\Plugin\PluginInterface;
 use Composer\Installer\PackageEvents;
@@ -93,7 +94,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       }
 
       foreach ($packages as $package) {
-        if (array_key_exists($package->getName(), $tmp_patches) && !empty($tmp_patches[$package->getName()])) {
+        if (!($package instanceof AliasPackage) && array_key_exists($package->getName(), $tmp_patches) && !empty($tmp_patches[$package->getName()])) {
           $uninstallOperation = new UninstallOperation($package, 'Removing package so it can be re-installed and re-patched.');
           $this->io->write('<info>Removing package ' . $package->getName() . ' so that it can be re-installed and re-patched.</info>');
           $installationManager->uninstall($localRepository, $uninstallOperation);
