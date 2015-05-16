@@ -179,12 +179,9 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     // Set up a downloader.
     $downloader = new RemoteFilesystem($this->io, $this->composer->getConfig());
 
-
-    $message = '  - Applying patches for <info>' . $package_name . '</info>';
-    $this->io->write($message);
+    $this->io->write('  - Applying patches for <info>' . $package_name . '</info>');
     foreach ($this->patches[$package_name] as $description => $url) {
-      $message = '    <info>' . $url . '</info> (<comment>' . $description. '</comment>)';
-      $this->io->write($message);
+      $this->io->write('    <info>' . $url . '</info> (<comment>' . $description. '</comment>)');
       try {
         $this->getAndApplyPatch($downloader, $install_path, $url);
       }
@@ -297,7 +294,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     // Shell-escape all arguments except the command.
     $args = func_get_args();
     foreach ($args as $index => $arg) {
-      if ($index > 1) {
+      if ($index !== 0) {
         $args[$index] = escapeshellarg($arg);
       }
     }
