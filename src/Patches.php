@@ -63,6 +63,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
   public static function getSubscribedEvents() {
     return [
       ScriptEvents::PRE_INSTALL_CMD => "checkPatches",
+      ScriptEvents::PRE_UPDATE_CMD => "checkPatches",
       PackageEvents::PRE_PACKAGE_INSTALL => "gatherPatches",
       PackageEvents::PRE_PACKAGE_UPDATE => "gatherPatches",
       PackageEvents::POST_PACKAGE_INSTALL => "postInstall",
