@@ -83,10 +83,25 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       $packages = $localRepository->getPackages();
 
       $tmp_patches = array();
+
+      // First, try to get the patches from the root composer.json.
       $extra = $this->composer->getPackage()->getExtra();
       if (isset($extra['patches'])) {
         $this->io->write('<info>Gathering patches for root package.</info>');
         $tmp_patches = $extra['patches'];
+      }
+      // If it's not specified there, look for a patches-file definition.
+      else if (isset($extra['patches-file'])) {
+        $this->io->write('<info>Gathering patches from patch file.</info>');
+        $patches = file_get_contents($extra['patches-file']);
+        $patches = json_decode($patches, TRUE);
+        if (isset($patches['patches'])) {
+          $tmp_patches = $patches['patches'];
+        }
+      }
+      else {
+        // @todo: should we throw an exception here?
+        return;
       }
 
       foreach ($packages as $package) {
@@ -130,11 +145,24 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       return;
     }
 
-    // Get patches from the root package first.
+    // First, try to get the patches from the root composer.json.
     $extra = $this->composer->getPackage()->getExtra();
     if (isset($extra['patches'])) {
       $this->io->write('<info>Gathering patches for root package.</info>');
       $this->patches = $extra['patches'];
+    }
+    // If it's not specified there, look for a patches-file definition.
+    else if (isset($extra['patches-file'])) {
+      $this->io->write('<info>Gathering patches from patch file.</info>');
+      $patches = file_get_contents($extra['patches-file']);
+      $patches = json_decode($patches, TRUE);
+      if (isset($patches['patches'])) {
+        $this->patches = $patches['patches'];
+      }
+    }
+    else {
+      // @todo: should we throw an exception here?
+      return;
     }
 
     // Now add all the patches from dependencies that will be installed.

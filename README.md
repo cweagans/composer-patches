@@ -28,6 +28,38 @@ Example composer.json:
 
 Note that the post-package-install part is mandatory for now. For some reason, Composer didn't invoke my event listeners, so we're going with the faster option.
 
+## Using an external patch file
+
+Instead of a patches key in your root composer.json, use a patches-file key.
+
+```
+{
+  "require": {
+    "cweagans/composer-patches": "~1.0",
+    "drupal/drupal": "8.0.*@dev"
+  },
+  "config": {
+    "preferred-install": "source"
+  },
+  "extra": {
+    "patches-file": "local/path/to/your/composer.patches.json"
+  }
+}
+
+```
+
+Then your composer.patches.json should look like this:
+
+```
+{
+  "patches": {
+    "vendor/project": {
+      "Patch title": "http://example.com/url/to/patch.patch"
+    }
+  }
+}
+```
+
 ## Difference between this and netresearch/composer-patches-plugin
 
 * This plugin is much more simple to use and maintain
