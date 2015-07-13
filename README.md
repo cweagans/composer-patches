@@ -26,8 +26,6 @@ Example composer.json:
 
 ```
 
-Note that the post-package-install part is mandatory for now. For some reason, Composer didn't invoke my event listeners, so we're going with the faster option.
-
 ## Using an external patch file
 
 Instead of a patches key in your root composer.json, use a patches-file key.
