@@ -43,6 +43,14 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * @var array $patches
    */
   protected $patches;
+  /**
+   * @var bool $useGit
+   */
+  protected $useGit;
+  /**
+   * @var string $git
+   */
+  protected $gitCommitMessagePrefix;
 
   /**
    * Apply plugin modifications to composer
@@ -55,6 +63,8 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     $this->io = $io;
     $this->executor = new ProcessExecutor($this->io);
     $this->patches = array();
+    $this->useGit = getenv('COMPOSER_PATCHES_USE_GIT') == '1';
+    $this->gitCommitMessagePrefix = getenv('COMPOSER_PATCHES_GIT_COMMIT_MESSAGE_PREFIX');
   }
 
   /**
@@ -202,6 +212,16 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     $package = $this->getPackageFromOperation($operation);
     $package_name = $package->getName();
 
+    // Get the install path from the package object.
+    $manager = $event->getComposer()->getInstallationManager();
+    $install_path = $manager->getInstaller($package->getType())->getInstallPath($package);
+
+    if ($this->useGit) {
+      // Commit the package.
+      $this->io->write('  - Committing <info>' . $package_name . '</info> with version <info>' . $package->getVersion(). '</info> to GIT.');
+      $this->executeCommand('cd %s && git add -A . && git commit -m "' . $this->gitCommitMessagePrefix . 'Update package %s to version %s"', $install_path, $package_name, $package->getVersion());
+    }
+
     if (!isset($this->patches[$package_name])) {
       if ($this->io->isVerbose()) {
         $this->io->write('<info>No patches found for ' . $package_name . '.</info>');
@@ -209,10 +229,6 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       return;
     }
     $this->io->write('  - Applying patches for <info>' . $package_name . '</info>');
-
-    // Get the install path from the package object.
-    $manager = $event->getComposer()->getInstallationManager();
-    $install_path = $manager->getInstaller($package->getType())->getInstallPath($package);
 
     // Set up a downloader.
     $downloader = new RemoteFilesystem($this->io, $this->composer->getConfig());
@@ -227,6 +243,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       $this->io->write('    <info>' . $url . '</info> (<comment>' . $description. '</comment>)');
       try {
         $this->getAndApplyPatch($downloader, $install_path, $url);
+        if ($this->useGit) {
+          $this->io->write('  - Committing patch <info>' . $url . '</info> for package <info>' . $package_name . '</info> to GIT.');
+          $this->executeCommand('cd %s && git add -A . && git commit -m "' . $this->gitCommitMessagePrefix . 'Applied patch %s for %s."', $install_path, $url, $package_name);
+        }
         $extra['patches_applied'][$description] = $url;
       }
       catch (\Exception $e) {
