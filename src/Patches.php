@@ -202,6 +202,13 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     $package = $this->getPackageFromOperation($operation);
     $package_name = $package->getName();
 
+    // Get the install path from the package object.
+    $manager = $event->getComposer()->getInstallationManager();
+    $install_path = $manager->getInstaller($package->getType())->getInstallPath($package);
+
+    // Commit the package.
+    $this->executeCommand('cd %s && git add -A . && git commit -m "Update package %s to version %s"', $install_path, $package_name, $package->getVersion());
+
     if (!isset($this->patches[$package_name])) {
       if ($this->io->isVerbose()) {
         $this->io->write('<info>No patches found for ' . $package_name . '.</info>');
@@ -209,10 +216,6 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       return;
     }
     $this->io->write('  - Applying patches for <info>' . $package_name . '</info>');
-
-    // Get the install path from the package object.
-    $manager = $event->getComposer()->getInstallationManager();
-    $install_path = $manager->getInstaller($package->getType())->getInstallPath($package);
 
     // Set up a downloader.
     $downloader = new RemoteFilesystem($this->io, $this->composer->getConfig());
@@ -227,6 +230,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       $this->io->write('    <info>' . $url . '</info> (<comment>' . $description. '</comment>)');
       try {
         $this->getAndApplyPatch($downloader, $install_path, $url);
+        $this->executeCommand('cd %s && git add -A . && git commit -m "Applied patch %s for %s."', $install_path, $url, $package_name);
         $extra['patches_applied'][$description] = $url;
       }
       catch (\Exception $e) {
