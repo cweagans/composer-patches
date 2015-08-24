@@ -46,7 +46,11 @@ class Patches implements PluginInterface, EventSubscriberInterface {
   /**
    * @var bool $useGit
    */
-  protected $useGit = FALSE;
+  protected $useGit;
+  /**
+   * @var string $git
+   */
+  protected $gitCommitMessagePrefix;
 
   /**
    * Apply plugin modifications to composer
@@ -60,6 +64,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     $this->executor = new ProcessExecutor($this->io);
     $this->patches = array();
     $this->useGit = getenv('COMPOSER_PATCHES_USE_GIT') == '1';
+    $this->gitCommitMessagePrefix = getenv('COMPOSER_PATCHES_GIT_COMMIT_MESSAGE_PREFIX');
   }
 
   /**
@@ -214,7 +219,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     if ($this->useGit) {
       // Commit the package.
       $this->io->write('  - Committing <info>' . $package_name . '</info> with version <info>' . $package->getVersion(). '</info> to GIT.');
-      $this->executeCommand('cd %s && git add -A . && git commit -m "Update package %s to version %s"', $install_path, $package_name, $package->getVersion());
+      $this->executeCommand('cd %s && git add -A . && git commit -m "%sUpdate package %s to version %s"', $install_path, $this->gitCommitMessagePrefix, $package_name, $package->getVersion());
     }
 
     if (!isset($this->patches[$package_name])) {
@@ -240,7 +245,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
         $this->getAndApplyPatch($downloader, $install_path, $url);
         if ($this->useGit) {
           $this->io->write('  - Committing patch <info>' . $url . '</info> for package <info>' . $package_name . '</info> to GIT.');
-          $this->executeCommand('cd %s && git add -A . && git commit -m "Applied patch %s for %s."', $install_path, $url, $package_name);
+          $this->executeCommand('cd %s && git add -A . && git commit -m "%sApplied patch %s for %s."', $install_path, $this->gitCommitMessagePrefix, $url, $package_name);
         }
         $extra['patches_applied'][$description] = $url;
       }
