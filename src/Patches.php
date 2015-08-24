@@ -219,7 +219,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     if ($this->useGit) {
       // Commit the package.
       $this->io->write('  - Committing <info>' . $package_name . '</info> with version <info>' . $package->getVersion(). '</info> to GIT.');
-      $this->executeCommand('cd %s && git add -A . && git commit -m "%sUpdate package %s to version %s"', $install_path, $this->gitCommitMessagePrefix, $package_name, $package->getVersion());
+      $this->executeCommand('cd %s && git add -A . && git commit -m "' . $this->gitCommitMessagePrefix . 'Update package %s to version %s"', $install_path, $package_name, $package->getVersion());
     }
 
     if (!isset($this->patches[$package_name])) {
@@ -245,7 +245,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
         $this->getAndApplyPatch($downloader, $install_path, $url);
         if ($this->useGit) {
           $this->io->write('  - Committing patch <info>' . $url . '</info> for package <info>' . $package_name . '</info> to GIT.');
-          $this->executeCommand('cd %s && git add -A . && git commit -m "%sApplied patch %s for %s."', $install_path, $this->gitCommitMessagePrefix, $url, $package_name);
+          $this->executeCommand('cd %s && git add -A . && git commit -m "' . $this->gitCommitMessagePrefix . 'Applied patch %s for %s."', $install_path, $url, $package_name);
         }
         $extra['patches_applied'][$description] = $url;
       }
