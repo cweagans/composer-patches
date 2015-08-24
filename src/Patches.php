@@ -43,6 +43,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * @var array $patches
    */
   protected $patches;
+  /**
+   * @var bool $useGit
+   */
+  protected $useGit = FALSE;
 
   /**
    * Apply plugin modifications to composer
@@ -55,6 +59,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     $this->io = $io;
     $this->executor = new ProcessExecutor($this->io);
     $this->patches = array();
+    $this->useGit = getenv('COMPOSER_PATCHES_USE_GIT') == '1';
   }
 
   /**
@@ -206,8 +211,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     $manager = $event->getComposer()->getInstallationManager();
     $install_path = $manager->getInstaller($package->getType())->getInstallPath($package);
 
-    // Commit the package.
-    $this->executeCommand('cd %s && git add -A . && git commit -m "Update package %s to version %s"', $install_path, $package_name, $package->getVersion());
+    if ($this->useGit) {
+      // Commit the package.
+      $this->executeCommand('cd %s && git add -A . && git commit -m "Update package %s to version %s"', $install_path, $package_name, $package->getVersion());
+    }
 
     if (!isset($this->patches[$package_name])) {
       if ($this->io->isVerbose()) {
@@ -230,7 +237,9 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       $this->io->write('    <info>' . $url . '</info> (<comment>' . $description. '</comment>)');
       try {
         $this->getAndApplyPatch($downloader, $install_path, $url);
-        $this->executeCommand('cd %s && git add -A . && git commit -m "Applied patch %s for %s."', $install_path, $url, $package_name);
+        if ($this->useGit) {
+          $this->executeCommand('cd %s && git add -A . && git commit -m "Applied patch %s for %s."', $install_path, $url, $package_name);
+        }
         $extra['patches_applied'][$description] = $url;
       }
       catch (\Exception $e) {
