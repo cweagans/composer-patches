@@ -213,6 +213,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
 
     if ($this->useGit) {
       // Commit the package.
+      $this->io->write('  - Committing <info>' . $package_name . '</info> with version <info>' . $package->getVersion(). '</info> to GIT.');
       $this->executeCommand('cd %s && git add -A . && git commit -m "Update package %s to version %s"', $install_path, $package_name, $package->getVersion());
     }
 
@@ -238,6 +239,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       try {
         $this->getAndApplyPatch($downloader, $install_path, $url);
         if ($this->useGit) {
+          $this->io->write('  - Committing patch <info>' . $url . '</info> for package <info>' . $package_name . '</info> to GIT.');
           $this->executeCommand('cd %s && git add -A . && git commit -m "Applied patch %s for %s."', $install_path, $url, $package_name);
         }
         $extra['patches_applied'][$description] = $url;
