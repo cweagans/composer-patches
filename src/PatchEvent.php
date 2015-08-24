@@ -8,6 +8,7 @@
 namespace cweagans\Composer;
 
 use Composer\EventDispatcher\Event;
+use Composer\Package\PackageInterface;
 
 class PatchEvent extends Event {
 
@@ -45,7 +46,7 @@ class PatchEvent extends Event {
    * @return PackageInterface
    */
   public function getPackage() {
-    return $package;
+    return $this->package;
   }
 
   /**
@@ -54,7 +55,7 @@ class PatchEvent extends Event {
    * @return string
    */
   public function getUrl() {
-    return $url;
+    return $this->url;
   }
 
   /**
@@ -63,7 +64,7 @@ class PatchEvent extends Event {
    * @return string
    */
   public function getDescription() {
-    return $description;
+    return $this->description;
   }
 
 }
