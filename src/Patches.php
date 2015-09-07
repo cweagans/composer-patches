@@ -87,7 +87,6 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       $installationManager = $this->composer->getInstallationManager();
       $packages = $localRepository->getPackages();
 
-      $tmp_patches = array();
       $tmp_patches = $this->grabPatches();
       if ($tmp_patches == FALSE) {
         $this->io->write('<info>No patches supplied.</info>');
@@ -181,31 +180,31 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       return $patches;
     }
     // If it's not specified there, look for a patches-file definition.
-    else if (isset($extra['patches-file'])) {
+    elseif (isset($extra['patches-file'])) {
       $this->io->write('<info>Gathering patches from patch file.</info>');
       $patches = file_get_contents($extra['patches-file']);
       $patches = json_decode($patches, TRUE);
       $error = json_last_error();
-        if ($error != 0) {
-          switch ($error) {
-            case JSON_ERROR_DEPTH:
-              $msg = ' - Maximum stack depth exceeded';
-              break;
-            case JSON_ERROR_STATE_MISMATCH:
-              $msg =  ' - Underflow or the modes mismatch';
-              break;
-            case JSON_ERROR_CTRL_CHAR:
-              $msg = ' - Unexpected control character found';
-              break;
-            case JSON_ERROR_SYNTAX:
-              $msg =  ' - Syntax error, malformed JSON';
-              break;
-            case JSON_ERROR_UTF8:
-              $msg =  ' - Malformed UTF-8 characters, possibly incorrectly encoded';
-              break;
-            default:
-              $msg =  ' - Unknown error';
-              break;
+      if ($error != 0) {
+        switch ($error) {
+          case JSON_ERROR_DEPTH:
+            $msg = ' - Maximum stack depth exceeded';
+            break;
+          case JSON_ERROR_STATE_MISMATCH:
+            $msg =  ' - Underflow or the modes mismatch';
+            break;
+          case JSON_ERROR_CTRL_CHAR:
+            $msg = ' - Unexpected control character found';
+            break;
+          case JSON_ERROR_SYNTAX:
+            $msg =  ' - Syntax error, malformed JSON';
+            break;
+          case JSON_ERROR_UTF8:
+            $msg =  ' - Malformed UTF-8 characters, possibly incorrectly encoded';
+            break;
+          default:
+            $msg =  ' - Unknown error';
+            break;
           }
           throw new \Exception('There was an error in the supplied patches file:' . $msg);
         }
@@ -213,7 +212,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
         $patches = $patches['patches'];
         return $patches;
       }
-      else if(!$patches) {
+      elseif(!$patches) {
         throw new \Exception('There was an error in the supplied patch file');
       }
     }
