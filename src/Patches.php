@@ -276,12 +276,19 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * @throws \Exception
    */
   protected function getAndApplyPatch(RemoteFilesystem $downloader, $install_path, $patch_url) {
-    // Generate random (but not cryptographically so) filename.
-    $filename = uniqid("/tmp/") . ".patch";
 
-    // Download file from remote filesystem to this location.
-    $hostname = parse_url($patch_url, PHP_URL_HOST);
-    $downloader->copy($hostname, $patch_url, $filename, FALSE);
+    // Local patch file.
+    if (file_exists($patch_url)) {
+      $filename = $patch_url;
+    }
+    else {
+      // Generate random (but not cryptographically so) filename.
+      $filename = uniqid("/tmp/") . ".patch";
+
+      // Download file from remote filesystem to this location.
+      $hostname = parse_url($patch_url, PHP_URL_HOST);
+      $downloader->copy($hostname, $patch_url, $filename, FALSE);
+    }
 
     // Modified from drush6:make.project.inc
     $patched = FALSE;
@@ -310,9 +317,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       }
     }
 
-    // Clean up the old patch file.
-    unlink($filename);
-
+    // Clean up the temporary patch file.
+    if (isset($hostname)) {
+      unlink($filename);
+    }
     // If the patch *still* isn't applied, then give up and throw an Exception.
     // Otherwise, let the user know it worked.
     if (!$patched) {
