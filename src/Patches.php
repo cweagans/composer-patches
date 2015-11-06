@@ -87,25 +87,9 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       $installationManager = $this->composer->getInstallationManager();
       $packages = $localRepository->getPackages();
 
-      $tmp_patches = array();
-
-      // First, try to get the patches from the root composer.json.
-      $extra = $this->composer->getPackage()->getExtra();
-      if (isset($extra['patches'])) {
-        $this->io->write('<info>Gathering patches for root package.</info>');
-        $tmp_patches = $extra['patches'];
-      }
-      // If it's not specified there, look for a patches-file definition.
-      else if (isset($extra['patches-file'])) {
-        $this->io->write('<info>Gathering patches from patch file.</info>');
-        $patches = file_get_contents($extra['patches-file']);
-        $patches = json_decode($patches, TRUE);
-        if (isset($patches['patches'])) {
-          $tmp_patches = $patches['patches'];
-        }
-      }
-      else {
-        // @todo: should we throw an exception here?
+      $tmp_patches = $this->grabPatches();
+      if ($tmp_patches == FALSE) {
+        $this->io->write('<info>No patches supplied.</info>');
         return;
       }
 
@@ -150,23 +134,9 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       return;
     }
 
-    // First, try to get the patches from the root composer.json.
-    $extra = $this->composer->getPackage()->getExtra();
-    if (isset($extra['patches'])) {
-      $this->io->write('<info>Gathering patches for root package.</info>');
-      $this->patches = $extra['patches'];
-    }
-    // If it's not specified there, look for a patches-file definition.
-    else if (isset($extra['patches-file'])) {
-      $this->io->write('<info>Gathering patches from patch file.</info>');
-      $patches = file_get_contents($extra['patches-file']);
-      $patches = json_decode($patches, TRUE);
-      if (isset($patches['patches'])) {
-        $this->patches = $patches['patches'];
-      }
-    }
-    else {
-      // @todo: should we throw an exception here?
+    $this->patches = $this->grabPatches();
+    if ($this->patches == FALSE) {
+      $this->io->write('<info>No patches supplied.</info>');
       return;
     }
 
@@ -194,6 +164,61 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     // Make sure we don't gather patches again. Extra keys in $this->patches
     // won't hurt anything, so we'll just stash it there.
     $this->patches['_patchesGathered'] = TRUE;
+  }
+  
+  /**
+   * Get the patches from root composer or external file
+   * @return Patches
+   * @throws \Exception
+   */
+  public function grabPatches() {
+      // First, try to get the patches from the root composer.json.
+    $extra = $this->composer->getPackage()->getExtra();
+    if (isset($extra['patches'])) {
+      $this->io->write('<info>Gathering patches for root package.</info>');
+      $patches = $extra['patches'];
+      return $patches;
+    }
+    // If it's not specified there, look for a patches-file definition.
+    elseif (isset($extra['patches-file'])) {
+      $this->io->write('<info>Gathering patches from patch file.</info>');
+      $patches = file_get_contents($extra['patches-file']);
+      $patches = json_decode($patches, TRUE);
+      $error = json_last_error();
+      if ($error != 0) {
+        switch ($error) {
+          case JSON_ERROR_DEPTH:
+            $msg = ' - Maximum stack depth exceeded';
+            break;
+          case JSON_ERROR_STATE_MISMATCH:
+            $msg =  ' - Underflow or the modes mismatch';
+            break;
+          case JSON_ERROR_CTRL_CHAR:
+            $msg = ' - Unexpected control character found';
+            break;
+          case JSON_ERROR_SYNTAX:
+            $msg =  ' - Syntax error, malformed JSON';
+            break;
+          case JSON_ERROR_UTF8:
+            $msg =  ' - Malformed UTF-8 characters, possibly incorrectly encoded';
+            break;
+          default:
+            $msg =  ' - Unknown error';
+            break;
+          }
+          throw new \Exception('There was an error in the supplied patches file:' . $msg);
+        }
+      if (isset($patches['patches'])) {
+        $patches = $patches['patches'];
+        return $patches;
+      }
+      elseif(!$patches) {
+        throw new \Exception('There was an error in the supplied patch file');
+      }
+    }
+    else {
+      return FALSE;
+    }
   }
 
   /**
