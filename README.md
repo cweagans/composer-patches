@@ -17,9 +17,11 @@ Example composer.json:
   },
   "extra": {
     "patches": {
-      "drupal/drupal": {
-        "Add startup configuration for PHP server": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch"
-      }
+      "drupal/drupal": [{
+        "url": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch",
+        "description": "Add startup configuration for PHP server",
+        "sha1": "84c0caf64b2811046d0b325a2fcfe048a83b33fc"
+      }]
     }
   }
 }
@@ -51,9 +53,11 @@ Then your composer.patches.json should look like this:
 ```
 {
   "patches": {
-    "vendor/project": {
-      "Patch title": "http://example.com/url/to/patch.patch"
-    }
+    "vendor/project": [{
+      "url": "http://example.com/url/to/patch.patch",
+      "description": "Patch title",
+      "sha1": "18deadbeeffea5ta7acafe1defec8db411ef7101"
+    }]
   }
 }
 ```

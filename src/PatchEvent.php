@@ -24,6 +24,10 @@ class PatchEvent extends Event {
   * @var string $description
   */
  protected $description;
+ /**
+  * @var string $sha1
+  */
+ protected $sha1 = NULL;
 
   /**
    * Constructs a PatchEvent object.
@@ -32,12 +36,14 @@ class PatchEvent extends Event {
    * @param PackageInterface $package
    * @param string $url
    * @param string $description
+   * @param string $sha1
    */
-  public function __construct($eventName, PackageInterface $package, $url, $description) {
+  public function __construct($eventName, PackageInterface $package, $url, $description, $sha1 = NULL) {
     parent::__construct($eventName);
     $this->package = $package;
     $this->url = $url;
     $this->description = $description;
+    $this->sha1 = $sha1;
   }
 
   /**
@@ -67,4 +73,12 @@ class PatchEvent extends Event {
     return $this->description;
   }
 
+  /**
+   * Returns the sha1 check for the patch.
+   *
+   * @return string
+   */
+  public function getSha1() {
+    return $this->sha1;
+  }
 }
