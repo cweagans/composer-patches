@@ -1,6 +1,6 @@
 # composer-patches
 
-Simple patches plugin for Composer.
+Simple patches plugin for Composer. Applies a patch from a local or remote file to any package required with composer.
 
 ## Usage
 
