@@ -263,7 +263,9 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       }
       catch (\Exception $e) {
         $this->io->write('   <error>Could not apply patch! Skipping.</error>');
-        throw new \Exception("Cannot apply patch $url");
+        if(getenv('COMPOSER_EXIT_ON_PATCH_FAILURE')) {
+          throw new \Exception("Cannot apply patch $url");
+        }
       }
     }
     $localPackage->setExtra($extra);
