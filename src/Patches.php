@@ -137,7 +137,6 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     $this->patches = $this->grabPatches();
     if ($this->patches == FALSE) {
       $this->io->write('<info>No patches supplied.</info>');
-      return;
     }
 
     // Now add all the patches from dependencies that will be installed.
