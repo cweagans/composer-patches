@@ -135,7 +135,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     }
 
     $this->patches = $this->grabPatches();
-    if ($this->patches == FALSE) {
+    if (empty($this->patches)) {
       $this->io->write('<info>No patches supplied.</info>');
     }
 
@@ -216,7 +216,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       }
     }
     else {
-      return FALSE;
+      return array();
     }
   }
 
