@@ -81,6 +81,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * @param Event $event
    */
   public function checkPatches(Event $event) {
+    if (!$this->isPatchingEnabled()) {
+      return;
+    }
+
     try {
       $repositoryManager = $this->composer->getRepositoryManager();
       $localRepository = $repositoryManager->getLocalRepository();
@@ -131,6 +135,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
   public function gatherPatches(PackageEvent $event) {
     // If we've already done this, then don't do it again.
     if (isset($this->patches['_patchesGathered'])) {
+      return;
+    }
+    // If patching has been disabled, bail out here.
+    elseif (!$this->isPatchingEnabled()) {
       return;
     }
 
@@ -353,6 +361,17 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     if (!$patched) {
       throw new \Exception("Cannot apply patch $patch_url");
     }
+  }
+
+  /**
+   * Checks if the root package enables patching.
+   *
+   * @return bool
+   *   Whether patching is enabled. Defaults to TRUE.
+   */
+  protected function isPatchingEnabled() {
+    $extra = $this->composer->getPackage()->getExtra();
+    return isset($extra['enable-patching']) ? $extra['enable-patching'] : TRUE;
   }
 
   /**
