@@ -81,6 +81,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * @param Event $event
    */
   public function checkPatches(Event $event) {
+    if (!$this->isPatchingEnabled()) {
+      return;
+    }
+
     try {
       $repositoryManager = $this->composer->getRepositoryManager();
       $localRepository = $repositoryManager->getLocalRepository();
@@ -133,11 +137,14 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     if (isset($this->patches['_patchesGathered'])) {
       return;
     }
+    // If patching has been disabled, bail out here.
+    elseif (!$this->isPatchingEnabled()) {
+      return;
+    }
 
     $this->patches = $this->grabPatches();
-    if ($this->patches == FALSE) {
+    if (empty($this->patches)) {
       $this->io->write('<info>No patches supplied.</info>');
-      return;
     }
 
     // Now add all the patches from dependencies that will be installed.
@@ -217,7 +224,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       }
     }
     else {
-      return FALSE;
+      return array();
     }
   }
 
@@ -353,6 +360,25 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     // Otherwise, let the user know it worked.
     if (!$patched) {
       throw new \Exception("Cannot apply patch $patch_url");
+    }
+  }
+
+  /**
+   * Checks if the root package enables patching.
+   *
+   * @return bool
+   *   Whether patching is enabled. Defaults to TRUE.
+   */
+  protected function isPatchingEnabled() {
+    $extra = $this->composer->getPackage()->getExtra();
+
+    if (empty($extra['patches'])) {
+      // The root package has no patches of its own, so only allow patching if
+      // it has specifically opted in.
+      return isset($extra['enable-patching']) ? $extra['enable-patching'] : FALSE;
+    }
+    else {
+      return TRUE;
     }
   }
 
