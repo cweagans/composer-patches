@@ -372,10 +372,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
   protected function isPatchingEnabled() {
     $extra = $this->composer->getPackage()->getExtra();
 
-    // If the root package has no patches of its own, patching is only enabled
-    // if specifically opted in.
     if (empty($extra['patches'])) {
-      return $extra['enable-patching'] === TRUE;
+      // The root package has no patches of its own, so only allow patching if
+      // it has specifically opted in.
+      return isset($extra['enable-patching']) ? $extra['enable-patching'] : FALSE;
     }
     else {
       return TRUE;
