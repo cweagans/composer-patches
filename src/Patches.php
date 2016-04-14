@@ -142,10 +142,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       return;
     }
 
-    $this->patches = $this->grabPatches();
-    if (empty($this->patches)) {
-      $this->io->write('<info>No patches supplied.</info>');
-    }
+    $this->patches = [];
 
     // Now add all the patches from dependencies that will be installed.
     $operations = $event->getOperations();
@@ -158,6 +155,14 @@ class Patches implements PluginInterface, EventSubscriberInterface {
           $this->patches = array_merge_recursive($this->patches, $extra['patches']);
         }
       }
+    }
+
+    $local_patches = $this->grabPatches();
+    if (empty($local_patches)) {
+      $this->io->write('<info>No patches supplied.</info>');
+    }
+    else {
+      $this->patches = array_merge_recursive($this->patches, $local_patches);
     }
 
     // If we're in verbose mode, list the projects we're going to patch.
