@@ -40,6 +40,7 @@ Instead of a patches key in your root composer.json, use a patches-file key.
     "preferred-install": "source"
   },
   "extra": {
+    "enable-patching": true,
     "patches-file": "local/path/to/your/composer.patches.json"
   }
 }
