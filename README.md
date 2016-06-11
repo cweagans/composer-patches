@@ -26,6 +26,8 @@ Example composer.json:
 
 ```
 
+If you like that `composer install` fails if a patch cannot be applied, add `"composer-exit-on-patch-failure": true` option to the `config` section of your composer.json file. By default, failed patches are just skipped.
+
 ## Using an external patch file
 
 Instead of a patches key in your root composer.json, use a patches-file key.
