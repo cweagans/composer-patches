@@ -315,7 +315,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
 
     // Local patch file.
     if (file_exists($patch_url)) {
-      $filename = $patch_url;
+      $filename = realpath($patch_url);
     }
     else {
       // Generate random (but not cryptographically so) filename.
