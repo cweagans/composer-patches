@@ -116,6 +116,9 @@ class Patches implements PluginInterface, EventSubscriberInterface {
             $uninstallOperation = new UninstallOperation($package, 'Removing package so it can be re-installed and re-patched.');
             $this->io->write('<info>Removing package ' . $package_name . ' so that it can be re-installed and re-patched.</info>');
             $installationManager->uninstall($localRepository, $uninstallOperation);
+            $installOperation = new InstallOperation($package, 'Re-install package.');
+            $this->io->write('<info>Re-installing package ' . $package_name . '.</info>');
+            $installationManager->install($localRepository, $installOperation);
           }
         }
       }
