@@ -154,6 +154,18 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       if ($operation->getJobType() == 'install' || $operation->getJobType() == 'update') {
         $package = $this->getPackageFromOperation($operation);
         $extra = $package->getExtra();
+        // Packages that were removed for re-download and re-patching are
+        // sometimes missing their upstream patch information. If so, use
+        // patch info from patches_applied.
+        if (!isset($extra['patches'])
+          && (!array_key_exists($package->getName(), $this->patches) || empty($this->patches[$package->getName()]))
+          && isset($extra['patches_applied'])) {
+          if ($this->io->isVerbose()) {
+            $this->io->write('<info>Resetting patch information for removed package ' . $package . '.</info>');
+          }
+          $extra['patches'][$package->getName()] = $extra['patches_applied'];
+          unset($extra['patches_applied']);
+        }
         if (isset($extra['patches'])) {
           $this->patches = array_merge_recursive($this->patches, $extra['patches']);
         }
