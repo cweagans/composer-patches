@@ -167,7 +167,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
           unset($extra['patches_applied']);
         }
         if (isset($extra['patches'])) {
-          $this->patches = array_merge_recursive($this->patches, $extra['patches']);
+          $this->patches = array_replace_recursive($this->patches, $extra['patches']);
         }
       }
     }
