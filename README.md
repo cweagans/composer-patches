@@ -60,7 +60,7 @@ Then your composer.patches.json should look like this:
 
 ## Difference between this and netresearch/composer-patches-plugin
 
-* This plugin is much more simple to use and maintain
+* This plugin is much simpler to use and maintain
 * This plugin doesn't require you to specify which package version you're patching
 * This plugin is easy to use with Drupal modules (which don't use semantic versioning).
 * This plugin will gather patches from all dependencies and apply them as if they were in the root composer.json
