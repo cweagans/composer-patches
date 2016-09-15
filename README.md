@@ -58,6 +58,21 @@ Then your composer.patches.json should look like this:
 }
 ```
 
+## Allowing patches to be applied from dependencies
+
+If you want your project to accept patches from dependencies, you must have the following in your composer file:
+
+```
+{
+  "require": {
+      "cweagans/composer-patches": "^1.5.0"
+  },
+  "extra": {
+      "enable-patching": true
+  }
+}
+```
+
 ## Difference between this and netresearch/composer-patches-plugin
 
 * This plugin is much more simple to use and maintain
