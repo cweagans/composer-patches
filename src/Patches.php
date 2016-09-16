@@ -93,10 +93,6 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       $packages = $localRepository->getPackages();
 
       $tmp_patches = $this->grabPatches();
-      if ($tmp_patches == FALSE) {
-        $this->io->write('<info>No patches supplied.</info>');
-        return;
-      }
 
       foreach ($packages as $package) {
         $extra = $package->getExtra();
@@ -105,6 +101,11 @@ class Patches implements PluginInterface, EventSubscriberInterface {
         }
         $patches = isset($extra['patches']) ? $extra['patches'] : array();
         $tmp_patches = array_merge_recursive($tmp_patches, $patches);
+      }
+
+      if ($tmp_patches == FALSE) {
+        $this->io->write('<info>No patches supplied.</info>');
+        return;
       }
 
       // Remove packages for which the patch set has changed.
