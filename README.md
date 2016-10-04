@@ -73,6 +73,20 @@ If you want your project to accept patches from dependencies, you must have the 
 }
 ```
 
+## Using patches from HTTP URLs
+
+Composer [blocks](https://getcomposer.org/doc/06-config.md#secure-http) you from downloading anything from HTTP URLs, you can disable this for your project by adding a ```secure-http``` setting in the config section of your composer.json. Note that the ```config``` section should be under the root of your composer.json.
+
+```
+{
+  "config": {
+    "secure-http": false
+  }
+}
+```
+
+However, it's always advised to setup HTTPS to prevent MITM code injection.
+
 ## Difference between this and netresearch/composer-patches-plugin
 
 * This plugin is much more simple to use and maintain
