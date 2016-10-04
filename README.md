@@ -58,6 +58,21 @@ Then your composer.patches.json should look like this:
 }
 ```
 
+## Allowing patches to be applied from dependencies
+
+If you want your project to accept patches from dependencies, you must have the following in your composer file:
+
+```
+{
+  "require": {
+      "cweagans/composer-patches": "^1.5.0"
+  },
+  "extra": {
+      "enable-patching": true
+  }
+}
+```
+
 ## Using patches from HTTP URLs
 
 Composer [blocks](https://getcomposer.org/doc/06-config.md#secure-http) you from downloading anything from HTTP URLs, you can disable this for your project by adding a ```secure-http``` setting in the config section of your composer.json. Note that the ```config``` section should be under the root of your composer.json.

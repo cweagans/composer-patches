@@ -60,6 +60,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     $this->eventDispatcher = $composer->getEventDispatcher();
     $this->executor = new ProcessExecutor($this->io);
     $this->patches = array();
+    $this->installedPatches = array();
   }
 
   /**
@@ -99,6 +100,9 @@ class Patches implements PluginInterface, EventSubscriberInterface {
 
       foreach ($packages as $package) {
         $extra = $package->getExtra();
+        if (isset($extra['patches'])) {
+          $this->installedPatches[$package->getName()] = $extra['patches'];
+        }
         $patches = isset($extra['patches']) ? $extra['patches'] : array();
         $tmp_patches = array_merge_recursive($tmp_patches, $patches);
       }
@@ -147,6 +151,9 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       $this->io->write('<info>No patches supplied.</info>');
     }
 
+    $extra = $this->composer->getPackage()->getExtra();
+    $patches_ignore = isset($extra['patches-ignore']) ? $extra['patches-ignore'] : [];
+
     // Now add all the patches from dependencies that will be installed.
     $operations = $event->getOperations();
     $this->io->write('<info>Gathering patches for dependencies. This might take a minute.</info>');
@@ -155,9 +162,25 @@ class Patches implements PluginInterface, EventSubscriberInterface {
         $package = $this->getPackageFromOperation($operation);
         $extra = $package->getExtra();
         if (isset($extra['patches'])) {
+          if (isset($patches_ignore[$package->getName()])) {
+            foreach ($patches_ignore[$package->getName()] as $package => $patches) {
+              if (isset($extra['patches'][$package])) {
+                $extra['patches'][$package] = array_diff($extra['patches'][$package], $patches);
+              }
+            }
+          }
           $this->patches = array_merge_recursive($this->patches, $extra['patches']);
         }
+        // Unset installed patches for this package
+        if(isset($this->installedPatches[$package->getName()])) {
+          unset($this->installedPatches[$package->getName()]);
+        }
       }
+    }
+
+    // Merge installed patches from dependencies that did not receive an update.
+    foreach ($this->installedPatches as $patches) {
+      $this->patches = array_merge_recursive($this->patches, $patches);
     }
 
     // If we're in verbose mode, list the projects we're going to patch.
@@ -314,7 +337,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
 
     // Local patch file.
     if (file_exists($patch_url)) {
-      $filename = $patch_url;
+      $filename = realpath($patch_url);
     }
     else {
       // Generate random (but not cryptographically so) filename.
@@ -372,7 +395,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
   protected function isPatchingEnabled() {
     $extra = $this->composer->getPackage()->getExtra();
 
-    if (empty($extra['patches'])) {
+    if (empty($extra['patches']) && empty($extra['patches-ignore'])) {
       // The root package has no patches of its own, so only allow patching if
       // it has specifically opted in.
       return isset($extra['enable-patching']) ? $extra['enable-patching'] : FALSE;
