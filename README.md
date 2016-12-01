@@ -10,7 +10,7 @@ Example composer.json:
 {
   "require": {
     "cweagans/composer-patches": "~1.0",
-    "drupal/drupal": "8.0.*@dev"
+    "drupal/drupal": "~8.2"
   },
   "config": {
     "preferred-install": "source"
@@ -34,7 +34,7 @@ Instead of a patches key in your root composer.json, use a patches-file key.
 {
   "require": {
     "cweagans/composer-patches": "~1.0",
-    "drupal/drupal": "8.0.*@dev"
+    "drupal/drupal": "~8.2"
   },
   "config": {
     "preferred-install": "source"
@@ -72,7 +72,39 @@ If you want your project to accept patches from dependencies, you must have the 
   }
 }
 ```
+## Ignoring patches
+There may be situations in which you want to ignore a patch supplied by a dependency. For example:
+1. You use a different more recent version of a dependency, and now a patch isn't applying.
+1. You have a more up to date patch than the dependency, and want to use yours instead of theirs.
+1. A dependency's patch adds a feature to a project that you don't need.
+1. Your patches conflict with a dependency's patches.
 
+```
+{
+  "require": {
+    "cweagans/composer-patches": "~1.0",
+    "drupal/drupal": "~8.2"
+    "drupal/lightning": "~8.1"
+  },
+  "config": {
+    "preferred-install": "source"
+  },
+  "extra": {
+    "patches": {
+      "drupal/drupal": {
+        "Add startup configuration for PHP server": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch"
+      }
+    }
+    "patches-ignore": {
+      "drupal/lightning": {
+        "drupal/panelizer": {
+          "This patch has known conflicts with our Quick Edit integration": "https://www.drupal.org/files/issues/2664682-49.patch"
+        }
+      }
+    }
+  }
+}
+```
 ## Using patches from HTTP URLs
 
 Composer [blocks](https://getcomposer.org/doc/06-config.md#secure-http) you from downloading anything from HTTP URLs, you can disable this for your project by adding a ```secure-http``` setting in the config section of your composer.json. Note that the ```config``` section should be under the root of your composer.json.
