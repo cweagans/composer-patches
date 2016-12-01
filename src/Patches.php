@@ -139,10 +139,12 @@ class Patches implements PluginInterface, EventSubscriberInterface {
   public function gatherPatches(PackageEvent $event) {
     // If we've already done this, then don't do it again.
     if (isset($this->patches['_patchesGathered'])) {
+      $this->io->write('<info>Patches already gathered. Skipping</info>');
       return;
     }
     // If patching has been disabled, bail out here.
     elseif (!$this->isPatchingEnabled()) {
+      $this->io->write('<info>Patching is disabled. Skipping.</info>');
       return;
     }
 
