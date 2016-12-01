@@ -20,7 +20,7 @@ use Composer\Plugin\PluginInterface;
 use Composer\Installer\PackageEvents;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
-use Composer\Script\PackageEvent;
+use Composer\Installer\PackageEvent;
 use Composer\Util\ProcessExecutor;
 use Composer\Util\RemoteFilesystem;
 use Symfony\Component\Process\Process;
