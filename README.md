@@ -87,6 +87,12 @@ Composer [blocks](https://getcomposer.org/doc/06-config.md#secure-http) you from
 
 However, it's always advised to setup HTTPS to prevent MITM code injection.
 
+## Error handling
+
+If a patch cannot be applied (hunk failed, different line endings, etc.) a message will be shown and the patch will be skipped.
+
+To enforce throwing an error and stopping package installation/update immediately, export `COMPOSER_EXIT_ON_PATCH_FAILURE=1`.
+
 ## Difference between this and netresearch/composer-patches-plugin
 
 * This plugin is much more simple to use and maintain
