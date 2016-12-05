@@ -6,7 +6,7 @@ Simple patches plugin for Composer. Applies a patch from a local or remote file 
 
 Example composer.json:
 
-```
+```json
 {
   "require": {
     "cweagans/composer-patches": "~1.0",
@@ -30,7 +30,7 @@ Example composer.json:
 
 Instead of a patches key in your root composer.json, use a patches-file key.
 
-```
+```json
 {
   "require": {
     "cweagans/composer-patches": "~1.0",
@@ -62,7 +62,7 @@ Then your composer.patches.json should look like this:
 
 If you want your project to accept patches from dependencies, you must have the following in your composer file:
 
-```
+```json
 {
   "require": {
       "cweagans/composer-patches": "^1.5.0"
@@ -79,7 +79,7 @@ There may be situations in which you want to ignore a patch supplied by a depend
 1. A dependency's patch adds a feature to a project that you don't need.
 1. Your patches conflict with a dependency's patches.
 
-```
+```json
 {
   "require": {
     "cweagans/composer-patches": "~1.0",
