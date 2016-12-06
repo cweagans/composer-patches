@@ -15,6 +15,7 @@ use Composer\DependencyResolver\Operation\OperationInterface;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
 use Composer\Package\AliasPackage;
+use Composer\Package\Package;
 use Composer\Package\PackageInterface;
 use Composer\Plugin\PluginInterface;
 use Composer\Installer\PackageEvents;
@@ -272,20 +273,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       return;
     }
     $this->io->write('  - Applying patches for <info>' . $package_name . '</info>');
-    
-    // Gather all packages defined in root composer.json into a single array for version constraint access.
-    $root_requires = $this->composer->getPackage()->getRequires();
-    $root_dev_requires = $this->composer->getPackage()->getDevRequires();
-    $root_packages = array_merge($root_requires, $root_dev_requires);
 
-    if (!empty($root_packages[$package_name])) {
-      // If ^, ~, or * operators are being used, or this is a dev version without a hash specified, display warning.
-      /** @var MultiConstraint $link */
-      $link = $root_packages[$package_name]->getConstraint();
-      $version_constraint = $link->getPrettyString();
-      if (preg_match('/[\^~*]|(-dev)|(dev-)/', $version_constraint) && !strstr($version_constraint, '#')) {
-        $this->io->write("    <comment>$package_name has inexact version constraint. This may cause a patch failure now or in the future when the package is changed.</comment>");
-      }
+    $extra = $this->composer->getPackage()->getExtra();
+    if (!empty($extra['inexact-constraint-warning'])) {
+      $this->displayConstraintWarning($package);
     }
 
     // Get the install path from the package object.
@@ -321,6 +312,30 @@ class Patches implements PluginInterface, EventSubscriberInterface {
 
     $this->io->write('');
     $this->writePatchReport($this->patches[$package_name], $install_path);
+  }
+
+  /**
+   * Displays a warning if the package's version constraint is inexact.
+   *
+   * @param Composer\Package $package
+   *   The package for which to display the warning.
+   */
+  protected function displayConstraintWarning($package) {
+    // Gather all packages defined in root composer.json into a single array for version constraint access.
+    $root_requires = $this->composer->getPackage()->getRequires();
+    $root_dev_requires = $this->composer->getPackage()->getDevRequires();
+    $root_packages = array_merge($root_requires, $root_dev_requires);
+    $package_name = $package->getName();
+
+    if (!empty($root_packages[$package_name])) {
+      // If ^, ~, or * operators are being used, or this is a dev version without a hash specified, display warning.
+      /** @var MultiConstraint $link */
+      $link = $root_packages[$package_name]->getConstraint();
+      $version_constraint = $link->getPrettyString();
+      if (preg_match('/[\^~*]|(-dev)|(dev-)/', $version_constraint) && !strstr($version_constraint, '#')) {
+        $this->io->write("    <comment>$package_name has inexact version constraint. This may cause a patch failure now or in the future when the package is changed.</comment>");
+      }
+    }
   }
 
   /**

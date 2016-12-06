@@ -119,6 +119,18 @@ Composer [blocks](https://getcomposer.org/doc/06-config.md#secure-http) you from
 
 However, it's always advised to setup HTTPS to prevent MITM code injection.
 
+## Version constraints
+
+Typically, Composer best practices dictate that exact versions (e.g., 8.1.1) be avoided. However, using an inexact version constraint (e.g., ^8.1) can cause patching failures when the upstream package is updated. You may optionally display a warning regarding the use of inexact version constraints by using the following configuration in composer.json:
+
+```
+  "extra": {
+    "inexact-constraint-warning": true
+  }
+```
+
+This will be displayed during `composer update`.
+
 ## Error handling
 
 If a patch cannot be applied (hunk failed, different line endings, etc.) a message will be shown and the patch will be skipped.
