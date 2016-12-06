@@ -272,6 +272,21 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       return;
     }
     $this->io->write('  - Applying patches for <info>' . $package_name . '</info>');
+    
+    // Gather all packages defined in root composer.json into a single array for version constraint access.
+    $root_requires = $this->composer->getPackage()->getRequires();
+    $root_dev_requires = $this->composer->getPackage()->getDevRequires();
+    $root_packages = array_merge($root_requires, $root_dev_requires);
+
+    if (!empty($root_packages[$package_name])) {
+      // If ^, ~, or * operators are being used, or this is a dev version without a hash specified, display warning.
+      /** @var MultiConstraint $link */
+      $link = $root_packages[$package_name]->getConstraint();
+      $version_constraint = $link->getPrettyString();
+      if (preg_match('/[\^~*]|(-dev)|(dev-)/', $version_constraint) && !strstr($version_constraint, '#')) {
+        $this->io->write("    <comment>$package_name has inexact version constraint. This may cause a patch failure now or in the future when the package is changed.</comment>");
+      }
+    }
 
     // Get the install path from the package object.
     $manager = $event->getComposer()->getInstallationManager();
@@ -286,23 +301,8 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     $extra = $localPackage->getExtra();
     $extra['patches_applied'] = array();
 
-    // Gather all packages defined in root composer.json into a single array for version constraint access.
-    $root_requires = $this->composer->getPackage()->getRequires();
-    $root_dev_requires = $this->composer->getPackage()->getDevRequires();
-    $root_packages = array_merge($root_requires, $root_dev_requires);
-
     foreach ($this->patches[$package_name] as $description => $url) {
       $this->io->write('    <info>' . $url . '</info> (<comment>' . $description. '</comment>)');
-
-      if (!empty($root_packages[$package_name])) {
-        // If ^, ~, or * operators are being used, or this is a dev version without a hash specified, display warning.
-        /** @var MultiConstraint $link */
-        $link = $root_packages[$package_name]->getConstraint();
-        $version_constraint = $link->getPrettyString();
-        if (preg_match('/[\^~*]|(-dev)|(dev-)/', $version_constraint) && !strstr($version_constraint, '#')) {
-          $this->io->write("    <comment>$package_name has inexact version constraint. This may cause a patch failure now or in the future when the package is changed.</comment>");
-        }
-      }
       
       try {
         $this->eventDispatcher->dispatch(NULL, new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $package, $url, $description));
