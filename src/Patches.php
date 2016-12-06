@@ -21,6 +21,7 @@ use Composer\Installer\PackageEvents;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
 use Composer\Installer\PackageEvent;
+use Composer\Semver\Constraint\MultiConstraint;
 use Composer\Util\ProcessExecutor;
 use Composer\Util\RemoteFilesystem;
 use Symfony\Component\Process\Process;
@@ -295,9 +296,11 @@ class Patches implements PluginInterface, EventSubscriberInterface {
 
       if (!empty($root_packages[$package_name])) {
         // If ^, ~, or * operators are being used, or this is a dev version without a hash specified, display warning.
-        $version_constraint = $root_packages[$package_name];
+        /** @var MultiConstraint $link */
+        $link = $root_packages[$package_name]->getConstraint();
+        $version_constraint = $link->getPrettyString();
         if (preg_match('/[\^~*]|(-dev)|(dev-)/', $version_constraint) && !strstr($version_constraint, '#')) {
-          $this->io->write("<comment>You are patching $package_name with an inexact version constraint, which may cause a patch failure now or in the future when the package is changed.</comment>");
+          $this->io->write("    <comment>$package_name has inexact version constraint. This may cause a patch failure now or in the future when the package is changed.</comment>");
         }
       }
       
