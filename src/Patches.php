@@ -154,7 +154,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     }
 
     $extra = $this->composer->getPackage()->getExtra();
-    $patches_ignore = isset($extra['patches-ignore']) ? $extra['patches-ignore'] : [];
+    $patches_ignore = isset($extra['patches-ignore']) ? $extra['patches-ignore'] : array();
 
     // Now add all the patches from dependencies that will be installed.
     $operations = $event->getOperations();
