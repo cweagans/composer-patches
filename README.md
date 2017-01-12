@@ -26,13 +26,6 @@ Example composer.json:
 
 ```
 
-If you like that `composer install` fails if a patch cannot be applied, you have two options for your choice:
-
-1. Add `"composer-exit-on-patch-failure": true` option to the `extra` section of your composer.json file.
-1. Set `COMPOSER_EXIT_ON_PATCH_FAILURE` environment variable to `1`.
-
-By default, failed patches are just skipped.
-
 ## Using an external patch file
 
 Instead of a patches key in your root composer.json, use a patches-file key.
@@ -134,7 +127,12 @@ However, it's always advised to setup HTTPS to prevent MITM code injection.
 
 If a patch cannot be applied (hunk failed, different line endings, etc.) a message will be shown and the patch will be skipped.
 
-To enforce throwing an error and stopping package installation/update immediately, export `COMPOSER_EXIT_ON_PATCH_FAILURE=1`.
+To enforce throwing an error and stopping package installation/update immediately, you have two available options:
+
+1. Add `"composer-exit-on-patch-failure": true` option to the `extra` section of your composer.json file.
+1. Export `COMPOSER_EXIT_ON_PATCH_FAILURE=1`
+
+By default, failed patches are skipped.
 
 ## Difference between this and netresearch/composer-patches-plugin
 
