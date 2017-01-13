@@ -343,7 +343,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     }
     else {
       // Generate random (but not cryptographically so) filename.
-      $filename = uniqid("/tmp/") . ".patch";
+      $filename = uniqid(sys_get_temp_dir().'/') . ".patch";
 
       // Download file from remote filesystem to this location.
       $hostname = parse_url($patch_url, PHP_URL_HOST);
