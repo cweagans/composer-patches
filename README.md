@@ -123,6 +123,15 @@ Composer [blocks](https://getcomposer.org/doc/06-config.md#secure-http) you from
 
 However, it's always advised to setup HTTPS to prevent MITM code injection.
 
+## Patches containing modifications to composer.json files
+
+Because patching occurs _after_ Composer calculates dependencies and installs packages, changes to an underlying dependency's `composer.json` file introduced in a patch will have _no effect_ on installed packages.
+
+If you need to modify a dependency's `composer.json` or its underlying dependencies, you cannot use this plugin. Instead, you must do one of the following:
+- Work to get the underlying issue resolved in the upstream package.
+- Fork the package and [specify your fork as the package repository](https://getcomposer.org/doc/05-repositories.md#vcs) in your root `composer.json`
+- Specify compatible package version requirements in your root `composer.json`
+
 ## Error handling
 
 If a patch cannot be applied (hunk failed, different line endings, etc.) a message will be shown and the patch will be skipped.
