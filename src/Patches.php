@@ -165,9 +165,9 @@ class Patches implements PluginInterface, EventSubscriberInterface {
         $extra = $package->getExtra();
         if (isset($extra['patches'])) {
           if (isset($patches_ignore[$package->getName()])) {
-            foreach ($patches_ignore[$package->getName()] as $package => $patches) {
-              if (isset($extra['patches'][$package])) {
-                $extra['patches'][$package] = array_diff($extra['patches'][$package], $patches);
+            foreach ($patches_ignore[$package->getName()] as $package_name => $patches) {
+              if (isset($extra['patches'][$package_name])) {
+                $extra['patches'][$package_name] = array_diff($extra['patches'][$package_name], $patches);
               }
             }
           }
