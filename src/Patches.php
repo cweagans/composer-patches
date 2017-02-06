@@ -289,7 +289,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       $this->io->write('    <info>' . $url . '</info> (<comment>' . $description. '</comment>)');
       try {
         $this->eventDispatcher->dispatch(NULL, new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $package, $url, $description));
-        $this->getAndApplyPatch($downloader, $install_path, $url);
+        $this->getAndApplyPatch($downloader, $install_path, $url, $package);
         $this->eventDispatcher->dispatch(NULL, new PatchEvent(PatchEvents::POST_PATCH_APPLY, $package, $url, $description));
         $extra['patches_applied'][$description] = $url;
       }
@@ -333,9 +333,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * @param RemoteFilesystem $downloader
    * @param $install_path
    * @param $patch_url
+   * @param $package
    * @throws \Exception
    */
-  protected function getAndApplyPatch(RemoteFilesystem $downloader, $install_path, $patch_url) {
+  protected function getAndApplyPatch(RemoteFilesystem $downloader, $install_path, $patch_url, $package) {
 
     // Local patch file.
     if (file_exists($patch_url)) {
@@ -356,6 +357,9 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     // p0 is next likely. p2 is extremely unlikely, but for some special cases,
     // it might be useful.
     $patch_levels = array('-p1', '-p0', '-p2');
+    if(!empty($this->composer->getPackage()->getExtra()['patchLevel'][$package->getName()])){
+      $patch_levels = array($this->composer->getPackage()->getExtra()['patchLevel'][$package->getName()]);
+    }
     foreach ($patch_levels as $patch_level) {
       $checked = $this->executeCommand('cd %s && GIT_DIR=. git apply --check %s %s', $install_path, $patch_level, $filename);
       if ($checked) {
