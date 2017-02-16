@@ -136,7 +136,12 @@ If you need to modify a dependency's `composer.json` or its underlying dependenc
 
 If a patch cannot be applied (hunk failed, different line endings, etc.) a message will be shown and the patch will be skipped.
 
-To enforce throwing an error and stopping package installation/update immediately, export `COMPOSER_EXIT_ON_PATCH_FAILURE=1`.
+To enforce throwing an error and stopping package installation/update immediately, you have two available options:
+
+1. Add `"composer-exit-on-patch-failure": true` option to the `extra` section of your composer.json file.
+1. Export `COMPOSER_EXIT_ON_PATCH_FAILURE=1`
+
+By default, failed patches are skipped.
 
 ## Difference between this and netresearch/composer-patches-plugin
 
