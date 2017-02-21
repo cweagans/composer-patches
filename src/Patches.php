@@ -358,10 +358,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     // it might be useful.
     $patch_levels = array('-p1', '-p0', '-p2');
     foreach ($patch_levels as $patch_level) {
-      $checked = $this->executeCommand('cd %s && GIT_DIR=. git apply --check %s %s', $install_path, $patch_level, $filename);
+      $checked = $this->executeCommand('cd %s && git apply --check %s %s', $install_path, $patch_level, $filename);
       if ($checked) {
         // Apply the first successful style.
-        $patched = $this->executeCommand('cd %s && GIT_DIR=. git apply %s %s', $install_path, $patch_level, $filename);
+        $patched = $this->executeCommand('cd %s && git apply %s %s', $install_path, $patch_level, $filename);
         break;
       }
     }
