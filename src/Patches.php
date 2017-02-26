@@ -357,11 +357,15 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     // p0 is next likely. p2 is extremely unlikely, but for some special cases,
     // it might be useful.
     $patch_levels = array('-p1', '-p0', '-p2');
+    $git_dir = '';
+    if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
+      $git_dir = 'GIT_DIR=.';
+    }
     foreach ($patch_levels as $patch_level) {
-      $checked = $this->executeCommand('cd %s && git apply --check %s %s', $install_path, $patch_level, $filename);
+      $checked = $this->executeCommand('cd %s && $git_dir git apply  --check %s %s', $install_path, $patch_level, $filename);
       if ($checked) {
         // Apply the first successful style.
-        $patched = $this->executeCommand('cd %s && git apply %s %s', $install_path, $patch_level, $filename);
+        $patched = $this->executeCommand('cd %s && $git_dir git apply %s %s', $install_path, $patch_level, $filename);
         break;
       }
     }
