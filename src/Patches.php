@@ -454,7 +454,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
         }
       };
     }
-    return ($this->executor->execute($command, $output) == 0);
+    return ($this->executor->execute($command, $output) == 0) && (empty($this->executor->getErrorOutput()));
   }
 
   /**
