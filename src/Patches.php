@@ -180,8 +180,20 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       }
     }
 
-    // Merge installed patches from dependencies that did not receive an update.
+    // Merge installed patches from dependencies that did not receive an update and are not ignored.
     foreach ($this->installedPatches as $patches) {
+      foreach ($patches as $package => $patches_package) {
+        $ignore = array();
+        foreach ($patches_package as $index => $patch) {
+          if (isset($patches_ignore[$package]) && array_search($patch, $patches_ignore[$package]) !== FALSE) {
+            $ignore[] = $index . ' - ' . $patch;
+            unset($patches[$package][$index]);
+          }
+        }
+        if (!empty($ignore)) {
+          $this->io->write('<info>Ignore ' . $package . ' patches: ' . implode(', ', $ignore) . '</info>');
+        }
+      }
       $this->patches = array_merge_recursive($this->patches, $patches);
     }
 
