@@ -133,13 +133,15 @@ class Patches implements PluginInterface, EventSubscriberInterface {
           }
         }
 
-        // If we're in verbose mode, list the projects we're going to patch
-        // and the possible patches that are ignored.
-        if ($this->io->isVerbose()) {
-          if (!empty($ignored_patches)) {
-            $this->io->write('<info>Ignore ' . $package_name . ' patches: ' . implode(', ', $ignored_patches) . '</info>');
-          }
+        // If we're in verbose mode, list the patches that are ignored.
+        if ($this->io->isVerbose() && !empty($ignored_patches)) {
+          $this->io->write('<info>Ignore ' . $package_name . ' patches: ' . implode(', ', $ignored_patches) . '</info>');
+        }
+      }
 
+      // If we're in verbose mode, list all found patches per package.
+      if ($this->io->isVerbose()) {
+        foreach ($all_patches as $package_name => $patches) {
           $number = count($all_patches[$package_name]);
           $this->io->write('<info>Found ' . $number . ' patches for ' . $package_name . '.</info>');
         }
@@ -215,9 +217,9 @@ class Patches implements PluginInterface, EventSubscriberInterface {
           default:
             $msg =  ' - Unknown error';
             break;
-          }
-          throw new \Exception('There was an error in the supplied patches file:' . $msg);
         }
+        throw new \Exception('There was an error in the supplied patches file:' . $msg);
+      }
       if (isset($patches['patches'])) {
         $patches = $patches['patches'];
         return $patches;
