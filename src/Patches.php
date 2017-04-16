@@ -351,15 +351,14 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       $downloader->copy($hostname, $patch_url, $filename, FALSE);
     }
 
-    // Modified from drush6:make.project.inc
-    $patched = FALSE;
     // The order here is intentional. p1 is most likely to apply with git apply.
     // p0 is next likely. p2 is extremely unlikely, but for some special cases,
     // it might be useful.
     $patch_levels = array('-p1', '-p0', '-p2');
     foreach ($patch_levels as $patch_level) {
+      $patched = $this->executeCommand('cd %s && git --git-dir=. apply -R --check %s %s', $install_path, $patch_level, $filename);
       $checked = $this->executeCommand('cd %s && git --git-dir=. apply --check %s %s', $install_path, $patch_level, $filename);
-      if ($checked) {
+      if ($checked && !$patched) {
         // Apply the first successful style.
         $patched = $this->executeCommand('cd %s && git --git-dir=. apply %s %s', $install_path, $patch_level, $filename);
         break;
