@@ -103,7 +103,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
 
       $all_patches = $root_patches;
 
-      $this->io->write('<info>Gathering patches defined by dependecy packages.</info>');
+      $this->io->write('<info>Gathering patches defined by dependency packages.</info>');
 
       foreach ($packages as $package) {
         $extra = $package->getExtra();
