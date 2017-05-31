@@ -114,8 +114,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
           $extra = $package->getExtra();
           $has_patches = isset($tmp_patches[$package_name]);
           $has_applied_patches = isset($extra['patches_applied']);
+          $patch_report_exists = $this->checkPatchReport($installationManager->getInstaller($package->getType())->getInstallPath($package));
           if (($has_patches && !$has_applied_patches)
             || (!$has_patches && $has_applied_patches)
+            || ($has_patches && $has_applied_patches && !$patch_report_exists)
             || ($has_patches && $has_applied_patches && $tmp_patches[$package_name] !== $extra['patches_applied'])) {
             $uninstallOperation = new UninstallOperation($package, 'Removing package so it can be re-installed and re-patched.');
             $this->io->write('<info>Removing package ' . $package_name . ' so that it can be re-installed and re-patched.</info>');
@@ -422,6 +424,15 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       $output .= 'Source: ' . $url . "\n\n\n";
     }
     file_put_contents($directory . "/PATCHES.txt", $output);
+  }
+
+  /**
+   * Check if a patch report exists in the target directory.
+   *
+   * @param string $directory
+   */
+  function checkPatchReport($directory) {
+    return file_exists(sprintf('%s/PATCHES.txt', $directory));
   }
 
   /**
