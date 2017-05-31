@@ -431,7 +431,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    *
    * @param string $directory
    */
-  function checkPatchReport($directory) {
+  protected function checkPatchReport($directory) {
     return file_exists(sprintf('%s/PATCHES.txt', $directory));
   }
 
