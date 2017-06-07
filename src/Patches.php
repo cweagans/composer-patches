@@ -357,18 +357,31 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     // p0 is next likely. p2 is extremely unlikely, but for some special cases,
     // it might be useful.
     $patch_levels = array('-p1', '-p0', '-p2');
-    foreach ($patch_levels as $patch_level) {
-      $checked = $this->executeCommand('cd %s && git --git-dir=. apply --check %s %s', $install_path, $patch_level, $filename);
-      if ($checked) {
-        // Apply the first successful style.
-        $patched = $this->executeCommand('cd %s && git --git-dir=. apply %s %s', $install_path, $patch_level, $filename);
-        break;
+
+    if ($this->isPatchUtilityPreferred()) {
+      foreach ($patch_levels as $patch_level) {
+        // --no-backup-if-mismatch here is a hack that fixes some
+        // differences between how patch works on windows and unix.
+        if ($patched = $this->executeCommand("patch %s --no-backup-if-mismatch -d %s < %s", $patch_level, $install_path, $filename)) {
+          break;
+        }
+      }
+    }
+
+    if (!$patched) {
+      foreach ($patch_levels as $patch_level) {
+        $checked = $this->executeCommand('cd %s && git --git-dir=. apply --check %s %s', $install_path, $patch_level, $filename);
+        if ($checked) {
+          // Apply the first successful style.
+          $patched = $this->executeCommand('cd %s && git --git-dir=. apply %s %s', $install_path, $patch_level, $filename);
+          break;
+        }
       }
     }
 
     // In some rare cases, git will fail to apply a patch, fallback to using
     // the 'patch' command.
-    if (!$patched) {
+    if (!$patched && !$this->isPatchUtilityPreferred()) {
       foreach ($patch_levels as $patch_level) {
         // --no-backup-if-mismatch here is a hack that fixes some
         // differences between how patch works on windows and unix.
@@ -406,6 +419,18 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     else {
       return TRUE;
     }
+  }
+
+  /**
+   * Checks if the root package enables patching.
+   *
+   * @return bool
+   *   Whether the patch utility is preferred over git apply. Defaults to FALSE
+   */
+  protected function isPatchUtilityPreferred() {
+    $extra = $this->composer->getPackage()->getExtra();
+
+    return isset($extra['prefer-patch-util']) ? $extra['prefer-patch-util'] : FALSE;
   }
 
   /**
