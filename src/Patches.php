@@ -355,9 +355,8 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     $patched = FALSE;
     // The order here is intentional. p1 is most likely to apply with git apply.
     // p0 is next likely. p2 is extremely unlikely, but for some special cases,
-    // it might be useful. But if the drupal core is installed in a subfolder
-    // p2 is the most likely.
-    $patch_levels = preg_match('@^[^/\.]+/core$@', trim($install_path, "'")) ? array('-p2', '-p1', '-p0') : array('-p1', '-p0', '-p2');
+    // it might be useful.
+    $patch_levels = array('-p1', '-p0', '-p2');
     foreach ($patch_levels as $patch_level) {
       $checked = $this->executeCommand('cd %s && git --git-dir=. apply --check %s %s', $install_path, $patch_level, $filename);
       if ($checked) {
