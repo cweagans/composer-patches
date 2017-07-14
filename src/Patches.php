@@ -104,7 +104,13 @@ class Patches implements PluginInterface, EventSubscriberInterface {
           $this->installedPatches[$package->getName()] = $extra['patches'];
         }
         $patches = isset($extra['patches']) ? $extra['patches'] : array();
-        $tmp_patches = array_merge_recursive($tmp_patches, $patches);
+
+        // Ensure that duplicate patches are overwritten not merged.
+        foreach ($patches as $package_name => $values) {
+          foreach ($values as $description => $patchfile) {
+            $tmp_patches[$package_name][$description] = $patchfile;
+          }
+        }
       }
 
       // Remove packages for which the patch set has changed.
