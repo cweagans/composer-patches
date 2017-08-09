@@ -104,7 +104,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
           $this->installedPatches[$package->getName()] = $extra['patches'];
         }
         $patches = isset($extra['patches']) ? $extra['patches'] : array();
-        $tmp_patches = array_merge_recursive($tmp_patches, $patches);
+        $tmp_patches =  $this->arrayMergeRecursiveDistinct($tmp_patches, $patches);
       }
 
       // Remove packages for which the patch set has changed.
@@ -182,7 +182,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
 
     // Merge installed patches from dependencies that did not receive an update.
     foreach ($this->installedPatches as $patches) {
-      $this->patches = array_merge_recursive($this->patches, $patches);
+      $this->patches = $this->arrayMergeRecursiveDistinct($this->patches, $patches);
     }
 
     // If we're in verbose mode, list the projects we're going to patch.
