@@ -93,11 +93,6 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       $packages = $localRepository->getPackages();
 
       $tmp_patches = $this->grabPatches();
-      if ($tmp_patches == FALSE) {
-        $this->io->write('<info>No patches supplied.</info>');
-        return;
-      }
-
       foreach ($packages as $package) {
         $extra = $package->getExtra();
         if (isset($extra['patches'])) {
@@ -105,6 +100,11 @@ class Patches implements PluginInterface, EventSubscriberInterface {
         }
         $patches = isset($extra['patches']) ? $extra['patches'] : array();
         $tmp_patches = array_merge_recursive($tmp_patches, $patches);
+      }
+
+      if ($tmp_patches == FALSE) {
+        $this->io->write('<info>No patches supplied.</info>');
+        return;
       }
 
       // Remove packages for which the patch set has changed.
@@ -295,7 +295,6 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       }
       catch (\Exception $e) {
         $this->io->write('   <error>Could not apply patch! Skipping. The error was: ' . $e->getMessage() . '</error>');
-        $extra = $this->composer->getPackage()->getExtra();
         if (getenv('COMPOSER_EXIT_ON_PATCH_FAILURE') || !empty($extra['composer-exit-on-patch-failure'])) {
           throw new \Exception("Cannot apply patch $description ($url)!");
         }
@@ -355,8 +354,8 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     $patched = FALSE;
     // The order here is intentional. p1 is most likely to apply with git apply.
     // p0 is next likely. p2 is extremely unlikely, but for some special cases,
-    // it might be useful.
-    $patch_levels = array('-p1', '-p0', '-p2');
+    // it might be useful. p4 is useful for Magento 2 patches.
+    $patch_levels = array('-p1', '-p0', '-p2', '-p4');
 
     if ($this->isPatchUtilityPreferred()) {
       foreach ($patch_levels as $patch_level) {
