@@ -357,10 +357,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     // it might be useful. p4 is useful for Magento 2 patches
     $patch_levels = array('-p1', '-p0', '-p2', '-p4');
     foreach ($patch_levels as $patch_level) {
-      $checked = $this->executeCommand('cd %s && git --git-dir=. apply --check %s %s', $install_path, $patch_level, $filename);
+      $checked = $this->executeCommand('cd %s && git --git-dir=.git --work-tree=. apply --check %s %s', $install_path, $patch_level, $filename);
       if ($checked) {
         // Apply the first successful style.
-        $patched = $this->executeCommand('cd %s && git --git-dir=. apply %s %s', $install_path, $patch_level, $filename);
+        $patched = $this->executeCommand('cd %s && git --git-dir=.git --work-tree=. apply %s %s', $install_path, $patch_level, $filename);
         break;
       }
     }
