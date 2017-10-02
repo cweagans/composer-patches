@@ -1,0 +1,7 @@
+diff --git a/composer-patches.txt b/composer-patches.txt
+new file mode 100644
+index 0000000..839f59b
+--- /dev/null
++++ b/composer-patches.txt
+@@ -0,0 +1 @@
++Patch applied!
