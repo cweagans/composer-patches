@@ -102,6 +102,16 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       foreach ($packages as $package) {
         $extra = $package->getExtra();
         if (isset($extra['patches'])) {
+          // Go through each of this package's defined patches and make sure paths to patches
+          // defined relative to their home package are resolved properly.
+          $packageDir = $installationManager->getInstallPath($package);
+          foreach ($extra['patches'] as &$singlePackage) {
+            foreach ($singlePackage as &$path) {
+              if (realpath($tmp = "$packageDir/$path")) {
+                $path = $tmp;
+              }
+            }
+          }
           $this->installedPatches[$package->getName()] = $extra['patches'];
         }
         $patches = isset($extra['patches']) ? $extra['patches'] : array();
