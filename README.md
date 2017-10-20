@@ -2,6 +2,12 @@
 
 Simple patches plugin for Composer. Applies a patch from a local or remote file to any package required with composer.
 
+Note that the 1.x versions of Composer Patches are supported on a best-effort
+basis due to the imminent release of 2.0.0. You may still be interested in
+using 1.x if you need Composer to cooperate with earlier PHP versions. No new
+features will be added to 1.x releases, but any security or bug fixes will
+still be accepted.
+
 ## Usage
 
 Example composer.json:
