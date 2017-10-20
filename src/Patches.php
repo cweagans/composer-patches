@@ -32,18 +32,22 @@ class Patches implements PluginInterface, EventSubscriberInterface
      * @var Composer $composer
      */
     protected $composer;
+
     /**
      * @var IOInterface $io
      */
     protected $io;
+
     /**
      * @var EventDispatcher $eventDispatcher
      */
     protected $eventDispatcher;
+
     /**
      * @var ProcessExecutor $executor
      */
     protected $executor;
+
     /**
      * @var array $patches
      */
