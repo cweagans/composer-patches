@@ -3,17 +3,33 @@ sudo: false
 dist: trusty
 
 php:
+  - '5.6'
+  - '7.0'
   - '7.1'
   - nightly
 
 env:
   - PATCHES_TEST_SUITE=unit
   - PATCHES_TEST_SUITE=acceptance
+  - PATCHES_TEST_SUITE=lint
 
 matrix:
     fast_finish: true
     allow_failures:
         - php: nightly
+    exclude:
+        - php: 7.1
+          env: PATCHES_TEST_SUITE=lint
+        - php: nightly
+          env: PATCHES_TEST_SUITE=lint
+        - php: 5.6
+          env: PATCHES_TEST_SUITE=unit
+        - php: 5.6
+          env: PATCHES_TEST_SUITE=acceptance
+        - php: 7.0
+          env: PATCHES_TEST_SUITE=unit
+        - php: 7.0
+          env: PATCHES_TEST_SUITE=acceptance
 
 cache:
     directories:
@@ -24,8 +40,9 @@ install:
     - composer install --dev --no-interaction
 
 script:
-    - ./vendor/bin/grumphp run
     - echo "${PATCHES_TEST_SUITE}"
+    - ./vendor/bin/grumphp run
+    - if [ "${PATCHES_TEST_SUITE}" == "lint" ]; then find ./src -name "*.php" -exec php -l {} \; fi;
     - if [ "${TRAVIS_PHP_VERSION}" != "7.1" ]; then ./vendor/bin/codecept run "${PATCHES_TEST_SUITE}"; fi;
     - if [ "${TRAVIS_PHP_VERSION}" == "7.1" ]; then ./vendor/bin/codecept run "${PATCHES_TEST_SUITE}" --coverage-xml; fi;
 
