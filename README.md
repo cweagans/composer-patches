@@ -2,6 +2,17 @@
 
 Simple patches plugin for Composer. Applies a patch from a local or remote file to any package required with composer.
 
+## Support notes
+
+* If you need PHP 5.3, 5.4, or 5.5 support, you should probably use a 1.x release.
+* 1.x is mostly unsupported, but bugfixes and security fixes will still be accepted.
+  1.7.0 will be the last minor release in the 1.x series.
+* Beginning in 2.x, the automated tests will not allow us to use language features
+  that will cause syntax errors in PHP 5.6 and later. The unit/acceptance tests do
+  not run on anything earlier than PHP 7.1, so while pull requests will be accepted
+  for those versions, support is on a best-effort basis.
+
+
 ## Usage
 
 Example composer.json:
