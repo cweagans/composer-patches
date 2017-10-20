@@ -1,0 +1,24 @@
+{
+    "patches": {
+        "test/package": [
+            {
+                "url": "https://drupal.org",
+                "description": "Test patch"
+            },
+            {
+                "url": "https://drupal.org",
+                "description": "Test patch"
+            }
+        ],
+        "test/package2": [
+            {
+                "url": "https://drupal.org",
+                "description": "Test patch"
+            },
+            {
+                "url": "https://drupal.org",
+                "description": "Test patch"
+            }
+        ]
+    }
+}
