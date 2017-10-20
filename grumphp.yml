@@ -6,7 +6,6 @@ parameters:
         yamllint: ~
         composer: ~
         phpcpd: ~
-        securitychecker: ~
         phpcpd:
             directory: './src'
         jsonlint:
