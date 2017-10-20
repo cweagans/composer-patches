@@ -28,6 +28,8 @@ use Symfony\Component\Process\Process;
 class Patches implements PluginInterface, EventSubscriberInterface
 {
 
+    use ConfigurablePlugin;
+
     /**
      * @var Composer $composer
      */
@@ -67,6 +69,30 @@ class Patches implements PluginInterface, EventSubscriberInterface
         $this->executor = new ProcessExecutor($this->io);
         $this->patches = array();
         $this->installedPatches = array();
+
+        $this->configuration = [
+            'exit-on-patch-failure' => [
+                'type' => 'bool',
+                'default' => true,
+            ],
+            'disable-patching' => [
+                'type' => 'bool',
+                'default' => false,
+            ],
+            'disable-patching-from-dependencies' => [
+                'type' => 'bool',
+                'default' => false,
+            ],
+            'ignore-patches' => [
+                'type' => 'list',
+                'default' => [],
+            ],
+            'patch-levels' => [
+                'type' => 'list',
+                'default' => ['-p1', '-p0', '-p2', '-p4']
+            ],
+        ];
+        $this->configure($this->composer->getPackage()->getExtra(), 'composer-patches');
     }
 
     /**
