@@ -31,7 +31,7 @@ install:
 script:
     - echo "${PATCHES_TEST_SUITE}"
     - ./vendor/bin/grumphp run
-    - if [ "${PATCHES_TEST_SUITE}" == "lint" ]; then find ./src -name "*.php" -exec php -l {} \; fi;
+    - if [ "${PATCHES_TEST_SUITE}" == "lint" ]; then find ./src -name "*.php" -exec php -l {} \;; fi;
     - if [ "${TRAVIS_PHP_VERSION}" != "7.1" ] && [ "${PATCHES_TEST_SUITE}" != "lint" ]; then ./vendor/bin/codecept run "${PATCHES_TEST_SUITE}"; fi;
     - if [ "${TRAVIS_PHP_VERSION}" == "7.1" ] && [ "${PATCHES_TEST_SUITE}" != "lint" ]; then ./vendor/bin/codecept run "${PATCHES_TEST_SUITE}" --coverage-xml; fi;
 
