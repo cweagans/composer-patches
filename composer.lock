@@ -4,8 +4,49 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "4083a703b8ed2ed7ff5cff34c8a226c6",
-    "packages": [],
+    "content-hash": "22bc9b56528428a17f52fed1908da23c",
+    "packages": [
+        {
+            "name": "cweagans/composer-configurable-plugin",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/cweagans/composer-configurable-plugin.git",
+                "reference": "2df389bb1f13830fd95461d51f6eb52d02fc1c21"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/cweagans/composer-configurable-plugin/zipball/2df389bb1f13830fd95461d51f6eb52d02fc1c21",
+                "reference": "2df389bb1f13830fd95461d51f6eb52d02fc1c21",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4.0"
+            },
+            "require-dev": {
+                "composer/composer": "~1.0",
+                "phpunit/phpunit": "~5.7"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "cweagans\\Composer\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-2-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Cameron Eagans",
+                    "email": "me@cweagans.net"
+                }
+            ],
+            "description": "Provides a lightweight configuration system for Composer plugins.",
+            "time": "2017-05-25T04:32:06+00:00"
+        }
+    ],
     "packages-dev": [
         {
             "name": "behat/gherkin",
