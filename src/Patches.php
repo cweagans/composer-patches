@@ -91,6 +91,10 @@ class Patches implements PluginInterface, EventSubscriberInterface
                 'type' => 'list',
                 'default' => ['-p1', '-p0', '-p2', '-p4']
             ],
+            'patches-file' => [
+                'type' => 'string',
+                'default' => '',
+            ]
         ];
         $this->configure($this->composer->getPackage()->getExtra(), 'composer-patches');
     }
@@ -260,9 +264,9 @@ class Patches implements PluginInterface, EventSubscriberInterface
             $patches = $extra['patches'];
             return $patches;
         } // If it's not specified there, look for a patches-file definition.
-        elseif (isset($extra['patches-file'])) {
+        elseif ($this->getConfig('patches-file') != '') {
             $this->io->write('<info>Gathering patches from patch file.</info>');
-            $patches = file_get_contents($extra['patches-file']);
+            $patches = file_get_contents($this->getConfig('patches-file'));
             $patches = json_decode($patches, true);
             $error = json_last_error();
             if ($error != 0) {
