@@ -87,10 +87,6 @@ class Patches implements PluginInterface, EventSubscriberInterface
                 'type' => 'bool',
                 'default' => false,
             ],
-            'ignore-patches' => [
-                'type' => 'list',
-                'default' => [],
-            ],
             'patch-levels' => [
                 'type' => 'list',
                 'default' => ['-p1', '-p0', '-p2', '-p4']
