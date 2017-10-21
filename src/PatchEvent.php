@@ -24,10 +24,12 @@ class PatchEvent extends Event {
   * @var string $description
   */
  protected $description;
- /**
-  * @var string $sha1
-  */
- protected $sha1 = NULL;
+  /**
+   * An array of hashes, keyed by type.
+   *
+   * @var array
+   */
+  protected $hashes;
 
   /**
    * Constructs a PatchEvent object.
@@ -36,14 +38,14 @@ class PatchEvent extends Event {
    * @param PackageInterface $package
    * @param string $url
    * @param string $description
-   * @param string $sha1
+   * @param string $hashes
    */
-  public function __construct($eventName, PackageInterface $package, $url, $description, $sha1 = NULL) {
+  public function __construct($eventName, PackageInterface $package, $url, $description, $hashes = array()) {
     parent::__construct($eventName);
     $this->package = $package;
     $this->url = $url;
     $this->description = $description;
-    $this->sha1 = $sha1;
+    $this->hashes = $hashes;
   }
 
   /**
@@ -74,11 +76,11 @@ class PatchEvent extends Event {
   }
 
   /**
-   * Returns the sha1 check for the patch.
+   * Returns an array of hashes specified for the patch.
    *
-   * @return string
+   * @return array
    */
-  public function getSha1() {
-    return $this->sha1;
+  public function getHashes() {
+    return isset($this->hashes) ? $this->hashes : array();
   }
 }

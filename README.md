@@ -17,11 +17,9 @@ Example composer.json:
   },
   "extra": {
     "patches": {
-      "drupal/drupal": [{
-        "url": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch",
-        "description": "Add startup configuration for PHP server",
-        "sha1": "84c0caf64b2811046d0b325a2fcfe048a83b33fc"
-      }]
+      "drupal/drupal": {
+        "Add startup configuration for PHP server": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch"
+      }
     }
   }
 }
@@ -53,11 +51,9 @@ Then your `composer.patches.json` should look like this:
 ```
 {
   "patches": {
-    "vendor/project": [{
-      "url": "http://example.com/url/to/patch.patch",
-      "description": "Patch title",
-      "sha1": "18deadbeeffea5ta7acafe1defec8db411ef7101"
-    }]
+    "vendor/project": {
+      "Patch title": "http://example.com/url/to/patch.patch"
+    }
   }
 }
 ```
@@ -109,6 +105,22 @@ There may be situations in which you want to ignore a patch supplied by a depend
         }
       }
     }
+  }
+}
+```
+
+## Validate patch contents
+
+The hash contents can be validated against any hash algorithm supported by [`hash_algos()`](http://php.net/manual/en/function.hash-algos.php)
+
+```
+{
+  "patches": {
+    "vendor/project": [{
+      "title": "Patch title",
+      "url": "http://example.com/url/to/patch.patch",
+      "sha256": "c03905fcdab297513a620ec81ed46ca44ddb62d41cbbd83eb4a5a3592be26a69"
+    }]
   }
 }
 ```
