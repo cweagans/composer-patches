@@ -206,32 +206,34 @@ class Patches implements PluginInterface, EventSubscriberInterface
         $patches_ignore = isset($extra['patches-ignore']) ? $extra['patches-ignore'] : array();
 
         // Now add all the patches from dependencies that will be installed.
-        $operations = $event->getOperations();
-        $this->io->write('<info>Gathering patches for dependencies. This might take a minute.</info>');
-        foreach ($operations as $operation) {
-            if ($operation->getJobType() == 'install' || $operation->getJobType() == 'update') {
-                $package = $this->getPackageFromOperation($operation);
-                $extra = $package->getExtra();
-                if (isset($extra['patches'])) {
-                    if (isset($patches_ignore[$package->getName()])) {
-                        foreach ($patches_ignore[$package->getName()] as $package_name => $patches) {
-                            if (isset($extra['patches'][$package_name])) {
-                                $extra['patches'][$package_name] = array_diff(
-                                    $extra['patches'][$package_name],
-                                    $patches
-                                );
+        if (!$this->getConfig('disable-patching-from-dependenies')) {
+            $operations = $event->getOperations();
+            $this->io->write('<info>Gathering patches for dependencies. This might take a minute.</info>');
+            foreach ($operations as $operation) {
+                if ($operation->getJobType() == 'install' || $operation->getJobType() == 'update') {
+                    $package = $this->getPackageFromOperation($operation);
+                    $extra = $package->getExtra();
+                    if (isset($extra['patches'])) {
+                        if (isset($patches_ignore[$package->getName()])) {
+                            foreach ($patches_ignore[$package->getName()] as $package_name => $patches) {
+                                if (isset($extra['patches'][$package_name])) {
+                                    $extra['patches'][$package_name] = array_diff(
+                                        $extra['patches'][$package_name],
+                                        $patches
+                                    );
+                                }
                             }
                         }
+                        $this->patches = $this->arrayMergeRecursiveDistinct($this->patches, $extra['patches']);
                     }
-                    $this->patches = $this->arrayMergeRecursiveDistinct($this->patches, $extra['patches']);
-                }
-                // Unset installed patches for this package
-                if (isset($this->installedPatches[$package->getName()])) {
-                    unset($this->installedPatches[$package->getName()]);
+                    // Unset installed patches for this package
+                    if (isset($this->installedPatches[$package->getName()])) {
+                        unset($this->installedPatches[$package->getName()]);
+                    }
                 }
             }
         }
-
+        
         // Merge installed patches from dependencies that did not receive an update.
         foreach ($this->installedPatches as $patches) {
             $this->patches = array_merge_recursive($this->patches, $patches);
