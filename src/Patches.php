@@ -206,7 +206,7 @@ class Patches implements PluginInterface, EventSubscriberInterface
         $patches_ignore = isset($extra['patches-ignore']) ? $extra['patches-ignore'] : array();
 
         // Now add all the patches from dependencies that will be installed.
-        if (!$this->getConfig('disable-patching-from-dependenies')) {
+        if (!$this->getConfig('disable-patching-from-dependencies')) {
             $operations = $event->getOperations();
             $this->io->write('<info>Gathering patches for dependencies. This might take a minute.</info>');
             foreach ($operations as $operation) {
@@ -233,7 +233,7 @@ class Patches implements PluginInterface, EventSubscriberInterface
                 }
             }
         }
-        
+
         // Merge installed patches from dependencies that did not receive an update.
         foreach ($this->installedPatches as $patches) {
             $this->patches = array_merge_recursive($this->patches, $patches);
@@ -488,10 +488,10 @@ class Patches implements PluginInterface, EventSubscriberInterface
         $enabled = true;
 
         $has_no_patches = empty($extra['patches']);
-        $has_no_patches_file = !isset($extra['patches_file']);
+        $has_no_patches_file = ($this->getConfig('patches-file') == '');
         $patching_disabled = $this->getConfig('disable-patching');
 
-        if ($patching_disabled || ($has_no_patches && $has_no_patches_file)) {
+        if ($patching_disabled || !($has_no_patches && $has_no_patches_file)) {
             $enabled = false;
         }
 
