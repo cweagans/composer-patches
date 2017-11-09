@@ -264,6 +264,11 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * @throws \Exception
    */
   public function postInstall(PackageEvent $event) {
+
+    // Check if we should exit in failure.
+    $extra = $this->composer->getPackage()->getExtra();
+    $exitOnFailure = getenv('COMPOSER_EXIT_ON_PATCH_FAILURE') || !empty($extra['composer-exit-on-patch-failure']);
+
     // Get the package object for the current operation.
     $operation = $event->getOperation();
     /** @var PackageInterface $package */
@@ -301,7 +306,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       }
       catch (\Exception $e) {
         $this->io->write('   <error>Could not apply patch! Skipping. The error was: ' . $e->getMessage() . '</error>');
-        if (getenv('COMPOSER_EXIT_ON_PATCH_FAILURE') || !empty($extra['composer-exit-on-patch-failure'])) {
+        if ($exitOnFailure) {
           throw new \Exception("Cannot apply patch $description ($url)!");
         }
       }
