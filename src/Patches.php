@@ -307,7 +307,7 @@ class Patches implements PluginInterface, EventSubscriberInterface
         $extra['patches_applied'] = array();
 
         foreach ($this->patches[$package_name] as $description => $url) {
-            if (in_array($extra['patches_applied'], $url, true)) {
+            if (in_array($url, $extra['patches_applied'], true)) {
                 continue;
             }
             $this->io->write('    <info>' . $url . '</info> (<comment>' . $description . '</comment>)');
