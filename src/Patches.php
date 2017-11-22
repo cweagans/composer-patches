@@ -386,16 +386,28 @@ class Patches implements PluginInterface, EventSubscriberInterface
         // it might be useful. p4 is useful for Magento 2 patches
         $patch_levels = array('-p1', '-p0', '-p2', '-p4');
         foreach ($patch_levels as $patch_level) {
+            if ($this->io->isVerbose()) {
+                $comment = 'Testing ability to patch with git apply.';
+                $comment .= ' This command may produce errors that can be safely ignored.';
+                $this->io->write('<comment>' . $comment . '</comment>');
+            }
             $checked = $this->executeCommand(
-                'cd %s && git --git-dir=. apply --check %s %s',
+                'git -C %s apply --check -v %s %s',
                 $install_path,
                 $patch_level,
                 $filename
             );
+            $output = $this->executor->getErrorOutput();
+            if (substr($output, 0, 7) == 'Skipped') {
+                // Git will indicate success but silently skip patches in some scenarios.
+                //
+                // @see https://github.com/cweagans/composer-patches/pull/165
+                $checked = false;
+            }
             if ($checked) {
                 // Apply the first successful style.
                 $patched = $this->executeCommand(
-                    'cd %s && git --git-dir=. apply %s %s',
+                    'git -C %s apply %s %s',
                     $install_path,
                     $patch_level,
                     $filename
