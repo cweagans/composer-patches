@@ -225,10 +225,10 @@ class Patches implements PluginInterface, EventSubscriberInterface
     {
         // First, try to get the patches from the root composer.json.
         $extra = $this->composer->getPackage()->getExtra();
+        $patches = array();
         if (isset($extra['patches'])) {
             $this->io->write('<info>Gathering patches for root package.</info>');
             $patches = $extra['patches'];
-            return $patches;
         } // If it's not specified there, look for a patches-file definition.
         elseif (isset($extra['patches-file'])) {
             $this->io->write('<info>Gathering patches from patch file.</info>');
@@ -260,13 +260,35 @@ class Patches implements PluginInterface, EventSubscriberInterface
             }
             if (isset($patches['patches'])) {
                 $patches = $patches['patches'];
-                return $patches;
             } elseif (!$patches) {
                 throw new \Exception('There was an error in the supplied patch file');
             }
-        } else {
-            return array();
         }
+        if (isset($extra['patches-dir'])) {
+            $this->io->write('<info>Gathering patches from patch dir.</info>');
+            $patches_dir = $extra['patches-dir'];
+            $dir_it = new \RecursiveDirectoryIterator(
+                $patches_dir,
+                \FilesystemIterator::CURRENT_AS_PATHNAME
+                | \FilesystemIterator::SKIP_DOTS
+                | \FilesystemIterator::UNIX_PATHS
+            );
+            $rec_it = new \RecursiveIteratorIterator($dir_it);
+            $dir_patches = array();
+            foreach ($rec_it as $path) {
+                if (!is_file($path))
+                    continue;
+
+                $relative_path = substr($path, strlen($patches_dir) + 1); // + 1 for /
+                $path_parts = preg_split("%[/\\\\]+%", $relative_path, 3);
+                if (count($path_parts) != 3)
+                    continue;
+                $package = "$path_parts[0]/$path_parts[1]";
+                $dir_patches[$package][basename($path)] = $path;
+            }
+            return array_merge_recursive($dir_patches, $patches);
+        }
+        return $patches;
     }
 
     /**
