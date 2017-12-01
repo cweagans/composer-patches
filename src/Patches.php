@@ -361,37 +361,13 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       $downloader->copy($hostname, $patch_url, $filename, FALSE);
     }
 
-    // Modified from drush6:make.project.inc
-    $patched = FALSE;
+    // The order here is intentional. p1 is most likely to apply with git apply.
+    // p0 is next likely. p2 is extremely unlikely, but for some special cases,
+    // it might be useful. p4 is useful for Magento 2 patches
+    $patch_levels = array('-p1', '-p0', '-p2', '-p4');
 
-    // Do not use git apply unless the install path is itself a git repo
-    // @see https://stackoverflow.com/a/27283285
-    if (is_dir($install_path . '/.git')) {
-      // The order here is intentional. p1 is most likely to apply with git apply.
-      // p0 is next likely. p2 is extremely unlikely, but for some special cases,
-      // it might be useful. p4 is useful for Magento 2 patches
-      $patch_levels = array('-p1', '-p0', '-p2', '-p4');
-      foreach ($patch_levels as $patch_level) {
-        if ($this->io->isVerbose()) {
-          $comment = 'Testing ability to patch with git apply.';
-          $comment .= ' This command may produce errors that can be safely ignored.';
-          $this->io->write('<comment>' . $comment . '</comment>');
-        }
-        $checked = $this->executeCommand('git -C %s apply --check -v %s %s', $install_path, $patch_level, $filename);
-        $output = $this->executor->getErrorOutput();
-        if (substr($output, 0, 7) == 'Skipped') {
-          // Git will indicate success but silently skip patches in some scenarios.
-          //
-          // @see https://github.com/cweagans/composer-patches/pull/165
-          $checked = FALSE;
-        }
-        if ($checked) {
-          // Apply the first successful style.
-          $patched = $this->executeCommand('git -C %s apply %s %s', $install_path, $patch_level, $filename);
-          break;
-        }
-      }
-    }
+    // Attempt to apply with git apply.
+    $patched = $this->applyPatchWithGit($install_path, $patch_levels, $filename);
 
     // In some rare cases, git will fail to apply a patch, fallback to using
     // the 'patch' command.
@@ -513,6 +489,47 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     }
 
     return $merged;
+  }
+
+  /**
+   * Attempts to apply a patch with git apply.
+   *
+   * @param $install_path
+   * @param $patch_levels
+   * @param $filename
+   *
+   * @return bool
+   *   TRUE if patch was applied, FALSE otherwise.
+   */
+  protected function applyPatchWithGit($install_path, $patch_levels, $filename) {
+    // Do not use git apply unless the install path is itself a git repo
+    // @see https://stackoverflow.com/a/27283285
+    if (!is_dir($install_path . '/.git')) {
+      return FALSE;
+    }
+
+    $patched = FALSE;
+    foreach ($patch_levels as $patch_level) {
+      if ($this->io->isVerbose()) {
+        $comment = 'Testing ability to patch with git apply.';
+        $comment .= ' This command may produce errors that can be safely ignored.';
+        $this->io->write('<comment>' . $comment . '</comment>');
+      }
+      $checked = $this->executeCommand('git -C %s apply --check -v %s %s', $install_path, $patch_level, $filename);
+      $output = $this->executor->getErrorOutput();
+      if (substr($output, 0, 7) == 'Skipped') {
+        // Git will indicate success but silently skip patches in some scenarios.
+        //
+        // @see https://github.com/cweagans/composer-patches/pull/165
+        $checked = FALSE;
+      }
+      if ($checked) {
+        // Apply the first successful style.
+        $patched = $this->executeCommand('git -C %s apply %s %s', $install_path, $patch_level, $filename);
+        break;
+      }
+    }
+    return $patched;
   }
 
 }
