@@ -376,7 +376,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
         // Ues 'dry run' to test patch. This helps to avoid
         // generating wrong files even when patch does not apply.
         if (false === $this->executeCommand("patch %s --dry-run -d %s < %s", $patch_level, $install_path, $filename)) {
-          break;
+          continue;
         }
         
         // --no-backup-if-mismatch here is a hack that fixes some
