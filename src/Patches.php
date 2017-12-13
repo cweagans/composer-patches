@@ -382,8 +382,8 @@ class Patches implements PluginInterface, EventSubscriberInterface
         // Modified from drush6:make.project.inc
         $patched = false;
         // The order here is intentional. p1 is most likely to apply with git apply.
-        // p0 is next likely. p2 is useful for drupal/core patches. p4 is useful 
-        // for Magento 2 patches.
+        // p0 is next likely. p2 is useful for drupal/core patches. p4 is useful for
+        // Magento 2 patches.
         $patch_levels = array('-p1', '-p0', '-p2', '-p4');
         foreach ($patch_levels as $patch_level) {
             if ($this->io->isVerbose()) {
