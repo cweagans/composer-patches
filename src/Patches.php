@@ -422,7 +422,7 @@ class Patches implements PluginInterface, EventSubscriberInterface
             foreach ($patch_levels as $patch_level) {
                 // Ues 'dry run' to test patch. This helps to avoid
                 // generating wrong files even when patch does not apply.
-                if (FALSE === $this->executeCommand(
+                if (false === $this->executeCommand(
                     "patch %s --dry-run -d %s < %s",
                     $patch_level,
                     $install_path,
