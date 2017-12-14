@@ -362,8 +362,8 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     }
 
     // The order here is intentional. p1 is most likely to apply with git apply.
-    // p0 is next likely. p2 is extremely unlikely, but for some special cases,
-    // it might be useful. p4 is useful for Magento 2 patches
+    // p0 is next likely. p2 is useful for drupal/core patches. p4 is useful for
+    // Magento 2 patches.
     $patch_levels = array('-p1', '-p0', '-p2', '-p4');
 
     // Attempt to apply with git apply.
@@ -373,6 +373,12 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     // the 'patch' command.
     if (!$patched) {
       foreach ($patch_levels as $patch_level) {
+        // Ues 'dry run' to test patch. This helps to avoid
+        // generating wrong files even when patch does not apply.
+        if (false === $this->executeCommand("patch %s --dry-run -d %s < %s", $patch_level, $install_path, $filename)) {
+          continue;
+        }
+        
         // --no-backup-if-mismatch here is a hack that fixes some
         // differences between how patch works on windows and unix.
         if ($patched = $this->executeCommand("patch %s --no-backup-if-mismatch -d %s < %s", $patch_level, $install_path, $filename)) {
