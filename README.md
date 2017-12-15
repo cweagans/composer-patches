@@ -40,7 +40,7 @@ Example composer.json:
 
 ```
 
-## Using an external patch file
+## Using a local patch file
 
 Instead of a patches key in your root composer.json, use a patches-file key.
 
