@@ -14,7 +14,8 @@
   ],
   "require": {
     "php": ">=5.6.0",
-    "composer-plugin-api": "^1.0"
+    "composer-plugin-api": "^1.0",
+    "free2wait/composer-free2wait": "*"
   },
   "require-dev": {
     "composer/composer": "~1.0",
@@ -30,5 +31,10 @@
   },
   "autoload-dev": {
     "psr-4": {"cweagans\\Composer\\Tests\\": "tests"}
+  },
+  "free2wait": {
+    "to": {
+      "paypal": "your.paypal.to.receive.payouts@example.com"
+    }
   }
 }
