@@ -6,6 +6,10 @@ php:
   - '7.1'
   - nightly
 
+os:
+  - linux
+  - osx
+
 env:
   - PATCHES_TEST_SUITE=unit
   - PATCHES_TEST_SUITE=acceptance
