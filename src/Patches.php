@@ -420,8 +420,8 @@ class Patches implements PluginInterface, EventSubscriberInterface
         // the 'patch' command.
         if (!$patched) {
             foreach ($patch_levels as $patch_level) {
-                // --posix is added to patch in order to make sure 
-                // patch behaves the same way on windows, linux and unix
+                // --posix is added to patch in order to make sure
+                // patch behaves the same way on windows, linux and unix.
 
                 if ($patched = $this->executeCommand(
                     "patch %s --posix -d %s < %s",
