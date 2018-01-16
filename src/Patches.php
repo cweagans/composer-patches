@@ -420,16 +420,11 @@ class Patches implements PluginInterface, EventSubscriberInterface
         // the 'patch' command.
         if (!$patched) {
             foreach ($patch_levels as $patch_level) {
-                // --no-backup-if-mismatch here is a parameter that fixes some
-                // differences between how patch works on windows and unix.
-                // This can break other patch commands so it is only applied on Windows.
-                $patch_command = "patch %s -d %s < %s";
-                if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                    $patch_command = "patch %s --no-backup-if-mismatch -d %s < %s";
-                }
+                // --posix is added to patch in order to make sure 
+                // patch behaves the same way on windows, linux and unix
 
                 if ($patched = $this->executeCommand(
-                    $patch_command,
+                    "patch %s --posix -d %s < %s",
                     $patch_level,
                     $install_path,
                     $filename
