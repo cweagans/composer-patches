@@ -24,6 +24,7 @@ use Composer\Installer\PackageEvent;
 use Composer\Util\ProcessExecutor;
 use Composer\Util\RemoteFilesystem;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Filesystem\Filesystem;
 
 class Patches implements PluginInterface, EventSubscriberInterface {
 
@@ -102,6 +103,21 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       foreach ($packages as $package) {
         $extra = $package->getExtra();
         if (isset($extra['patches'])) {
+          foreach ($extra['patches'] as &$project) {
+            foreach ($project as $description => &$location) {
+              if (parse_url($location, PHP_URL_SCHEME) === null) {
+                // no protocol so we assume the file is local (we ignore explicit "file:" definitions)
+                $fs = new Filesystem();
+                if ($fs->isAbsolutePath($location)) {
+                  $location = realpath($location);
+                } else {
+                  $originDir = $installationManager->getInstallPath($package);
+                  $location = $originDir . DIRECTORY_SEPARATOR . $location;
+                }
+              }
+            }
+          }
+      
           $this->installedPatches[$package->getName()] = $extra['patches'];
         }
         $patches = isset($extra['patches']) ? $extra['patches'] : array();
@@ -347,7 +363,6 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * @throws \Exception
    */
   protected function getAndApplyPatch(RemoteFilesystem $downloader, $install_path, $patch_url) {
-
     // Local patch file.
     if (file_exists($patch_url)) {
       $filename = realpath($patch_url);
