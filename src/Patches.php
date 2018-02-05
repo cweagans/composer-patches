@@ -200,7 +200,7 @@ class Patches implements PluginInterface, EventSubscriberInterface
 
         // Merge installed patches from dependencies that did not receive an update.
         foreach ($this->installedPatches as $patches) {
-            $this->patches = array_merge_recursive($this->patches, $patches);
+            $this->patches = $this->arrayMergeRecursiveDistinct($this->patches, $patches);
         }
 
         // If we're in verbose mode, list the projects we're going to patch.
