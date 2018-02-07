@@ -109,7 +109,7 @@ class Patches implements PluginInterface, EventSubscriberInterface
                     $this->installedPatches[$package->getName()] = $extra['patches'];
                 }
                 $patches = isset($extra['patches']) ? $extra['patches'] : array();
-                $tmp_patches = array_merge_recursive($tmp_patches, $patches);
+                $tmp_patches = $this->arrayMergeRecursiveDistinct($tmp_patches, $patches);
             }
 
             if ($tmp_patches == false) {
