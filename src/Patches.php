@@ -100,6 +100,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       $packages = $localRepository->getPackages();
 
       $tmp_patches = $this->grabPatches();
+      $fs = new Filesystem();
       foreach ($packages as $package) {
         $extra = $package->getExtra();
         if (isset($extra['patches'])) {
@@ -107,7 +108,6 @@ class Patches implements PluginInterface, EventSubscriberInterface {
             foreach ($project as $description => &$location) {
               if (parse_url($location, PHP_URL_SCHEME) === null) {
                 // no protocol so we assume the file is local (we ignore explicit "file:" definitions)
-                $fs = new Filesystem();
                 if ($fs->isAbsolutePath($location)) {
                   $location = realpath($location);
                 } else {
