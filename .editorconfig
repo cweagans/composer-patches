@@ -1,11 +1,14 @@
-# This is the top-most .editorconfig file; do not search in parent directories.
+# PSR-1/2 standard.
 root = true
 
-# All files.
 [*]
-end_of_line = LF
-indent_style = space
-indent_size = 2
 charset = utf-8
-trim_trailing_whitespace = true
+end_of_line = lf
 insert_final_newline = true
+trim_trailing_whitespace = true
+indent_size = 4
+indent_style = space
+
+# Markdown customizations
+[*.md]
+trim_trailing_whitespace = false

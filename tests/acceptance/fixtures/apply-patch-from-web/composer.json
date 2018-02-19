@@ -1,0 +1,23 @@
+{
+  "name": "cweagans/composer-patches-test-project",
+  "description": "Project for use in cweagans/composer-patches acceptance tests.",
+  "type": "project",
+  "license": "BSD-2-Clause",
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../composer-patches"
+    }
+  ],
+  "require": {
+    "cweagans/composer-patches": "*@dev",
+    "drupal/drupal": "~8.2"
+  },
+  "extra": {
+    "patches": {
+      "drupal/drupal": {
+        "Add a startup config for the PHP web server": "https://www.drupal.org/files/issues/add_a_startup-1543858-58.patch"
+      }
+    }
+  }
+}

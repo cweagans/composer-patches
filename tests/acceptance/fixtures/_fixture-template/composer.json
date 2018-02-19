@@ -1,0 +1,15 @@
+{
+    "name": "cweagans/composer-patches-test-project",
+    "description": "Project for use in cweagans/composer-patches acceptance tests.",
+    "type": "project",
+    "license": "BSD-2-Clause",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../composer-patches"
+        }
+    ],
+    "require": {
+        "cweagans/composer-patches": "*@dev"
+    }
+}

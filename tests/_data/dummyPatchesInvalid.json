@@ -1,0 +1,10 @@
+{
+    "patches": {
+        "test/package": [
+            {
+                "url": "https://drupal.org",
+                "description": "Note the extra comma on line 8 of this json file."
+            }
+        ],
+    }
+}
