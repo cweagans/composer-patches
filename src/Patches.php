@@ -420,16 +420,26 @@ class Patches implements PluginInterface, EventSubscriberInterface
         // the 'patch' command.
         if (!$patched) {
             foreach ($patch_levels as $patch_level) {
-                // --no-backup-if-mismatch here is a hack that fixes some
-                // differences between how patch works on windows and unix.
-                if ($patched = $this->executeCommand(
-                    "patch %s --no-backup-if-mismatch -d %s < %s",
+                // Check whether the patch applies in its entirety, to avoid
+                // leftovers in case of partial success.
+                if ($this->executeCommand(
+                    "patch --dry-run %s --no-backup-if-mismatch -d %s < %s",
                     $patch_level,
                     $install_path,
                     $filename
                 )
                 ) {
-                    break;
+                    // --no-backup-if-mismatch here is a hack that fixes some
+                    // differences between how patch works on windows and unix.
+                    if ($patched = $this->executeCommand(
+                        "patch %s --no-backup-if-mismatch -d %s < %s",
+                        $patch_level,
+                        $install_path,
+                        $filename
+                    )
+                    ) {
+                        break;
+                    }
                 }
             }
         }
