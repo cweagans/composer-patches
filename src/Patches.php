@@ -297,6 +297,18 @@ class Patches implements PluginInterface, EventSubscriberInterface
         $manager = $event->getComposer()->getInstallationManager();
         $install_path = $manager->getInstaller($package->getType())->getInstallPath($package);
 
+		if ($package_name == 'drupal/core' && $install_path == 'docroot/core') {
+	      $install_path = 'docroot';
+	      if ($this->io->isVerbose()) {
+	        $this->io->write(sprintf("'%s [id: %s]' installation path has been altered for patching.", $package->getName(), $package->getId()));
+	      }
+	    } else if ($package_name == 'drupal/core' && $install_path == 'html/core') {
+	      $install_path = 'html';
+	      if ($this->io->isVerbose()) {
+	        $this->io->write(sprintf("'%s [id: %s]' installation path has been altered for patching.", $package->getName(), $package->getId()));
+	      }
+	    }
+
         // Set up a downloader.
         $downloader = new RemoteFilesystem($this->io, $this->composer->getConfig());
 
