@@ -300,12 +300,20 @@ class Patches implements PluginInterface, EventSubscriberInterface
         if ($package_name == 'drupal/core' && $install_path == 'docroot/core') {
             $install_path = 'docroot';
             if ($this->io->isVerbose()) {
-                $this->io->write(sprintf("'%s [id: %s]' installation path has been altered for patching.", $package->getName(), $package->getId()));
+                $this->io->write(sprintf(
+                    "'%s [id: %s]' installation path has been altered for patching.",
+                    $package->getName(),
+                    $package->getId()
+                ));
             }
         } elseif ($package_name == 'drupal/core' && $install_path == 'html/core') {
             $install_path = 'html';
             if ($this->io->isVerbose()) {
-                $this->io->write(sprintf("'%s [id: %s]' installation path has been altered for patching.", $package->getName(), $package->getId()));
+                $this->io->write(sprintf(
+                    "'%s [id: %s]' installation path has been altered for patching.",
+                    $package->getName(),
+                    $package->getId()
+                ));
             }
         }
 
