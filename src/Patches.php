@@ -110,10 +110,11 @@ class Patches implements PluginInterface, EventSubscriberInterface
             PackageEvents::PRE_PACKAGE_INSTALL => array('gatherPatches'),
             PackageEvents::PRE_PACKAGE_UPDATE => array('gatherPatches'),
             // The following is a higher weight for compatibility with
-            // https://github.com/AydinHassan/magento-core-composer-installer and more generally for compatibility with
-            // every Composer plugin which deploys downloaded packages to other locations.
-            // In such cases you want that those plugins deploy patched files so they have to run after
-            // the "composer-patches" plugin.
+            // https://github.com/AydinHassan/magento-core-composer-installer and
+            // more generally for compatibility with any Composer plugin which
+            // deploys downloaded packages to other locations. In the case that
+            // you want those plugins to deploy patched files, those plugins have
+            // to run *after* this plugin.
             // @see: https://github.com/cweagans/composer-patches/pull/153
             PackageEvents::POST_PACKAGE_INSTALL => array('postInstall', 10),
             PackageEvents::POST_PACKAGE_UPDATE => array('postInstall', 10),
@@ -143,7 +144,7 @@ class Patches implements PluginInterface, EventSubscriberInterface
                     $this->installedPatches[$package->getName()] = $extra['patches'];
                 }
                 $patches = isset($extra['patches']) ? $extra['patches'] : array();
-                $tmp_patches = array_merge_recursive($tmp_patches, $patches);
+                $tmp_patches = Util::arrayMergeRecursiveDistinct($tmp_patches, $patches);
             }
 
             if ($tmp_patches == false) {
@@ -224,7 +225,7 @@ class Patches implements PluginInterface, EventSubscriberInterface
                                 }
                             }
                         }
-                        $this->patches = $this->arrayMergeRecursiveDistinct($this->patches, $extra['patches']);
+                        $this->patches = Util::arrayMergeRecursiveDistinct($this->patches, $extra['patches']);
                     }
                     // Unset installed patches for this package
                     if (isset($this->installedPatches[$package->getName()])) {
@@ -236,7 +237,7 @@ class Patches implements PluginInterface, EventSubscriberInterface
 
         // Merge installed patches from dependencies that did not receive an update.
         foreach ($this->installedPatches as $patches) {
-            $this->patches = array_merge_recursive($this->patches, $patches);
+            $this->patches = Util::arrayMergeRecursiveDistinct($this->patches, $patches);
         }
 
         // If we're in verbose mode, list the projects we're going to patch.
@@ -551,36 +552,5 @@ class Patches implements PluginInterface, EventSubscriberInterface
             };
         }
         return ($this->executor->execute($command, $output) == 0);
-    }
-
-    /**
-     * Recursively merge arrays without changing data types of values.
-     *
-     * Does not change the data types of the values in the arrays. Matching keys'
-     * values in the second array overwrite those in the first array, as is the
-     * case with array_merge.
-     *
-     * @param array $array1
-     *   The first array.
-     * @param array $array2
-     *   The second array.
-     * @return array
-     *   The merged array.
-     *
-     * @see http://php.net/manual/en/function.array-merge-recursive.php#92195
-     */
-    protected function arrayMergeRecursiveDistinct(array $array1, array $array2)
-    {
-        $merged = $array1;
-
-        foreach ($array2 as $key => &$value) {
-            if (is_array($value) && isset($merged[$key]) && is_array($merged[$key])) {
-                $merged[$key] = $this->arrayMergeRecursiveDistinct($merged[$key], $value);
-            } else {
-                $merged[$key] = $value;
-            }
-        }
-
-        return $merged;
     }
 }
