@@ -28,22 +28,28 @@ use Symfony\Component\Process\Process;
 class Patches implements PluginInterface, EventSubscriberInterface
 {
 
+    use ConfigurablePlugin;
+
     /**
      * @var Composer $composer
      */
     protected $composer;
+
     /**
      * @var IOInterface $io
      */
     protected $io;
+
     /**
      * @var EventDispatcher $eventDispatcher
      */
     protected $eventDispatcher;
+
     /**
      * @var ProcessExecutor $executor
      */
     protected $executor;
+
     /**
      * @var array $patches
      */
@@ -63,6 +69,34 @@ class Patches implements PluginInterface, EventSubscriberInterface
         $this->executor = new ProcessExecutor($this->io);
         $this->patches = array();
         $this->installedPatches = array();
+
+        $this->configuration = [
+            'exit-on-patch-failure' => [
+                'type' => 'bool',
+                'default' => true,
+            ],
+            'disable-patching' => [
+                'type' => 'bool',
+                'default' => false,
+            ],
+            'disable-patching-from-dependencies' => [
+                'type' => 'bool',
+                'default' => false,
+            ],
+            'disable-patch-reports' => [
+                'type' => 'bool',
+                'default' => false,
+            ],
+            'patch-levels' => [
+                'type' => 'list',
+                'default' => ['-p1', '-p0', '-p2', '-p4']
+            ],
+            'patches-file' => [
+                'type' => 'string',
+                'default' => '',
+            ]
+        ];
+        $this->configure($this->composer->getPackage()->getExtra(), 'composer-patches');
     }
 
     /**
@@ -172,28 +206,30 @@ class Patches implements PluginInterface, EventSubscriberInterface
         $patches_ignore = isset($extra['patches-ignore']) ? $extra['patches-ignore'] : array();
 
         // Now add all the patches from dependencies that will be installed.
-        $operations = $event->getOperations();
-        $this->io->write('<info>Gathering patches for dependencies. This might take a minute.</info>');
-        foreach ($operations as $operation) {
-            if ($operation->getJobType() == 'install' || $operation->getJobType() == 'update') {
-                $package = $this->getPackageFromOperation($operation);
-                $extra = $package->getExtra();
-                if (isset($extra['patches'])) {
-                    if (isset($patches_ignore[$package->getName()])) {
-                        foreach ($patches_ignore[$package->getName()] as $package_name => $patches) {
-                            if (isset($extra['patches'][$package_name])) {
-                                $extra['patches'][$package_name] = array_diff(
-                                    $extra['patches'][$package_name],
-                                    $patches
-                                );
+        if (!$this->getConfig('disable-patching-from-dependencies')) {
+            $operations = $event->getOperations();
+            $this->io->write('<info>Gathering patches for dependencies. This might take a minute.</info>');
+            foreach ($operations as $operation) {
+                if ($operation->getJobType() == 'install' || $operation->getJobType() == 'update') {
+                    $package = $this->getPackageFromOperation($operation);
+                    $extra = $package->getExtra();
+                    if (isset($extra['patches'])) {
+                        if (isset($patches_ignore[$package->getName()])) {
+                            foreach ($patches_ignore[$package->getName()] as $package_name => $patches) {
+                                if (isset($extra['patches'][$package_name])) {
+                                    $extra['patches'][$package_name] = array_diff(
+                                        $extra['patches'][$package_name],
+                                        $patches
+                                    );
+                                }
                             }
                         }
+                        $this->patches = $this->arrayMergeRecursiveDistinct($this->patches, $extra['patches']);
                     }
-                    $this->patches = $this->arrayMergeRecursiveDistinct($this->patches, $extra['patches']);
-                }
-                // Unset installed patches for this package
-                if (isset($this->installedPatches[$package->getName()])) {
-                    unset($this->installedPatches[$package->getName()]);
+                    // Unset installed patches for this package
+                    if (isset($this->installedPatches[$package->getName()])) {
+                        unset($this->installedPatches[$package->getName()]);
+                    }
                 }
             }
         }
@@ -230,9 +266,9 @@ class Patches implements PluginInterface, EventSubscriberInterface
             $patches = $extra['patches'];
             return $patches;
         } // If it's not specified there, look for a patches-file definition.
-        elseif (isset($extra['patches-file'])) {
+        elseif ($this->getConfig('patches-file') != '') {
             $this->io->write('<info>Gathering patches from patch file.</info>');
-            $patches = file_get_contents($extra['patches-file']);
+            $patches = file_get_contents($this->getConfig('patches-file'));
             $patches = json_decode($patches, true);
             $error = json_last_error();
             if ($error != 0) {
@@ -275,10 +311,6 @@ class Patches implements PluginInterface, EventSubscriberInterface
      */
     public function postInstall(PackageEvent $event)
     {
-        // Check if we should exit in failure.
-        $extra = $this->composer->getPackage()->getExtra();
-        $exitOnFailure = getenv('COMPOSER_EXIT_ON_PATCH_FAILURE') || !empty($extra['composer-exit-on-patch-failure']);
-
         // Get the package object for the current operation.
         $operation = $event->getOperation();
         /** @var PackageInterface $package */
@@ -325,7 +357,7 @@ class Patches implements PluginInterface, EventSubscriberInterface
                     $e->getMessage() .
                     '</error>'
                 );
-                if ($exitOnFailure) {
+                if ($this->getConfig('exit-on-patch-failure')) {
                     throw new \Exception("Cannot apply patch $description ($url)!");
                 }
             }
@@ -384,7 +416,7 @@ class Patches implements PluginInterface, EventSubscriberInterface
         // The order here is intentional. p1 is most likely to apply with git apply.
         // p0 is next likely. p2 is extremely unlikely, but for some special cases,
         // it might be useful. p4 is useful for Magento 2 patches
-        $patch_levels = array('-p1', '-p0', '-p2', '-p4');
+        $patch_levels = $this->getConfig('patch-levels');
         foreach ($patch_levels as $patch_level) {
             if ($this->io->isVerbose()) {
                 $comment = 'Testing ability to patch with git apply.';
@@ -453,15 +485,17 @@ class Patches implements PluginInterface, EventSubscriberInterface
      */
     protected function isPatchingEnabled()
     {
-        $extra = $this->composer->getPackage()->getExtra();
+        $enabled = true;
 
-        if (empty($extra['patches']) && empty($extra['patches-ignore']) && !isset($extra['patches-file'])) {
-            // The root package has no patches of its own, so only allow patching if
-            // it has specifically opted in.
-            return isset($extra['enable-patching']) ? $extra['enable-patching'] : false;
-        } else {
-            return true;
+        $has_no_patches = empty($extra['patches']);
+        $has_no_patches_file = ($this->getConfig('patches-file') == '');
+        $patching_disabled = $this->getConfig('disable-patching');
+
+        if ($patching_disabled || !($has_no_patches && $has_no_patches_file)) {
+            $enabled = false;
         }
+
+        return $enabled;
     }
 
     /**
@@ -472,6 +506,10 @@ class Patches implements PluginInterface, EventSubscriberInterface
      */
     protected function writePatchReport($patches, $directory)
     {
+        if ($this->getConfig('disable-patch-reports')) {
+            return;
+        }
+
         $output = "This file was automatically generated by Composer Patches";
         $output .= " (https://github.com/cweagans/composer-patches)\n";
         $output .= "Patches applied to this directory:\n\n";

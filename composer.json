@@ -14,7 +14,8 @@
   ],
   "require": {
     "php": ">=5.6.0",
-    "composer-plugin-api": "^1.0"
+    "composer-plugin-api": "^1.0",
+    "cweagans/composer-configurable-plugin": "^1.0"
   },
   "require-dev": {
     "composer/composer": "~1.0",
