@@ -383,8 +383,8 @@ class Patches implements PluginInterface, EventSubscriberInterface
         $patched = false;
         // The order here is intentional. p1 is most likely to apply with git apply.
         // p0 is next likely. p2 is extremely unlikely, but for some special cases,
-        // it might be useful. p4 is useful for Magento 2 patches
-        $patch_levels = array('-p1', '-p0', '-p2', '-p4');
+        // it might be useful. p4 and p5 is useful for Magento 2 patches
+        $patch_levels = array('-p1', '-p0', '-p2', '-p4', '-p5');
         foreach ($patch_levels as $patch_level) {
             if ($this->io->isVerbose()) {
                 $comment = 'Testing ability to patch with git apply.';
