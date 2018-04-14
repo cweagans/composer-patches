@@ -1,10 +1,10 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "22bc9b56528428a17f52fed1908da23c",
+    "content-hash": "3e3ce7bfbafb836928cf5ff88b8edff2",
     "packages": [
         {
             "name": "cweagans/composer-configurable-plugin",

@@ -5,7 +5,7 @@
  * Provides a way to patch Composer packages after installation.
  */
 
-namespace cweagans\Composer;
+namespace cweagans\Composer\Plugin;
 
 use Composer\Composer;
 use Composer\DependencyResolver\Operation\InstallOperation;
@@ -24,6 +24,9 @@ use Composer\Installer\PackageEvent;
 use Composer\Util\ProcessExecutor;
 use Composer\Util\RemoteFilesystem;
 use Symfony\Component\Process\Process;
+use cweagans\Composer\Util;
+use cweagans\Composer\PatchEvent;
+use cweagans\Composer\PatchEvents;
 
 class Patches implements PluginInterface, EventSubscriberInterface
 {
