@@ -98,10 +98,20 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       $installationManager = $this->composer->getInstallationManager();
       $packages = $localRepository->getPackages();
 
+      $extra = $this->composer->getPackage()->getExtra();
+      $patches_ignore = isset($extra['patches-ignore']) ? $extra['patches-ignore'] : array();
+
       $tmp_patches = $this->grabPatches();
       foreach ($packages as $package) {
         $extra = $package->getExtra();
         if (isset($extra['patches'])) {
+          if (isset($patches_ignore[$package->getName()])) {
+            foreach ($patches_ignore[$package->getName()] as $package_name => $patches) {
+              if (isset($extra['patches'][$package_name])) {
+                $extra['patches'][$package_name] = array_diff($extra['patches'][$package_name], $patches);
+              }
+            }
+          }
           $this->installedPatches[$package->getName()] = $extra['patches'];
         }
         $patches = isset($extra['patches']) ? $extra['patches'] : array();
@@ -130,8 +140,8 @@ class Patches implements PluginInterface, EventSubscriberInterface {
         }
       }
     }
-      // If the Locker isn't available, then we don't need to do this.
-      // It's the first time packages have been installed.
+    // If the Locker isn't available, then we don't need to do this.
+    // It's the first time packages have been installed.
     catch (\LogicException $e) {
       return;
     }
