@@ -310,7 +310,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       $this->io->write('    <info>' . $url . '</info> (<comment>' . $description. '</comment>)');
       try {
         $this->eventDispatcher->dispatch(NULL, new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $package, $url, $description));
-        $this->getAndApplyPatch($downloader, $install_path, $url);
+        $this->getAndApplyPatch($downloader, $install_path, $url, $package);
         $this->eventDispatcher->dispatch(NULL, new PatchEvent(PatchEvents::POST_PATCH_APPLY, $package, $url, $description));
         $extra['patches_applied'][$description] = $url;
       }
@@ -354,9 +354,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * @param RemoteFilesystem $downloader
    * @param $install_path
    * @param $patch_url
+   * @param PackageInterface $package
    * @throws \Exception
    */
-  protected function getAndApplyPatch(RemoteFilesystem $downloader, $install_path, $patch_url) {
+  protected function getAndApplyPatch(RemoteFilesystem $downloader, $install_path, $patch_url, PackageInterface $package) {
 
     // Local patch file.
     if (file_exists($patch_url)) {
@@ -376,6 +377,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     // it might be useful. p4 is useful for Magento 2 patches
     $patch_levels = array('-p1', '-p0', '-p2', '-p4');
 
+    // Check for specified patch level for this package.
+    if (!empty($this->composer->getPackage()->getExtra()['patchLevel'][$package->getName()])){
+      $patch_levels = array($this->composer->getPackage()->getExtra()['patchLevel'][$package->getName()]);
+    }
     // Attempt to apply with git apply.
     $patched = $this->applyPatchWithGit($install_path, $patch_levels, $filename);
 
