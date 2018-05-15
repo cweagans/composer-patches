@@ -27,6 +27,7 @@ use Symfony\Component\Process\Process;
 use cweagans\Composer\Util;
 use cweagans\Composer\PatchEvent;
 use cweagans\Composer\PatchEvents;
+use cweagans\Composer\ConfigurablePlugin;
 
 class Patches implements PluginInterface, EventSubscriberInterface
 {
