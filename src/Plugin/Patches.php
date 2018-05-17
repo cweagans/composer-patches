@@ -28,6 +28,7 @@ use cweagans\Composer\Util;
 use cweagans\Composer\PatchEvent;
 use cweagans\Composer\PatchEvents;
 use cweagans\Composer\ConfigurablePlugin;
+use cweagans\Composer\Patch;
 
 class Patches implements PluginInterface, EventSubscriberInterface
 {
@@ -241,7 +242,7 @@ class Patches implements PluginInterface, EventSubscriberInterface
 
         // Merge installed patches from dependencies that did not receive an update.
         foreach ($this->installedPatches as $patches) {
-            $this->patches = Util::arrayMergeRecursiveDistinct($this->patches, $patches);
+//            $this->patches = Util::arrayMergeRecursiveDistinct($this->patches, $patches);
         }
 
         // If we're in verbose mode, list the projects we're going to patch.
@@ -265,11 +266,11 @@ class Patches implements PluginInterface, EventSubscriberInterface
     public function grabPatches()
     {
         // First, try to get the patches from the root composer.json.
+        $patches = [];
         $extra = $this->composer->getPackage()->getExtra();
         if (isset($extra['patches'])) {
             $this->io->write('<info>Gathering patches for root package.</info>');
             $patches = $extra['patches'];
-            return $patches;
         } // If it's not specified there, look for a patches-file definition.
         elseif ($this->getConfig('patches-file') != '') {
             $this->io->write('<info>Gathering patches from patch file.</info>');
@@ -301,13 +302,45 @@ class Patches implements PluginInterface, EventSubscriberInterface
             }
             if (isset($patches['patches'])) {
                 $patches = $patches['patches'];
-                return $patches;
             } elseif (!$patches) {
                 throw new \Exception('There was an error in the supplied patch file');
             }
         } else {
             return array();
         }
+
+        // Now that we have a populated $patches list, populate patch objects for everything.
+        foreach ($patches as $package => $patch_defs) {
+            if (isset($patch_defs[0]) && is_array($patch_defs[0])) {
+                $this->io->write("<info>Using expanded definition format for package {$package}</info>");
+
+                foreach ($patch_defs as $index => $def) {
+                    $patch = new Patch();
+                    $patch->package = $package;
+                    $patch->url = $def["url"];
+                    $patch->description = $def["description"];
+
+                    $patches[$package][$index] = $patch;
+                }
+            } else {
+                $this->io->write("<info>Using compact definition format for package {$package}</info>");
+
+                $temporary_patch_list = [];
+
+                foreach ($patch_defs as $description => $url) {
+                    $patch = new Patch();
+                    $patch->package = $package;
+                    $patch->url = $url;
+                    $patch->description = $description;
+
+                    $temporary_patch_list[] = $patch;
+                }
+
+                $patches[$package] = $temporary_patch_list;
+            }
+        }
+
+        return $patches;
     }
 
     /**
@@ -343,19 +376,20 @@ class Patches implements PluginInterface, EventSubscriberInterface
         $extra = $localPackage->getExtra();
         $extra['patches_applied'] = array();
 
-        foreach ($this->patches[$package_name] as $description => $url) {
-            $this->io->write('    <info>' . $url . '</info> (<comment>' . $description . '</comment>)');
+        foreach ($this->patches[$package_name] as $index => $patch) {
+            /** @var Patch $patch */
+            $this->io->write('    <info>' . $patch->url . '</info> (<comment>' . $patch->description . '</comment>)');
             try {
                 $this->eventDispatcher->dispatch(
                     null,
-                    new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $package, $url, $description)
+                    new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $package, $patch->url, $patch->description)
                 );
-                $this->getAndApplyPatch($downloader, $install_path, $url);
+                $this->getAndApplyPatch($downloader, $install_path, $patch->url);
                 $this->eventDispatcher->dispatch(
                     null,
-                    new PatchEvent(PatchEvents::POST_PATCH_APPLY, $package, $url, $description)
+                    new PatchEvent(PatchEvents::POST_PATCH_APPLY, $package, $patch->url, $patch->description)
                 );
-                $extra['patches_applied'][$description] = $url;
+                $extra['patches_applied'][$patch->description] = $patch->url;
             } catch (\Exception $e) {
                 $this->io->write(
                     '   <error>Could not apply patch! Skipping. The error was: ' .
@@ -363,11 +397,11 @@ class Patches implements PluginInterface, EventSubscriberInterface
                     '</error>'
                 );
                 if ($this->getConfig('exit-on-patch-failure')) {
-                    throw new \Exception("Cannot apply patch $description ($url)!");
+                    throw new \Exception("Cannot apply patch $patch->description ($patch->url)!");
                 }
             }
         }
-        $localPackage->setExtra($extra);
+//        $localPackage->setExtra($extra);
 
         $this->io->write('');
         $this->writePatchReport($this->patches[$package_name], $install_path);
@@ -518,9 +552,9 @@ class Patches implements PluginInterface, EventSubscriberInterface
         $output = "This file was automatically generated by Composer Patches";
         $output .= " (https://github.com/cweagans/composer-patches)\n";
         $output .= "Patches applied to this directory:\n\n";
-        foreach ($patches as $description => $url) {
-            $output .= $description . "\n";
-            $output .= 'Source: ' . $url . "\n\n\n";
+        foreach ($patches as $index => $patch) {
+            $output .= $patch->description . "\n";
+            $output .= 'Source: ' . $patch->url . "\n\n\n";
         }
         file_put_contents($directory . "/PATCHES.txt", $output);
     }
