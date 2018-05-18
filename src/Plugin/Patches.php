@@ -12,6 +12,7 @@ use Composer\DependencyResolver\Operation\InstallOperation;
 use Composer\DependencyResolver\Operation\UninstallOperation;
 use Composer\DependencyResolver\Operation\UpdateOperation;
 use Composer\DependencyResolver\Operation\OperationInterface;
+use Composer\EventDispatcher\EventDispatcher;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
 use Composer\Package\AliasPackage;
@@ -23,6 +24,9 @@ use Composer\Script\ScriptEvents;
 use Composer\Installer\PackageEvent;
 use Composer\Util\ProcessExecutor;
 use Composer\Util\RemoteFilesystem;
+use cweagans\Composer\PatchCollection;
+use cweagans\Composer\Resolvers\ResolverBase;
+use cweagans\Composer\Resolvers\ResolverInterface;
 use Symfony\Component\Process\Process;
 use cweagans\Composer\Util;
 use cweagans\Composer\PatchEvent;
@@ -61,6 +65,16 @@ class Patches implements PluginInterface, EventSubscriberInterface
     protected $patches;
 
     /**
+     * @var bool $patchesResolved
+     */
+    protected $patchesResolved;
+
+    /**
+     * @var PatchCollection $patchCollection
+     */
+    protected $patchCollection;
+
+    /**
      * Apply plugin modifications to composer
      *
      * @param Composer $composer
@@ -74,6 +88,8 @@ class Patches implements PluginInterface, EventSubscriberInterface
         $this->executor = new ProcessExecutor($this->io);
         $this->patches = array();
         $this->installedPatches = array();
+        $this->patchesResolved = false;
+        $this->patchCollection = new PatchCollection();
 
         $this->configuration = [
             'exit-on-patch-failure' => [
@@ -110,10 +126,10 @@ class Patches implements PluginInterface, EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return array(
-            ScriptEvents::PRE_INSTALL_CMD => array('checkPatches'),
-            ScriptEvents::PRE_UPDATE_CMD => array('checkPatches'),
-            PackageEvents::PRE_PACKAGE_INSTALL => array('gatherPatches'),
-            PackageEvents::PRE_PACKAGE_UPDATE => array('gatherPatches'),
+//            ScriptEvents::PRE_INSTALL_CMD => array('checkPatches'),
+//            ScriptEvents::PRE_UPDATE_CMD => array('checkPatches'),
+            PackageEvents::PRE_PACKAGE_INSTALL => array('resolvePatches'),
+            PackageEvents::PRE_PACKAGE_UPDATE => array('resolvePatches'),
             // The following is a higher weight for compatibility with
             // https://github.com/AydinHassan/magento-core-composer-installer and
             // more generally for compatibility with any Composer plugin which
@@ -124,6 +140,80 @@ class Patches implements PluginInterface, EventSubscriberInterface
             PackageEvents::POST_PACKAGE_INSTALL => array('postInstall', 10),
             PackageEvents::POST_PACKAGE_UPDATE => array('postInstall', 10),
         );
+    }
+
+    /**
+     * Return a list of plugin capabilities.
+     *
+     * @return array
+     */
+    public function getCapabilities()
+    {
+        return [
+            'cweagans\Composer\Capability\ResolverProvider' => 'cweagans\Composer\Capability\CoreResolverProvider',
+        ];
+    }
+
+    /**
+     * Gather a list of all patch resolvers from all enabled Composer plugins.
+     *
+     * @return ResolverBase[]
+     *   A list of PatchResolvers to be run.
+     */
+    public function getPatchResolvers()
+    {
+        $resolvers = [];
+        $plugin_manager = $this->composer->getPluginManager();
+        foreach ($plugin_manager->getPluginCapabilities(
+            'cweagans\Composer\Capability\ResolverProvider',
+            ['composer' => $this->composer, 'io' => $this->io]
+        ) as $capability) {
+            /** @var \cweagans\Composer\Capability\ResolverProvider $capability */
+            $newResolvers = $capability->getResolvers();
+            if (!is_array($newResolvers)) {
+                throw new \UnexpectedValueException(
+                    'Plugin capability ' . get_class($capability) . ' failed to return an array from getResolvers().'
+                );
+            }
+            foreach ($newResolvers as $resolver) {
+                if (!$resolver instanceof ResolverBase) {
+                    throw new \UnexpectedValueException(
+                        'Plugin capability ' . get_class($capability) . ' returned an invalid value.'
+                    );
+                }
+            }
+            $resolvers = array_merge($resolvers, $newResolvers);
+        }
+        return $resolvers;
+    }
+
+    /**
+     * Gather patches that need to be applied to the current set of packages.
+     *
+     * Note that this work is done unconditionally if this plugin is enabled,
+     * even if patching is disabled in any way. The point where patches are applied
+     * is where the work will be skipped. It's done this way to ensure that
+     * patching can be disabled temporarily in a way that doesn't affect the
+     * contents of composer.lock.
+     *
+     * @param PackageEvent $event
+     *   The PackageEvent passed by Composer
+     */
+    public function resolvePatches(PackageEvent $event)
+    {
+        // No need to resolve patches more than once.
+        if ($this->patchesResolved) {
+            return;
+        }
+
+        // Let each resolver discover patches and add them to the PatchCollection.
+        /** @var ResolverInterface $resolver */
+        foreach ($this->getPatchResolvers() as $resolver) {
+            $resolver->resolve($this->patchCollection, $event);
+        }
+
+        // Make sure we only do this once.
+        $this->patchesResolved = true;
     }
 
     /**
@@ -259,91 +349,6 @@ class Patches implements PluginInterface, EventSubscriberInterface
     }
 
     /**
-     * Get the patches from root composer or external file
-     * @return Patches
-     * @throws \Exception
-     */
-    public function grabPatches()
-    {
-        // First, try to get the patches from the root composer.json.
-        $patches = [];
-        $extra = $this->composer->getPackage()->getExtra();
-        if (isset($extra['patches'])) {
-            $this->io->write('<info>Gathering patches for root package.</info>');
-            $patches = $extra['patches'];
-        } // If it's not specified there, look for a patches-file definition.
-        elseif ($this->getConfig('patches-file') != '') {
-            $this->io->write('<info>Gathering patches from patch file.</info>');
-            $patches = file_get_contents($this->getConfig('patches-file'));
-            $patches = json_decode($patches, true);
-            $error = json_last_error();
-            if ($error != 0) {
-                switch ($error) {
-                    case JSON_ERROR_DEPTH:
-                        $msg = ' - Maximum stack depth exceeded';
-                        break;
-                    case JSON_ERROR_STATE_MISMATCH:
-                        $msg = ' - Underflow or the modes mismatch';
-                        break;
-                    case JSON_ERROR_CTRL_CHAR:
-                        $msg = ' - Unexpected control character found';
-                        break;
-                    case JSON_ERROR_SYNTAX:
-                        $msg = ' - Syntax error, malformed JSON';
-                        break;
-                    case JSON_ERROR_UTF8:
-                        $msg = ' - Malformed UTF-8 characters, possibly incorrectly encoded';
-                        break;
-                    default:
-                        $msg = ' - Unknown error';
-                        break;
-                }
-                throw new \Exception('There was an error in the supplied patches file:' . $msg);
-            }
-            if (isset($patches['patches'])) {
-                $patches = $patches['patches'];
-            } elseif (!$patches) {
-                throw new \Exception('There was an error in the supplied patch file');
-            }
-        } else {
-            return array();
-        }
-
-        // Now that we have a populated $patches list, populate patch objects for everything.
-        foreach ($patches as $package => $patch_defs) {
-            if (isset($patch_defs[0]) && is_array($patch_defs[0])) {
-                $this->io->write("<info>Using expanded definition format for package {$package}</info>");
-
-                foreach ($patch_defs as $index => $def) {
-                    $patch = new Patch();
-                    $patch->package = $package;
-                    $patch->url = $def["url"];
-                    $patch->description = $def["description"];
-
-                    $patches[$package][$index] = $patch;
-                }
-            } else {
-                $this->io->write("<info>Using compact definition format for package {$package}</info>");
-
-                $temporary_patch_list = [];
-
-                foreach ($patch_defs as $description => $url) {
-                    $patch = new Patch();
-                    $patch->package = $package;
-                    $patch->url = $url;
-                    $patch->description = $description;
-
-                    $temporary_patch_list[] = $patch;
-                }
-
-                $patches[$package] = $temporary_patch_list;
-            }
-        }
-
-        return $patches;
-    }
-
-    /**
      * @param PackageEvent $event
      * @throws \Exception
      */
@@ -355,7 +360,7 @@ class Patches implements PluginInterface, EventSubscriberInterface
         $package = $this->getPackageFromOperation($operation);
         $package_name = $package->getName();
 
-        if (!isset($this->patches[$package_name])) {
+        if (empty($this->patchCollection->getPatchesForPackage($package_name))) {
             if ($this->io->isVerbose()) {
                 $this->io->write('<info>No patches found for ' . $package_name . '.</info>');
             }
@@ -376,7 +381,7 @@ class Patches implements PluginInterface, EventSubscriberInterface
         $extra = $localPackage->getExtra();
         $extra['patches_applied'] = array();
 
-        foreach ($this->patches[$package_name] as $index => $patch) {
+        foreach ($this->patchCollection->getPatchesForPackage($package_name) as $patch) {
             /** @var Patch $patch */
             $this->io->write('    <info>' . $patch->url . '</info> (<comment>' . $patch->description . '</comment>)');
             try {
@@ -404,7 +409,7 @@ class Patches implements PluginInterface, EventSubscriberInterface
 //        $localPackage->setExtra($extra);
 
         $this->io->write('');
-        $this->writePatchReport($this->patches[$package_name], $install_path);
+        $this->writePatchReport($this->patchCollection->getPatchesForPackage($package_name), $install_path);
     }
 
     /**
