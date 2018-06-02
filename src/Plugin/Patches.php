@@ -215,7 +215,9 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             if (!in_array(get_class($resolver), $this->getConfig('disable-resolvers'))) {
                 $resolver->resolve($this->patchCollection, $event);
             } else {
-                $this->io->write('<info>  - Skipping resolver ' . get_class($resolver) . '</info>');
+                if ($this->io->isVerbose()) {
+                    $this->io->write('<info>  - Skipping resolver ' . get_class($resolver) . '</info>');
+                }
             }
         }
 
