@@ -20,8 +20,8 @@ class Acceptance extends \Codeception\Module
             $this->_afterSuite();
         }
         $filesystem->mkdir($this->_getPluginDir());
-        $filesystem->mirror($this->_getProjectRoot() . '/src', $this->_getPluginDir() . '/src');
-        $filesystem->copy($this->_getProjectRoot() . '/composer.json', $this->_getPluginDir() . '/composer.json');
+        $filesystem->symlink($this->_getProjectRoot() . '/src', $this->_getPluginDir() . '/src');
+        $filesystem->symlink($this->_getProjectRoot() . '/composer.json', $this->_getPluginDir() . '/composer.json');
     }
 
     public function _afterSuite()
