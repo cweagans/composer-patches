@@ -17,6 +17,7 @@ use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
 use Composer\Package\AliasPackage;
 use Composer\Package\PackageInterface;
+use Composer\Plugin\Capable;
 use Composer\Plugin\PluginInterface;
 use Composer\Installer\PackageEvents;
 use Composer\Script\Event;
@@ -34,7 +35,7 @@ use cweagans\Composer\PatchEvents;
 use cweagans\Composer\ConfigurablePlugin;
 use cweagans\Composer\Patch;
 
-class Patches implements PluginInterface, EventSubscriberInterface
+class Patches implements PluginInterface, EventSubscriberInterface, Capable
 {
 
     use ConfigurablePlugin;
