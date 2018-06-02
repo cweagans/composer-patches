@@ -4,7 +4,7 @@
     "type": "project",
     "license": "BSD-2-Clause",
     "require": {
-        "drupal/drupal": "~8.2"
+        "drupal/drupal": "8.2.0"
     },
     "extra": {
         "patches": {
