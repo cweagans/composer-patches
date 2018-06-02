@@ -14,6 +14,7 @@ use Composer\Installer\PackageEvent;
 use Composer\Package\PackageInterface;
 use cweagans\Composer\Patch;
 use cweagans\Composer\PatchCollection;
+use cweagans\Composer\Plugin\Patches;
 
 class DependencyPatches extends ResolverBase
 {
@@ -22,7 +23,7 @@ class DependencyPatches extends ResolverBase
      */
     public function resolve(PatchCollection $collection, PackageEvent $event)
     {
-        $this->io->write('  - <info>Gathering patches from dependencies. This might take a minute.</info>');
+        $this->io->write('  - <info>Gathering patches from dependencies.</info>');
 
         $operations = $event->getOperations();
         foreach ($operations as $operation) {
