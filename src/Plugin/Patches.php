@@ -25,6 +25,7 @@ use Composer\Script\ScriptEvents;
 use Composer\Installer\PackageEvent;
 use Composer\Util\ProcessExecutor;
 use Composer\Util\RemoteFilesystem;
+use cweagans\Composer\Capability\ResolverProvider;
 use cweagans\Composer\PatchCollection;
 use cweagans\Composer\Resolvers\ResolverBase;
 use cweagans\Composer\Resolvers\ResolverInterface;
@@ -101,9 +102,9 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                 'type' => 'bool',
                 'default' => false,
             ],
-            'disable-patching-from-dependencies' => [
-                'type' => 'bool',
-                'default' => false,
+            'disable-resolvers' => [
+                'type' => 'list',
+                'default' => [],
             ],
             'disable-patch-reports' => [
                 'type' => 'bool',
@@ -169,7 +170,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             'cweagans\Composer\Capability\ResolverProvider',
             ['composer' => $this->composer, 'io' => $this->io]
         ) as $capability) {
-            /** @var \cweagans\Composer\Capability\ResolverProvider $capability */
+            /** @var ResolverProvider $capability */
             $newResolvers = $capability->getResolvers();
             if (!is_array($newResolvers)) {
                 throw new \UnexpectedValueException(
@@ -185,6 +186,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             }
             $resolvers = array_merge($resolvers, $newResolvers);
         }
+
         return $resolvers;
     }
 
@@ -210,7 +212,11 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         // Let each resolver discover patches and add them to the PatchCollection.
         /** @var ResolverInterface $resolver */
         foreach ($this->getPatchResolvers() as $resolver) {
-            $resolver->resolve($this->patchCollection, $event);
+            if (!in_array(get_class($resolver), $this->getConfig('disable-resolvers'))) {
+                $resolver->resolve($this->patchCollection, $event);
+            } else {
+                $this->io->write('<info>  - Skipping resolver ' . get_class($resolver) . '</info>');
+            }
         }
 
         // Make sure we only do this once.
