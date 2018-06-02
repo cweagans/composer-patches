@@ -57,7 +57,7 @@ class PatchesFileResolverTest extends Unit
             $resolver = new PatchesFile($composer, $io);
             $resolver->resolve($collection, $event);
         } catch (\InvalidArgumentException $e) {
-            $this->assertEquals('Syntax error, malformed JSON.', $e->getMessage());
+            $this->assertEquals('Syntax error', $e->getMessage());
         }
     }
 }

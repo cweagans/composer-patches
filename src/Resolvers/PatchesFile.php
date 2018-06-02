@@ -56,35 +56,9 @@ class PatchesFile extends ResolverBase
         $patches = json_decode($patches, true);
 
         // First, check for JSON syntax issues.
-        $error = json_last_error();
-        if ($error !== JSON_ERROR_NONE) {
-            switch ($error) {
-                case JSON_ERROR_SYNTAX:
-                    $msg = 'Syntax error, malformed JSON.';
-                    break;
-                // Because we don't care about testing PHP's JSON error handling
-                // in great detail, we're going to ignore the other cases for the
-                // purposes of code coverage reporting.
-                // @codeCoverageIgnoreStart
-                case JSON_ERROR_DEPTH:
-                    $msg = 'Maximum stack depth exceeded.';
-                    break;
-                case JSON_ERROR_STATE_MISMATCH:
-                    $msg = 'Underflow or the modes mismatch.';
-                    break;
-                case JSON_ERROR_CTRL_CHAR:
-                    $msg = 'Unexpected control character found.';
-                    break;
-                case JSON_ERROR_UTF8:
-                    $msg = 'Malformed UTF-8 characters, possibly incorrectly encoded.';
-                    break;
-                default:
-                    $msg = 'Unknown error.';
-                    break;
-                // @codeCoverageIgnoreEnd
-            }
-
-            throw new \InvalidArgumentException($msg);
+        $json_error = json_last_error_msg();
+        if ($json_error != "No error") {
+            throw new \InvalidArgumentException($json_error);
         }
 
         // Next, make sure there is a patches key in the file.
