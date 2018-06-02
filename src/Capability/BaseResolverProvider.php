@@ -7,7 +7,7 @@ use Composer\IO\IOInterface;
 use Composer\Plugin\Capability\Capability;
 use Composer\Plugin\PluginInterface;
 
-abstract class BaseResolverProvider implements Capability
+abstract class BaseResolverProvider implements Capability, ResolverProvider
 {
     /**
      * @var Composer
