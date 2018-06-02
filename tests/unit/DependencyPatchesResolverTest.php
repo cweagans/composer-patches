@@ -26,12 +26,17 @@ class DependencyPatchesResolverTest extends Unit
         $composer = new Composer();
         $composer->setPackage($root_package);
         $io = new NullIO();
-        $event = Stub::make(PackageEvent::class, []);
+        $event = Stub::make(PackageEvent::class, [
+            'getOperations' => function () {
+                return [];
+            },
+        ]);
 
         // Empty patch list.
         $resolver = new DependencyPatches($composer, $io);
         $resolver->resolve($patch_collection, $event);
         $this->assertCount(0, $patch_collection->getPatchesForPackage('test/package'));
 
+        // @TODO: Add operations to the event and test that the resolver finds patches appropriately.
     }
 }
