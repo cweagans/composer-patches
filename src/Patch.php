@@ -2,7 +2,7 @@
 
 namespace cweagans\Composer;
 
-class Patch
+class Patch implements \JsonSerializable
 {
     /**
      * The package that the patch belongs to.
@@ -38,4 +38,44 @@ class Patch
      * @var int $depth
      */
     public $depth;
+
+    /**
+     * Create a Patch from a serialized representation.
+     *
+     * @param $json
+     *   A json_encode'd representation of a Patch.
+     *
+     * @return Patch
+     *   A Patch with all of the serialized properties set.
+     */
+    public static function fromJson($json)
+    {
+        if (!is_object($json)) {
+            $json = json_decode($json);
+        }
+        $properties = ['package', 'description', 'url', 'sha1', 'depth'];
+        $patch = new static();
+
+        foreach ($properties as $property) {
+            if (isset($json->{$property})) {
+                $patch->{$property} = $json->{$property};
+            }
+        }
+
+        return $patch;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function jsonSerialize()
+    {
+        return [
+            'package' => $this->package,
+            'description' => $this->description,
+            'url' => $this->url,
+            'sha1' => $this->sha1,
+            'depth' => $this->depth,
+        ];
+    }
 }

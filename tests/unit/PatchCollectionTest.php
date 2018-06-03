@@ -50,4 +50,35 @@ class PatchCollectionTest extends Unit
             }
         }
     }
+
+    public function testSerializeDeserialize()
+    {
+        $collection = new PatchCollection();
+
+        $patch1 = new Patch();
+        $patch1->package = 'some/package';
+        $patch1->description = 'patch1';
+
+        $patch2 = new Patch();
+        $patch2->package = 'another/package';
+        $patch2->description = 'patch2';
+
+        $collection->addPatch($patch1);
+        $collection->addPatch($patch2);
+
+        $json = json_encode($collection);
+
+        $new_collection = PatchCollection::fromJson($json);
+
+        $this->assertEquals($collection, $new_collection);
+
+        foreach ([ 'some/package', 'another/package'] as $package_name) {
+            // We should get 1 patch for each package.
+            $this->assertCount(1, $new_collection->getPatchesForPackage($package_name));
+
+            foreach ($new_collection->getPatchesForPackage($package_name) as $patch) {
+                $this->assertEquals($package_name, $patch->package);
+            }
+        }
+    }
 }
