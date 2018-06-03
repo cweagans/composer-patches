@@ -340,9 +340,6 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             }
         }
 //        $localPackage->setExtra($extra);
-
-        $this->io->write('');
-        $this->writePatchReport($this->patchCollection->getPatchesForPackage($package_name), $install_path);
     }
 
     /**
