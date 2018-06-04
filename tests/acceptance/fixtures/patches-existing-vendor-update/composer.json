@@ -1,0 +1,79 @@
+{
+    "name": "drupal-composer/drupal-project",
+    "description": "Project template for Drupal 8 projects with composer",
+    "type": "project",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "",
+            "role": ""
+        }
+    ],
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
+        }
+    ],
+    "require": {
+        "composer/installers": "^1.2",
+        "cweagans/composer-patches": "^1.6",
+        "drupal-composer/drupal-scaffold": "^2.2",
+        "drupal/console": "^1.0.2",
+        "drupal/core": "~8.5.1",
+        "drupal/media_mpx": "^1.0",
+        "drupal/migrate_plus": "dev-4.x",
+        "drupal/migrate_tools": "dev-4.x",
+        "drupal/migrate_upgrade": "dev-3.x",
+        "drupal/pathauto": "^1.2",
+        "drupal/redirect": "^1.2",
+        "drupal/stage_file_proxy": "^1.0@alpha",
+        "drupal/video_embed_field": "^2.0",
+        "drush/drush": "^9.0.0",
+        "vlucas/phpdotenv": "^2.4",
+        "webflo/drupal-finder": "^1.0.0",
+        "webmozart/path-util": "^2.3",
+        "wikimedia/composer-merge-plugin": "^1.4"
+    },
+    "require-dev": {
+        "behat/mink-extension": "v2.2",
+        "behat/mink-selenium2-driver": "^1.3",
+        "bex/behat-screenshot": "^1.2",
+        "consolidation/robo": "^1.2",
+        "deviantintegral/composer-gavel": "^0.1.0",
+        "drupal/coder": "^8.2",
+        "drupal/drupal-extension": "^4.0",
+        "webflo/drupal-core-require-dev": "~8.5.1"
+    },
+    "conflict": {
+        "drupal/drupal": "*"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "composer-exit-on-patch-failure": true,
+        "installer-paths": {
+            "web/core": ["type:drupal-core"],
+            "web/libraries/{$name}": ["type:drupal-library"],
+            "web/modules/contrib/{$name}": ["type:drupal-module"],
+            "web/profiles/contrib/{$name}": ["type:drupal-profile"],
+            "web/themes/contrib/{$name}": ["type:drupal-theme"],
+            "drush/contrib/{$name}": ["type:drupal-drush"]
+        },
+        "composer-version": "^1.6.4",
+        "patches": {
+            "drupal/core": {
+                "Support using tempstore when there is no session": "https://www.drupal.org/files/issues/2018-03-30/privatetempstore_getid_on_null-2860341-5.patch"
+            },
+            "drupal/migrate_upgrade": {
+                "Drush 9 support": "https://www.drupal.org/files/issues/2018-03-17/2915726-13.migrate_upgrade.Drush-9-port-of-commands.patch"
+            },
+            "drupal/migrate_tools": {
+                "Using '--limit' with '--feedback' on import does not work": "https://www.drupal.org/files/issues/2018-05-31/2919108.14-fix-limit-condition.patch"
+            }
+        }
+    }
+}
