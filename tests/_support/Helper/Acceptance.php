@@ -34,6 +34,9 @@ class Acceptance extends \Codeception\Module
 
         $composerVendorDirs = glob($this->_getFixturesDir() . '/*/vendor');
         $filesystem->remove($composerVendorDirs);
+
+        $drupalVendorDirs = glob($this->_getFixturesDir() . '/*/web');
+        $filesystem->remove($drupalVendorDirs);
     }
 
     protected function _getFixturesDir()
