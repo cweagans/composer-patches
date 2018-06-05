@@ -9,9 +9,17 @@ class PatchCollection implements \JsonSerializable
      *
      * Keys are package names. Values are arrays of Patch objects.
      *
-     * @var array
+     * @var \cweagans\Composer\Patch[]
      */
-    protected $patches;
+    protected $patches = [];
+
+  /**
+   * @return array
+   */
+    public function getPatches()
+    {
+        return $this->patches;
+    }
 
     /**
      * Add a patch to the collection.
