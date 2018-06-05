@@ -7,6 +7,7 @@ Simple patches plugin for Composer. Applies a patch from a local or remote file 
 
 ## Support notes
 
+* Git >= 2.15.1 is required to properly apply patches.
 * If you need PHP 5.3, 5.4, or 5.5 support, you should probably use a 1.x release.
 * 1.x is mostly unsupported, but bugfixes and security fixes will still be accepted.
   1.7.0 will be the last minor release in the 1.x series.
