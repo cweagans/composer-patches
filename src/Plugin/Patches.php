@@ -217,25 +217,6 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             }
         }
 
-        $localRepository = $this->composer->getRepositoryManager()->getLocalRepository();
-        $packages = $localRepository->getPackages();
-        foreach ($this->patchCollection->getPatches() as $package_id => $patches) {
-            foreach ($packages as $package) {
-                if ($package->getName() == $package_id) {
-                    break;
-                }
-            }
-            $uninstallOperation = new UninstallOperation(
-                $package,
-                'Removing package so it can be re-installed and re-patched.'
-            );
-            $this->io->write('<info>Removing package ' .
-            $package_id .
-            ' so that it can be re-installed and re-patched.</info>');
-            $this->composer->getInstallationManager()->uninstall($localRepository, $uninstallOperation);
-            $installOperation = new InstallOperation($package, 'reinstalling');
-            $this->composer->getInstallationManager()->install($localRepository, $installOperation);
-        }
         // Make sure we only do this once.
         $this->patchesResolved = true;
     }
@@ -332,6 +313,20 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         $localPackage = $localRepository->findPackage($package_name, $package->getVersion());
         $extra = $localPackage->getExtra();
         $extra['patches_applied'] = array();
+
+        foreach ($this->patchCollection->getPatchesForPackage($package_name) as $patch) {
+          /** @var Patch $patch */
+            $uninstallOperation = new UninstallOperation(
+                $package,
+                'Removing package so it can be re-installed and re-patched.'
+            );
+            $this->io->write('<info>Removing package ' .
+            $package_name .
+            ' so that it can be re-installed and re-patched.</info>');
+            $this->composer->getInstallationManager()->uninstall($localRepository, $uninstallOperation);
+            $installOperation = new InstallOperation($package, 'reinstalling');
+            $this->composer->getInstallationManager()->install($localRepository, $installOperation);
+        }
 
         foreach ($this->patchCollection->getPatchesForPackage($package_name) as $patch) {
             /** @var Patch $patch */
