@@ -1,0 +1,37 @@
+{
+    "name": "drupal-composer/drupal-project",
+    "description": "Project template for Drupal 8 projects with composer",
+    "type": "project",
+    "license": "GPL-2.0-or-later",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../composer-patches"
+        },
+        {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
+        }
+    ],
+    "require": {
+        "cweagans/composer-patches": "*",
+        "drupal/core": "^8.5",
+        "drupal/pathauto": "^1.0"
+    },
+    "conflict": {
+        "drupal/drupal": "*"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "composer-exit-on-patch-failure": true,
+        "patches": {
+            "drupal/core": {
+                "Support using tempstore when there is no session": "https://www.drupal.org/files/issues/2018-03-30/privatetempstore_getid_on_null-2860341-5.patch"
+            }
+        }
+    }
+}
