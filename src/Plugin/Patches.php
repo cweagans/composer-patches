@@ -246,11 +246,11 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                     // home package are resolved properly.
                     $packageDir = $installationManager->getInstallPath($package);
                     foreach ($extra['patches'] as &$singlePackage) {
-                      foreach ($singlePackage as &$path) {
-                        if (realpath($tmp = "$packageDir/$path")) {
-                          $path = $tmp;
+                        foreach ($singlePackage as &$path) {
+                            if (realpath($tmp = "$packageDir/$path")) {
+                                $path = $tmp;
+                            }
                         }
-                      }
                     }
                     $this->installedPatches[$package->getName()] = $extra['patches'];
                 }
