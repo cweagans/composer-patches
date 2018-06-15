@@ -34,8 +34,9 @@ class DependencyPatches extends ResolverBase
                 $extra = $package->getExtra();
                 if (isset($extra['patches'])) {
                     $patches = $this->findPatchesInJson($extra['patches']);
-                    foreach ($patches as $package => $patch_list) {
+                    foreach ($patches as $patch_package => $patch_list) {
                         foreach ($patch_list as $patch) {
+                            $patch->provider = $package;
                             $collection->addPatch($patch);
                         }
                     }

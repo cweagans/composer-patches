@@ -241,17 +241,6 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             foreach ($packages as $package) {
                 $extra = $package->getExtra();
                 if (isset($extra['patches'])) {
-                    // Go through each of this package's defined patches and
-                    // make sure paths to patches defined relative to their
-                    // home package are resolved properly.
-                    $packageDir = $installationManager->getInstallPath($package);
-                    foreach ($extra['patches'] as &$singlePackage) {
-                        foreach ($singlePackage as &$path) {
-                            if (realpath($tmp = "$packageDir/$path")) {
-                                $path = $tmp;
-                            }
-                        }
-                    }
                     $this->installedPatches[$package->getName()] = $extra['patches'];
                 }
                 $patches = isset($extra['patches']) ? $extra['patches'] : array();
@@ -290,6 +279,24 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             // It's the first time packages have been installed.
             return;
         }
+    }
+
+    /**
+     * Check whether a given path is relative.
+     *
+     * @param string $url
+     * @return bool
+     */
+    protected function isRelativeUrl($url) {
+        if (parse_url($url, PHP_URL_SCHEME) != '') {
+            return FALSE;
+        }
+
+        if ($url[0] == '/') {
+            return FALSE;
+        }
+
+        return TRUE;
     }
 
     /**
@@ -333,6 +340,16 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                     null,
                     new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $package, $patch->url, $patch->description)
                 );
+
+                if ($this->isRelativeUrl($patch->url) && !empty($patch->provider)) {
+                  if (!$manager->isPackageInstalled($localRepository, $patch->provider)) {
+                    $this->io->write(' - <info>Installing '.$patch->provider->getName().'</info> to ensure access to relative patches.');
+                    $manager->getInstaller($patch->provider->getType())->install($localRepository, $patch->provider);
+                  }
+                  $providing_install_path = $manager->getInstallPath($patch->provider);
+                  $patch->url = $providing_install_path.'/'.$patch->url;
+                }
+
                 $this->getAndApplyPatch($downloader, $install_path, $patch->url);
                 $this->eventDispatcher->dispatch(
                     null,
