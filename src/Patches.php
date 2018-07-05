@@ -129,7 +129,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
           $package_name = $package->getName();
           $extra = $package->getExtra();
           $has_patches = isset($tmp_patches[$package_name]);
-          $has_applied_patches = isset($extra['patches_applied']);
+          $has_applied_patches = isset($extra['patches_applied']) && count($extra['patches_applied']) > 0;
           if (($has_patches && !$has_applied_patches)
             || (!$has_patches && $has_applied_patches)
             || ($has_patches && $has_applied_patches && $tmp_patches[$package_name] !== $extra['patches_applied'])) {
