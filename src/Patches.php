@@ -378,8 +378,9 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     $patch_levels = array('-p1', '-p0', '-p2', '-p4');
 
     // Check for specified patch level for this package.
-    if (!empty($this->composer->getPackage()->getExtra()['patchLevel'][$package->getName()])){
-      $patch_levels = array($this->composer->getPackage()->getExtra()['patchLevel'][$package->getName()]);
+    $extra = $this->composer->getPackage()->getExtra();
+    if (!empty($extra['patchLevel'][$package->getName()])){
+      $patch_levels = array($extra['patchLevel'][$package->getName()]);
     }
     // Attempt to apply with git apply.
     $patched = $this->applyPatchWithGit($install_path, $patch_levels, $filename);
