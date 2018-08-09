@@ -385,8 +385,6 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             $downloader->copy($hostname, $patch_url, $filename, false);
         }
 
-        // Modified from drush6:make.project.inc
-        $patched = false;
         // The order here is intentional. p1 is most likely to apply with git apply.
         // p0 is next likely. p2 is extremely unlikely, but for some special cases,
         // it might be useful. p4 is useful for Magento 2 patches
@@ -463,6 +461,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             return false;
         }
 
+        $patched = false;
         foreach ($patch_levels as $patch_level) {
             if ($this->io->isVerbose()) {
                 $comment = 'Testing ability to patch with git apply.';
