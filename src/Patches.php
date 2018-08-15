@@ -415,6 +415,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    *   Whether patching is enabled. Defaults to TRUE.
    */
   protected function isPatchingEnabled() {
+    if ($this->isLockHashUpdate()) {
+      return FALSE;
+    }
+
     $extra = $this->composer->getPackage()->getExtra();
 
     if (empty($extra['patches']) && empty($extra['patches-ignore']) && !isset($extra['patches-file'])) {
@@ -425,6 +429,25 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     else {
       return TRUE;
     }
+  }
+
+  /**
+   * Determines if the process in running in the context of lock hash update.
+   *
+   * @return bool
+   */
+  protected function isLockHashUpdate()
+  {
+    try {
+      $input = new \Symfony\Component\Console\Input\ArgvInput();
+
+      return $input->hasParameterOption('--lock');
+    } catch (\Exception $e) {
+      // There are situations where composer is accessed from non-CLI entry-points,
+      // which will cause $argv not to be available, resulting a crash.
+    }
+
+    return FALSE;
   }
 
   /**
