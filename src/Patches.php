@@ -383,7 +383,11 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       $patch_levels = array($extra['patchLevel'][$package->getName()]);
     }
     // Attempt to apply with git apply.
-    $patched = $this->applyPatchWithGit($install_path, $patch_levels, $filename);
+    $backup_flag = empty($this->composer->getPackage()->getExtra()['backup-before-applying-patches']) ? '': '-b';
+    $patched = false;
+    if ('' === $backup_flag) {
+        $patched = $this->applyPatchWithGit($install_path, $patch_levels, $filename);
+    }
 
     // In some rare cases, git will fail to apply a patch, fallback to using
     // the 'patch' command.
@@ -391,7 +395,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       foreach ($patch_levels as $patch_level) {
         // --no-backup-if-mismatch here is a hack that fixes some
         // differences between how patch works on windows and unix.
-        if ($patched = $this->executeCommand("patch %s --no-backup-if-mismatch -d %s < %s", $patch_level, $install_path, $filename)) {
+        if ($patched = $this->executeCommand("patch %s --no-backup-if-mismatch -d %s %s < %s", $patch_level, $install_path, $backup_flag, $filename)) {
           break;
         }
       }

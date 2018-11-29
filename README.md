@@ -144,6 +144,18 @@ Composer [blocks](https://getcomposer.org/doc/06-config.md#secure-http) you from
 }
 ```
 
+## Allowing original files to be backed up
+
+If you want to backup the original files before applying patches, you must have the following in your composer file:
+
+```json
+{
+  "extra": {
+      "backup-before-applying-patches": true
+  }
+}
+```
+
 However, it's always advised to setup HTTPS to prevent MITM code injection.
 
 ## Patches containing modifications to composer.json files
