@@ -52,7 +52,15 @@ class PatchEventTest extends Unit
         return array(
             array(PatchEvents::PRE_PATCH_APPLY, $composer, $io, $package, 'https://www.drupal.org', 'A test patch'),
             array(PatchEvents::POST_PATCH_APPLY, $composer, $io, $package, 'https://www.drupal.org', 'A test patch'),
-            array(PatchEvents::PATCH_APPLY_ERROR, $composer, $io, $package, 'https://www.drupal.org', 'A test patch that fails', $error)
+            array(
+                PatchEvents::PATCH_APPLY_ERROR,
+                $composer,
+                $io,
+                $package,
+                'https://www.drupal.org',
+                'A test patch that fails',
+                $error
+            )
         );
     }
 }
