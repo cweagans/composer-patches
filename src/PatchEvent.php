@@ -58,7 +58,7 @@ class PatchEvent extends Event
         $url,
         $description,
         \Exception $error = null
-    ){
+    ) {
         parent::__construct($eventName);
         $this->composer = $composer;
         $this->package = $package;
