@@ -321,24 +321,24 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                 $this->eventDispatcher->dispatch(
                     null,
                     new PatchEvent(
-                      PatchEvents::PRE_PATCH_APPLY,
-                      $event->getComposer(),
-                      $event->getIO,
-                      $package,
-                      $patch->url,
-                      $patch->description
+                        PatchEvents::PRE_PATCH_APPLY,
+                        $event->getComposer(),
+                        $event->getIO,
+                        $package,
+                        $patch->url,
+                        $patch->description
                     )
                 );
                 $this->getAndApplyPatch($downloader, $install_path, $patch->url);
                 $this->eventDispatcher->dispatch(
                     null,
                     new PatchEvent(
-                      PatchEvents::POST_PATCH_APPLY,
-                      $event->getComposer(),
-                      $event->getIO,
-                      $package,
-                      $patch->url,
-                      $patch->description
+                        PatchEvents::POST_PATCH_APPLY,
+                        $event->getComposer(),
+                        $event->getIO,
+                        $package,
+                        $patch->url,
+                        $patch->description
                     )
                 );
                 $extra['patches_applied'][$patch->description] = $patch->url;
@@ -351,13 +351,13 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                 $this->eventDispatcher->dispatch(
                     null,
                     new PatchEvent(
-                      PatchEvents::PATCH_APPLY_ERROR,
-                      $event->getComposer(),
-                      $event->getIO,
-                      $package,
-                      $patch->url,
-                      $patch->description,
-                      $e
+                        PatchEvents::PATCH_APPLY_ERROR,
+                        $event->getComposer(),
+                        $event->getIO,
+                        $package,
+                        $patch->url,
+                        $patch->description,
+                        $e
                     )
                 );
                 if ($this->getConfig('exit-on-patch-failure')) {
