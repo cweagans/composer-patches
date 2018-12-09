@@ -323,7 +323,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                     new PatchEvent(
                         PatchEvents::PRE_PATCH_APPLY,
                         $event->getComposer(),
-                        $event->getIO,
+                        $event->getIO(),
                         $package,
                         $patch->url,
                         $patch->description
@@ -335,7 +335,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                     new PatchEvent(
                         PatchEvents::POST_PATCH_APPLY,
                         $event->getComposer(),
-                        $event->getIO,
+                        $event->getIO(),
                         $package,
                         $patch->url,
                         $patch->description
