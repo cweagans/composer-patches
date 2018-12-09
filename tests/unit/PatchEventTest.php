@@ -24,13 +24,13 @@ class PatchEventTest extends Unit
      * @dataProvider patchEventDataProvider
      */
     public function testGetters(
-      $event_name,
-      Composer $composer,
-      NullIO $io,
-      PackageInterface $package,
-      $url,
-      $description,
-      \Exception $error = null
+        $event_name,
+        Composer $composer,
+        NullIO $io,
+        PackageInterface $package,
+        $url,
+        $description,
+        \Exception $error = null
     )
     {
         $patch_event = new PatchEvent($event_name, $composer, $io, $package, $url, $description, $error);
