@@ -31,8 +31,7 @@ class PatchEventTest extends Unit
         $url,
         $description,
         \Exception $error = null
-    )
-    {
+    ){
         $patch_event = new PatchEvent($event_name, $composer, $io, $package, $url, $description, $error);
         $this->assertEquals($event_name, $patch_event->getName());
         $this->assertEquals($composer, $patch_event->getComposer());
