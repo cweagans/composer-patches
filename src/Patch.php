@@ -40,6 +40,13 @@ class Patch implements \JsonSerializable
     public $depth;
 
     /**
+     * The package that provides the patch.
+     *
+     * @var \Composer\Package\PackageInterface $provider
+     */
+    public $provider;
+
+    /**
      * Create a Patch from a serialized representation.
      *
      * @param $json
