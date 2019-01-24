@@ -1,0 +1,6 @@
+{
+    "name": "cweagans/test-package",
+    "description": "Project for use in cweagans/composer-patches acceptance tests.",
+    "type": "project",
+    "license": "BSD-2-Clause"
+}

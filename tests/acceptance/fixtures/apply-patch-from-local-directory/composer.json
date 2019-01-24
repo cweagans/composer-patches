@@ -1,0 +1,29 @@
+{
+    "name": "cweagans/composer-patches-test-project",
+    "description": "Project for use in cweagans/composer-patches acceptance tests.",
+    "type": "project",
+    "license": "BSD-2-Clause",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../composer-patches"
+        },
+        {
+            "type": "path",
+            "url": "../../../_data/test-package"
+        }
+    ],
+    "require": {
+        "cweagans/composer-patches": "*@dev",
+        "cweagans/test-package": "*@dev"
+    },
+    "extra": {
+        "enable-patching": true,
+        "composer-exit-on-patch-failure": 1,
+        "patches": {
+            "cweagans/test-package": {
+                "test": "./resources/patches/newfile.patch"
+            }
+        }
+    }
+}
