@@ -285,18 +285,22 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      * Check whether a given path is relative.
      *
      * @param string $url
+     *   The URL to check.
+     *
      * @return bool
+     *   True if URL is relative, false otherwise.
      */
-    protected function isRelativeUrl($url) {
-        if (parse_url($url, PHP_URL_SCHEME) != '') {
-            return FALSE;
+    protected function isRelativeUrl($url)
+    {
+        if (parse_url($url, PHP_URL_SCHEME) !== '') {
+            return false;
         }
 
-        if ($url[0] == '/') {
-            return FALSE;
+        if (strpos($url, '/') === 0) {
+            return false;
         }
 
-        return TRUE;
+        return true;
     }
 
     /**
@@ -342,12 +346,18 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                 );
 
                 if ($this->isRelativeUrl($patch->url) && !empty($patch->provider)) {
-                  if (!$manager->isPackageInstalled($localRepository, $patch->provider)) {
-                    $this->io->write(' - <info>Installing '.$patch->provider->getName().'</info> to ensure access to relative patches.');
-                    $manager->getInstaller($patch->provider->getType())->install($localRepository, $patch->provider);
-                  }
-                  $providing_install_path = $manager->getInstallPath($patch->provider);
-                  $patch->url = $providing_install_path.'/'.$patch->url;
+                    if (!$manager->isPackageInstalled($localRepository, $patch->provider)) {
+                        $this->io->write(
+                            ' - <info>Installing ' .
+                            $patch->provider->getName() .
+                            '</info> to ensure access to relative patches.'
+                        );
+                        $manager->getInstaller(
+                            $patch->provider->getType()
+                        )->install($localRepository, $patch->provider);
+                    }
+                    $providing_install_path = $manager->getInstallPath($patch->provider);
+                    $patch->url = $providing_install_path.'/'.$patch->url;
                 }
 
                 $this->getAndApplyPatch($downloader, $install_path, $patch->url);
