@@ -378,7 +378,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             $filename = realpath($patch_url);
         } else {
             // Generate random (but not cryptographically so) filename.
-            $filename = uniqid(sys_get_temp_dir() . '/') . ".patch";
+            $filename = uniqid(sys_get_temp_dir() . '/') . '.patch';
 
             // Download file from remote filesystem to this location.
             $hostname = parse_url($patch_url, PHP_URL_HOST);
@@ -429,7 +429,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                 // --no-backup-if-mismatch here is a hack that fixes some
                 // differences between how patch works on windows and unix.
                 if ($patched = $this->executeCommand(
-                    "patch %s --no-backup-if-mismatch -d %s < %s",
+                    'patch %s --no-backup-if-mismatch -d %s < %s',
                     $patch_level,
                     $install_path,
                     $filename
@@ -447,7 +447,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         // If the patch *still* isn't applied, then give up and throw an Exception.
         // Otherwise, let the user know it worked.
         if (!$patched) {
-            throw new \Exception("Cannot apply patch $patch_url");
+            throw new \Exception('Cannot apply patch ' . $patch_url);
         }
     }
 

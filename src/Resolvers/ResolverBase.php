@@ -65,8 +65,8 @@ abstract class ResolverBase implements ResolverInterface
                 foreach ($patch_defs as $index => $def) {
                     $patch = new Patch();
                     $patch->package = $package;
-                    $patch->url = $def["url"];
-                    $patch->description = $def["description"];
+                    $patch->url = $def['url'];
+                    $patch->description = $def['description'];
 
                     $patches[$package][$index] = $patch;
                 }
