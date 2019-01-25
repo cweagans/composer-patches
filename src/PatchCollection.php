@@ -45,7 +45,7 @@ class PatchCollection implements \JsonSerializable
     /**
      * Create a PatchCollection from a serialized representation.
      *
-     * @param $json
+     * @param object|string $json
      *   A json_encode'd representation of a PatchCollection.
      *
      * @return PatchCollection

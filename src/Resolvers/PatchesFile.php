@@ -23,8 +23,8 @@ class PatchesFile extends ResolverBase
 
         $extra = $this->composer->getPackage()->getExtra();
         $valid_patches_file = array_key_exists('patches-file', $extra) &&
-            file_exists(realpath($extra['patches-file'])) &&
-            is_readable(realpath($extra['patches-file']));
+            file_exists((string) realpath($extra['patches-file'])) &&
+            is_readable((string) realpath($extra['patches-file']));
 
         // If we don't have a valid patches file, exit early.
         if (!$valid_patches_file) {
@@ -44,7 +44,7 @@ class PatchesFile extends ResolverBase
     /**
      * Read a patches file.
      *
-     * @param $patches_file
+     * @param string $patches_file
      *   A URI to a file. Can be anything accepted by file_get_contents().
      * @return array
      *   A list of patches.
@@ -53,7 +53,7 @@ class PatchesFile extends ResolverBase
     protected function readPatchesFile($patches_file)
     {
         $patches = file_get_contents($patches_file);
-        $patches = json_decode($patches, true);
+        $patches = json_decode((string) $patches, true);
 
         // First, check for JSON syntax issues.
         $json_error = json_last_error_msg();

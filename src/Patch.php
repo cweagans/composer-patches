@@ -42,7 +42,7 @@ class Patch implements \JsonSerializable
     /**
      * Create a Patch from a serialized representation.
      *
-     * @param $json
+     * @param object|string $json
      *   A json_encode'd representation of a Patch.
      *
      * @return Patch

@@ -21,10 +21,10 @@ use Composer\Plugin\Capable;
 use Composer\Plugin\PluginInterface;
 use Composer\Installer\PackageEvents;
 use Composer\Script\Event;
-use Composer\Script\ScriptEvents;
 use Composer\Installer\PackageEvent;
 use Composer\Util\ProcessExecutor;
 use Composer\Util\RemoteFilesystem;
+use cweagans\Composer\Capability\CoreResolverProvider;
 use cweagans\Composer\Capability\ResolverProvider;
 use cweagans\Composer\PatchCollection;
 use cweagans\Composer\Resolvers\ResolverBase;
@@ -75,6 +75,11 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      * @var PatchCollection $patchCollection
      */
     protected $patchCollection;
+
+    /**
+     * @var array
+     */
+    private $installedPatches;
 
     /**
      * Apply plugin modifications to composer
@@ -148,7 +153,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
     public function getCapabilities()
     {
         return [
-            'cweagans\Composer\Capability\ResolverProvider' => 'cweagans\Composer\Capability\CoreResolverProvider',
+            ResolverProvider::class => CoreResolverProvider::class,
         ];
     }
 
@@ -163,7 +168,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         $resolvers = [];
         $plugin_manager = $this->composer->getPluginManager();
         foreach ($plugin_manager->getPluginCapabilities(
-            'cweagans\Composer\Capability\ResolverProvider',
+            ResolverProvider::class,
             ['composer' => $this->composer, 'io' => $this->io]
         ) as $capability) {
             /** @var ResolverProvider $capability */
@@ -208,12 +213,10 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         // Let each resolver discover patches and add them to the PatchCollection.
         /** @var ResolverInterface $resolver */
         foreach ($this->getPatchResolvers() as $resolver) {
-            if (!in_array(get_class($resolver), $this->getConfig('disable-resolvers'), true)) {
+            if (!in_array(get_class($resolver), (array) $this->getConfig('disable-resolvers'), true)) {
                 $resolver->resolve($this->patchCollection, $event);
-            } else {
-                if ($this->io->isVerbose()) {
-                    $this->io->write('<info>  - Skipping resolver ' . get_class($resolver) . '</info>');
-                }
+            } elseif ($this->io->isVerbose()) {
+                $this->io->write('<info>  - Skipping resolver ' . get_class($resolver) . '</info>');
             }
         }
 
@@ -311,8 +314,6 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         // Track applied patches in the package info in installed.json
         $localRepository = $this->composer->getRepositoryManager()->getLocalRepository();
         $localPackage = $localRepository->findPackage($package_name, $package->getVersion());
-        $extra = $localPackage->getExtra();
-        $extra['patches_applied'] = array();
 
         foreach ($this->patchCollection->getPatchesForPackage($package_name) as $patch) {
             /** @var Patch $patch */
@@ -327,7 +328,6 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                     null,
                     new PatchEvent(PatchEvents::POST_PATCH_APPLY, $package, $patch->url, $patch->description)
                 );
-                $extra['patches_applied'][$patch->description] = $patch->url;
             } catch (\Exception $e) {
                 $this->io->write(
                     '   <error>Could not apply patch! Skipping. The error was: ' .
@@ -335,11 +335,10 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                     '</error>'
                 );
                 if ($this->getConfig('exit-on-patch-failure')) {
-                    throw new \Exception("Cannot apply patch $patch->description ($patch->url)!");
+                    throw new \Exception(sprintf('Cannot apply patch %s (%s)!', $patch->description, $patch->url));
                 }
             }
         }
-//        $localPackage->setExtra($extra);
     }
 
     /**
@@ -366,8 +365,8 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      * Apply a patch on code in the specified directory.
      *
      * @param RemoteFilesystem $downloader
-     * @param $install_path
-     * @param $patch_url
+     * @param string $install_path
+     * @param string $patch_url
      * @throws \Exception
      */
     protected function getAndApplyPatch(RemoteFilesystem $downloader, $install_path, $patch_url)
@@ -378,7 +377,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             $filename = realpath($patch_url);
         } else {
             // Generate random (but not cryptographically so) filename.
-            $filename = uniqid(sys_get_temp_dir() . '/') . ".patch";
+            $filename = uniqid(sys_get_temp_dir() . '/', true) . ".patch";
 
             // Download file from remote filesystem to this location.
             $hostname = parse_url($patch_url, PHP_URL_HOST);
@@ -390,7 +389,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         // The order here is intentional. p1 is most likely to apply with git apply.
         // p0 is next likely. p2 is extremely unlikely, but for some special cases,
         // it might be useful. p4 is useful for Magento 2 patches
-        $patch_levels = $this->getConfig('patch-levels');
+        $patch_levels = (array) $this->getConfig('patch-levels');
         foreach ($patch_levels as $patch_level) {
             if ($this->io->isVerbose()) {
                 $comment = 'Testing ability to patch with git apply.';
@@ -404,7 +403,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                 $filename
             );
             $output = $this->executor->getErrorOutput();
-            if (substr($output, 0, 7) === 'Skipped') {
+            if (strpos($output, 'Skipped') === 0) {
                 // Git will indicate success but silently skip patches in some scenarios.
                 //
                 // @see https://github.com/cweagans/composer-patches/pull/165
@@ -447,7 +446,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         // If the patch *still* isn't applied, then give up and throw an Exception.
         // Otherwise, let the user know it worked.
         if (!$patched) {
-            throw new \Exception("Cannot apply patch $patch_url");
+            throw new \Exception('Cannot apply patch ' . $patch_url);
         }
     }
 
@@ -489,7 +488,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         }
 
         // And replace the arguments.
-        $command = call_user_func_array('sprintf', $args);
+        $command = sprintf(...$args);
         $output = '';
         if ($this->io->isVerbose()) {
             $this->io->write('<comment>' . $command . '</comment>');

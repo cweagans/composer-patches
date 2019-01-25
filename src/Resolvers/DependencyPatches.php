@@ -12,9 +12,7 @@ use Composer\DependencyResolver\Operation\OperationInterface;
 use Composer\DependencyResolver\Operation\UpdateOperation;
 use Composer\Installer\PackageEvent;
 use Composer\Package\PackageInterface;
-use cweagans\Composer\Patch;
 use cweagans\Composer\PatchCollection;
-use cweagans\Composer\Plugin\Patches;
 
 class DependencyPatches extends ResolverBase
 {
@@ -27,18 +25,24 @@ class DependencyPatches extends ResolverBase
 
         $operations = $event->getOperations();
         foreach ($operations as $operation) {
-            if ($operation->getJobType() === 'install' || $operation->getJobType() === 'update') {
-                // @TODO handle exception.
-                $package = $this->getPackageFromOperation($operation);
-                /** @var PackageInterface $extra */
-                $extra = $package->getExtra();
-                if (isset($extra['patches'])) {
-                    $patches = $this->findPatchesInJson($extra['patches']);
-                    foreach ($patches as $package => $patch_list) {
-                        foreach ($patch_list as $patch) {
-                            $collection->addPatch($patch);
-                        }
-                    }
+            $jobType = $operation->getJobType();
+
+            if ($jobType !== 'install' && $jobType !== 'update') {
+                continue;
+            }
+
+            // @TODO handle exception.
+            $package = $this->getPackageFromOperation($operation);
+            /** @var PackageInterface $extra */
+            $extra = $package->getExtra();
+            if (!isset($extra['patches'])) {
+                continue;
+            }
+
+            $patches = $this->findPatchesInJson($extra['patches']);
+            foreach ($patches as $packagePatchList) {
+                foreach ($packagePatchList as $patch) {
+                    $collection->addPatch($patch);
                 }
             }
         }
