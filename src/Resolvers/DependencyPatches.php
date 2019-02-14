@@ -27,7 +27,7 @@ class DependencyPatches extends ResolverBase
 
         $operations = $event->getOperations();
         foreach ($operations as $operation) {
-            if ($operation->getJobType() == 'install' || $operation->getJobType() == 'update') {
+            if ($operation->getJobType() === 'install' || $operation->getJobType() === 'update') {
                 // @TODO handle exception.
                 $package = $this->getPackageFromOperation($operation);
                 /** @var PackageInterface $extra */

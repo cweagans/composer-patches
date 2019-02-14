@@ -57,7 +57,7 @@ class PatchesFile extends ResolverBase
 
         // First, check for JSON syntax issues.
         $json_error = json_last_error_msg();
-        if ($json_error != "No error") {
+        if ($json_error !== "No error") {
             throw new \InvalidArgumentException($json_error);
         }
 
