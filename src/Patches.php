@@ -104,6 +104,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
 
       $extra = $this->composer->getPackage()->getExtra();
       $patches_ignore = isset($extra['patches-ignore']) ? $extra['patches-ignore'] : array();
+      $installHooks = isset($extra['patches-install-hooks']) ? $extra['patches-install-hooks'] : FALSE;
 
       $tmp_patches = $this->grabPatches();
       foreach ($packages as $package) {
@@ -140,9 +141,13 @@ class Patches implements PluginInterface, EventSubscriberInterface {
             || ($has_patches && $has_applied_patches && $tmp_patches[$package_name] !== $extra['patches_applied'])) {
             $uninstallOperation = new UninstallOperation($package, 'Removing package so it can be re-installed and re-patched.');
             $this->io->write('<info>Removing package ' . $package_name . ' so that it can be re-installed and re-patched.</info>');
-            $this->eventDispatcher->dispatchPackageEvent(PackageEvents::PRE_PACKAGE_UNINSTALL, $event->isDevMode(), new DefaultPolicy(), new Pool('dev'), new CompositeRepository([$package->getRepository()]), new Request(), [$uninstallOperation], $uninstallOperation);
-            $promises[] = $installationManager->uninstall($localRepository, $uninstallOperation);
-            $this->eventDispatcher->dispatchPackageEvent(PackageEvents::POST_PACKAGE_UNINSTALL, $event->isDevMode(), new DefaultPolicy(), new Pool('dev'), new CompositeRepository([$package->getRepository()]), new Request(), [$uninstallOperation], $uninstallOperation);
+            if ($installHooks) {
+              $this->eventDispatcher->dispatchPackageEvent(PackageEvents::PRE_PACKAGE_UNINSTALL, $event->isDevMode(), new DefaultPolicy(), new Pool('dev'), new CompositeRepository([$package->getRepository()]), new Request(), [$uninstallOperation], $uninstallOperation);
+            }
+            $promises[] =  $installationManager->uninstall($localRepository, $uninstallOperation);
+            if ($installHooks) {
+              $this->eventDispatcher->dispatchPackageEvent(PackageEvents::POST_PACKAGE_UNINSTALL, $event->isDevMode(), new DefaultPolicy(), new Pool('dev'), new CompositeRepository([$package->getRepository()]), new Request(), [$uninstallOperation], $uninstallOperation);
+            }
           }
         }
       }
