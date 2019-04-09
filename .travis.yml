@@ -3,7 +3,8 @@ sudo: false
 dist: trusty
 
 php:
-  - '7.1'
+  - '7.2'
+  - '7.3'
   - nightly
 
 env:
@@ -14,11 +15,6 @@ matrix:
     fast_finish: true
     allow_failures:
         - php: nightly
-    include:
-        - php: 5.6
-          env: PATCHES_TEST_SUITE=lint
-        - php: 7.0
-          env: PATCHES_TEST_SUITE=lint
 
 cache:
     directories:
