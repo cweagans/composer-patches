@@ -164,6 +164,17 @@ By default, failed patches are skipped.
 - This plugin is easy to use with Drupal modules (which don't use semantic versioning).
 - This plugin will gather patches from all dependencies and apply them as if they were in the root composer.json
 
+## Contributing
+1. `composer install`
+1. `vendor/bin/gruntphp run`
+1. `vendor/bin/codeception run unit`
+1. `<write code>`
+1. `vendor/bin/gruntphp run`
+1. `vendor/bin/codeception run unit`
+1. `<commit code>`
+1. `<create pull request>`
+
+
 ## Credits
 
 A ton of this code is adapted or taken straight from https://github.com/jpstacey/composer-patcher, which is abandoned in favor of https://github.com/netresearch/composer-patches-plugin, which is (IMHO) overly complex and difficult to use.
