@@ -18,9 +18,8 @@ class CoreResolverProviderTest extends Unit
 
         $resolvers = $resolverProvider->getResolvers();
 
-        $this->assertCount(3, $resolvers);
+        $this->assertCount(2, $resolvers);
         $this->assertInstanceOf(\cweagans\Composer\Resolvers\RootComposer::class, $resolvers[0]);
         $this->assertInstanceOf(\cweagans\Composer\Resolvers\PatchesFile::class, $resolvers[1]);
-        $this->assertInstanceOf(\cweagans\Composer\Resolvers\DependencyPatches::class, $resolvers[2]);
     }
 }
