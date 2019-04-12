@@ -167,10 +167,10 @@ By default, failed patches are skipped.
 ## Contributing
 1. `composer install`
 1. `vendor/bin/grumphp run`
-1. `vendor/bin/codeception run unit`
+1. `vendor/bin/codecept run unit`
 1. `<write code>`
 1. `vendor/bin/grumphp run`
-1. `vendor/bin/codeception run unit`
+1. `vendor/bin/codecept run unit`
 1. `<commit code>`
 1. `<create pull request>`
 
