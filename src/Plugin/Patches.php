@@ -382,7 +382,14 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
 
             // Download file from remote filesystem to this location.
             $hostname = parse_url($patch_url, PHP_URL_HOST);
-            $downloader->copy($hostname, $patch_url, $filename, false);
+
+            try {
+                $downloader->copy($hostname, $patch_url, $filename, false);
+            } catch (\Exception $e) {
+                // In case of an exception, retry once as the download might
+                // have failed due to intermittent network issues.
+                $downloader->copy($hostname, $patch_url, $filename, false);
+            }
         }
 
         // Modified from drush6:make.project.inc
