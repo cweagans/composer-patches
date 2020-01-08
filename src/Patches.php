@@ -525,34 +525,65 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    *   TRUE if patch was applied, FALSE otherwise.
    */
   protected function applyPatchWithGit($install_path, $patch_levels, $filename) {
-    // Do not use git apply unless the install path is itself a git repo
+    // "git apply" works only if the install path is itself a git repo
+    // @see https://github.com/cweagans/composer-patches/issues/148
     // @see https://stackoverflow.com/a/27283285
-    if (!is_dir($install_path . '/.git')) {
-      return FALSE;
-    }
+    $filesToUnlink = [];
+    try {
+      if (!is_dir($install_path . '/.git')) {
+        // Simulate "git init" to fix the "git apply" limitation.
+        // @see https://github.com/cweagans/composer-patches/issues/294
+        if (file_exists($install_path . '/.git') || !mkdir($install_path . '/.git')) {
+          return false;
+        }
+        $filesToUnlink[] = $install_path . '/.git';
 
-    $patched = FALSE;
-    foreach ($patch_levels as $patch_level) {
-      if ($this->io->isVerbose()) {
-        $comment = 'Testing ability to patch with git apply.';
-        $comment .= ' This command may produce errors that can be safely ignored.';
-        $this->io->write('<comment>' . $comment . '</comment>');
+        if (!mkdir($install_path . '/.git/objects')) {
+          return false;
+        }
+        $filesToUnlink[] = $install_path . '/.git/objects';
+
+        if (!mkdir($install_path . '/.git/refs')) {
+          return false;
+        }
+        $filesToUnlink[] = $install_path . '/.git/refs';
+
+        if (!file_put_contents($install_path . '/.git/HEAD', "ref: refs/heads/master\n")) {
+          return false;
+        }
+        $filesToUnlink[] = $install_path . '/.git/HEAD';
       }
-      $checked = $this->executeCommand('git -C %s apply --check -v %s %s', $install_path, $patch_level, $filename);
-      $output = $this->executor->getErrorOutput();
-      if (substr($output, 0, 7) == 'Skipped') {
-        // Git will indicate success but silently skip patches in some scenarios.
-        //
-        // @see https://github.com/cweagans/composer-patches/pull/165
-        $checked = FALSE;
+
+      $patched = FALSE;
+      foreach ($patch_levels as $patch_level) {
+        if ($this->io->isVerbose()) {
+          $comment = 'Testing ability to patch with git apply.';
+          $comment .= ' This command may produce errors that can be safely ignored.';
+          $this->io->write('<comment>' . $comment . '</comment>');
+        }
+        $checked = $this->executeCommand('git -C %s apply --check -v %s %s', $install_path, $patch_level, $filename);
+        $output = $this->executor->getErrorOutput();
+        if (substr($output, 0, 7) == 'Skipped') {
+          // Git will indicate success but silently skip patches in some scenarios.
+          // @see https://github.com/cweagans/composer-patches/pull/165
+          $checked = FALSE;
+        }
+        if ($checked) {
+          // Apply the first successful style.
+          $patched = $this->executeCommand('git -C %s apply %s %s', $install_path, $patch_level, $filename);
+          break;
+        }
       }
-      if ($checked) {
-        // Apply the first successful style.
-        $patched = $this->executeCommand('git -C %s apply %s %s', $install_path, $patch_level, $filename);
-        break;
-      }
+      return $patched;
+    } finally {
+        foreach (array_reverse($filesToUnlink) as $f) {
+          if (is_dir($f)) {
+            rmdir($f);
+          } else {
+            unlink($f);
+          }
+        }
     }
-    return $patched;
   }
 
 }
