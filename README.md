@@ -24,14 +24,14 @@ Example composer.json:
 {
   "require": {
     "cweagans/composer-patches": "~1.0",
-    "drupal/drupal": "~8.2"
+    "drupal/core-recommended": "^8.8",
   },
   "config": {
     "preferred-install": "source"
   },
   "extra": {
     "patches": {
-      "drupal/drupal": {
+      "drupal/core": {
         "Add startup configuration for PHP server": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch"
       }
     }
@@ -48,7 +48,7 @@ Instead of a patches key in your root composer.json, use a patches-file key.
 {
   "require": {
     "cweagans/composer-patches": "~1.0",
-    "drupal/drupal": "~8.2"
+    "drupal/core-recommended": "^8.8",
   },
   "config": {
     "preferred-install": "source"
@@ -100,7 +100,7 @@ There may be situations in which you want to ignore a patch supplied by a depend
 {
   "require": {
     "cweagans/composer-patches": "~1.0",
-    "drupal/drupal": "~8.2",
+    "drupal/core-recommended": "^8.8",
     "drupal/lightning": "~8.1"
   },
   "config": {
@@ -108,7 +108,7 @@ There may be situations in which you want to ignore a patch supplied by a depend
   },
   "extra": {
     "patches": {
-      "drupal/drupal": {
+      "drupal/core": {
         "Add startup configuration for PHP server": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch"
       }
     },
