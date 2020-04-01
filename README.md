@@ -107,6 +107,7 @@ There may be situations in which you want to ignore a patch supplied by a depend
     "preferred-install": "source"
   },
   "extra": {
+    "enable-patching": true,
     "patches": {
       "drupal/core": {
         "Add startup configuration for PHP server": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch"
