@@ -404,6 +404,15 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       }
     }
 
+    // support busybox patch version
+    if (!$patched) {
+      foreach ($patch_levels as $patch_level) {
+        if ($patched = $this->executeCommand("cd %s && patch %s < %s", $install_path, $patch_level, $filename)) {
+          break;
+        }
+      }
+    }
+
     // Clean up the temporary patch file.
     if (isset($hostname)) {
       unlink($filename);
