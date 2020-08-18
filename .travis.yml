@@ -1,5 +1,5 @@
 language: php
-sudo: false
+os: linux
 dist: trusty
 
 php:
@@ -12,7 +12,7 @@ env:
   - PATCHES_TEST_SUITE=unit
   - PATCHES_TEST_SUITE=acceptance
 
-matrix:
+jobs:
     fast_finish: true
     allow_failures:
         - php: nightly
