@@ -176,7 +176,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     $operations = $event->getOperations();
     $this->io->write('<info>Gathering patches for dependencies. This might take a minute.</info>');
     foreach ($operations as $operation) {
-      if ($operation->getJobType() == 'install' || $operation->getJobType() == 'update') {
+      if ($operation->getOperationType() == 'install' || $operation->getOperationType() == 'update') {
         $package = $this->getPackageFromOperation($operation);
         $extra = $package->getExtra();
         if (isset($extra['patches'])) {
