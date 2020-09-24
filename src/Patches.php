@@ -12,6 +12,7 @@ use Composer\DependencyResolver\Operation\InstallOperation;
 use Composer\DependencyResolver\Operation\UninstallOperation;
 use Composer\DependencyResolver\Operation\UpdateOperation;
 use Composer\DependencyResolver\Operation\OperationInterface;
+use Composer\EventDispatcher\EventDispatcher;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
 use Composer\Package\AliasPackage;
@@ -47,6 +48,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * @var array $patches
    */
   protected $patches;
+  /**
+   * @var array $patches
+   */
+  protected $installedPatches;
 
   /**
    * Apply plugin modifications to composer
@@ -216,7 +221,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
 
   /**
    * Get the patches from root composer or external file
-   * @return Patches
+   * @return array
    * @throws \Exception
    */
   public function grabPatches() {
@@ -264,9 +269,8 @@ class Patches implements PluginInterface, EventSubscriberInterface {
         throw new \Exception('There was an error in the supplied patch file');
       }
     }
-    else {
-      return array();
-    }
+
+    return array();
   }
 
   /**
@@ -352,8 +356,8 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * Apply a patch on code in the specified directory.
    *
    * @param RemoteFilesystem $downloader
-   * @param $install_path
-   * @param $patch_url
+   * @param string $install_path
+   * @param string $patch_url
    * @param PackageInterface $package
    * @throws \Exception
    */
@@ -517,9 +521,9 @@ class Patches implements PluginInterface, EventSubscriberInterface {
   /**
    * Attempts to apply a patch with git apply.
    *
-   * @param $install_path
-   * @param $patch_levels
-   * @param $filename
+   * @param string $install_path
+   * @param array $patch_levels
+   * @param string $filename
    *
    * @return bool
    *   TRUE if patch was applied, FALSE otherwise.
