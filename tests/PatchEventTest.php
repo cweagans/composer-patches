@@ -11,7 +11,7 @@ use cweagans\Composer\PatchEvent;
 use cweagans\Composer\PatchEvents;
 use Composer\Package\PackageInterface;
 
-class PatchEventTest extends \PHPUnit_Framework_TestCase {
+class PatchEventTest extends \PHPUnit\Framework\TestCase {
 
   /**
    * Tests all the getters.

@@ -19,10 +19,12 @@ jobs:
         coverage: none
 
     - run: |
-        composer install        
+        composer install
 
     - run: |
         vendor/bin/phpstan analyze -c phpstan.neon.dist
+    - run: |
+        vendor/bin/phpunit
 
   phpstan-v2:
     name: PHPStan with composer v2
@@ -39,7 +41,9 @@ jobs:
         tools: composer:v2
 
     - run: |
-        composer install        
+        composer install
 
     - run: |
         vendor/bin/phpstan analyze -c phpstan.neon.dist
+    - run: |
+        vendor/bin/phpunit
