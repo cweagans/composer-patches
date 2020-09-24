@@ -1,7 +1,6 @@
 {
   "name": "cweagans/composer-patches",
   "description": "Provides a way to patch Composer packages.",
-  "minimum-stability": "dev",
   "license": "BSD-3-Clause",
   "type": "composer-plugin",
   "extra": {
