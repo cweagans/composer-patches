@@ -1,1 +1,0 @@
-C:37:"PHPUnit\Runner\DefaultTestResultCache":208:{a:2:{s:7:"defects";a:0:{}s:5:"times";a:2:{s:68:"cweagans\Composer\Tests\PatchEventTest::testGetters with data set #0";d:0.002;s:68:"cweagans\Composer\Tests\PatchEventTest::testGetters with data set #1";d:0;}}}
