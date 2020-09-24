@@ -19,7 +19,8 @@
   },
   "require-dev": {
     "composer/composer": "~1.0 || ~2.0",
-    "phpunit/phpunit": "~4.6"
+    "phpunit/phpunit": "~4.6",
+    "phpstan/phpstan": "^0.12.43"
   },
   "autoload": {
     "psr-4": {"cweagans\\Composer\\": "src"}
