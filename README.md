@@ -166,6 +166,20 @@ To enforce throwing an error and stopping package installation/update immediatel
 
 By default, failed patches are skipped.
 
+## Patches reporting
+
+When a patch is applied, the plugin writes a report-file `PATCHES.txt` to a patching directory (e.g. `./patch-me/PATCHES.txt`),
+which contains a list of applied patches.
+
+If you want to avoid this behavior, add a specific key to the `extra` section:
+```json
+"extra": {
+    "composer-patches-skip-reporting": true
+}
+```
+
+Or provide an environment variable `COMPOSER_PATCHES_SKIP_REPORTING` with a config.
+
 ## Difference between this and netresearch/composer-patches-plugin
 
 - This plugin is much more simple to use and maintain
