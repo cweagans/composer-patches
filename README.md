@@ -24,14 +24,14 @@ Example composer.json:
 {
   "require": {
     "cweagans/composer-patches": "~1.0",
-    "drupal/drupal": "~8.2"
+    "drupal/core-recommended": "^8.8",
   },
   "config": {
     "preferred-install": "source"
   },
   "extra": {
     "patches": {
-      "drupal/drupal": {
+      "drupal/core": {
         "Add startup configuration for PHP server": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch"
       }
     }
@@ -48,7 +48,7 @@ Instead of a patches key in your root composer.json, use a patches-file key.
 {
   "require": {
     "cweagans/composer-patches": "~1.0",
-    "drupal/drupal": "~8.2"
+    "drupal/core-recommended": "^8.8",
   },
   "config": {
     "preferred-install": "source"
@@ -100,7 +100,7 @@ There may be situations in which you want to ignore a patch supplied by a depend
 {
   "require": {
     "cweagans/composer-patches": "~1.0",
-    "drupal/drupal": "~8.2",
+    "drupal/core-recommended": "^8.8",
     "drupal/lightning": "~8.1"
   },
   "config": {
@@ -108,7 +108,7 @@ There may be situations in which you want to ignore a patch supplied by a depend
   },
   "extra": {
     "patches": {
-      "drupal/drupal": {
+      "drupal/core": {
         "Add startup configuration for PHP server": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch"
       }
     },
@@ -163,6 +163,17 @@ By default, failed patches are skipped.
 - This plugin doesn't require you to specify which package version you're patching
 - This plugin is easy to use with Drupal modules (which don't use semantic versioning).
 - This plugin will gather patches from all dependencies and apply them as if they were in the root composer.json
+
+## Contributing
+1. `composer install`
+1. `vendor/bin/grumphp run`
+1. `vendor/bin/codecept run unit`
+1. `<write code>`
+1. `vendor/bin/grumphp run`
+1. `vendor/bin/codecept run unit`
+1. `<commit code>`
+1. `<create pull request>`
+
 
 ## Credits
 

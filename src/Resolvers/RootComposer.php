@@ -22,7 +22,7 @@ class RootComposer extends ResolverBase
 
         $extra = $this->composer->getPackage()->getExtra();
 
-        if (!isset($extra['patches'])) {
+        if (empty($extra['patches'])) {
             return;
         }
 

@@ -1,24 +1,21 @@
 language: php
-sudo: false
+os: linux
 dist: trusty
 
 php:
-  - '7.1'
+  - '7.2'
+  - '7.3'
+  - '7.4'
   - nightly
 
 env:
   - PATCHES_TEST_SUITE=unit
   - PATCHES_TEST_SUITE=acceptance
 
-matrix:
+jobs:
     fast_finish: true
     allow_failures:
         - php: nightly
-    include:
-        - php: 5.6
-          env: PATCHES_TEST_SUITE=lint
-        - php: 7.0
-          env: PATCHES_TEST_SUITE=lint
 
 cache:
     directories:
@@ -32,8 +29,8 @@ script:
     - echo "${PATCHES_TEST_SUITE}"
     - if [ "${PATCHES_TEST_SUITE}" != "lint" ]; then ./vendor/bin/grumphp run; fi;
     - if [ "${PATCHES_TEST_SUITE}" == "lint" ]; then find ./src -name "*.php" -exec php -l {} \;; fi;
-    - if [ "${TRAVIS_PHP_VERSION}" != "7.1" ] && [ "${PATCHES_TEST_SUITE}" != "lint" ]; then ./vendor/bin/codecept run "${PATCHES_TEST_SUITE}"; fi;
-    - if [ "${TRAVIS_PHP_VERSION}" == "7.1" ] && [ "${PATCHES_TEST_SUITE}" != "lint" ]; then ./vendor/bin/codecept run "${PATCHES_TEST_SUITE}" --coverage-xml; fi;
+    - if [ "${TRAVIS_PHP_VERSION}" != "7.3" ] && [ "${PATCHES_TEST_SUITE}" != "lint" ]; then ./vendor/bin/codecept run "${PATCHES_TEST_SUITE}"; fi;
+    - if [ "${TRAVIS_PHP_VERSION}" == "7.3" ] && [ "${PATCHES_TEST_SUITE}" != "lint" ]; then ./vendor/bin/codecept run "${PATCHES_TEST_SUITE}" --coverage-xml; fi;
 
 after_success:
     - if [ -f ./tests/_output/coverage.xml ]; then travis_retry ./vendor/bin/coveralls -v; fi;

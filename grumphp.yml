@@ -5,7 +5,6 @@ parameters:
         phplint: ~
         yamllint: ~
         composer: ~
-        phpcpd: ~
         phpcpd:
             directory: './src'
         jsonlint:

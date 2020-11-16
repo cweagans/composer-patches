@@ -208,7 +208,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         // Let each resolver discover patches and add them to the PatchCollection.
         /** @var ResolverInterface $resolver */
         foreach ($this->getPatchResolvers() as $resolver) {
-            if (!in_array(get_class($resolver), $this->getConfig('disable-resolvers'))) {
+            if (!in_array(get_class($resolver), $this->getConfig('disable-resolvers'), true)) {
                 $resolver->resolve($this->patchCollection, $event);
             } else {
                 if ($this->io->isVerbose()) {
@@ -247,7 +247,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                 $tmp_patches = Util::arrayMergeRecursiveDistinct($tmp_patches, $patches);
             }
 
-            if ($tmp_patches == false) {
+            if ($tmp_patches === false) {
                 $this->io->write('<info>No patches supplied.</info>');
                 return;
             }
@@ -408,7 +408,14 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
 
             // Download file from remote filesystem to this location.
             $hostname = parse_url($patch_url, PHP_URL_HOST);
-            $downloader->copy($hostname, $patch_url, $filename, false);
+
+            try {
+                $downloader->copy($hostname, $patch_url, $filename, false);
+            } catch (\Exception $e) {
+                // In case of an exception, retry once as the download might
+                // have failed due to intermittent network issues.
+                $downloader->copy($hostname, $patch_url, $filename, false);
+            }
         }
 
         // Modified from drush6:make.project.inc
@@ -430,7 +437,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                 $filename
             );
             $output = $this->executor->getErrorOutput();
-            if (substr($output, 0, 7) == 'Skipped') {
+            if (substr($output, 0, 7) === 'Skipped') {
                 // Git will indicate success but silently skip patches in some scenarios.
                 //
                 // @see https://github.com/cweagans/composer-patches/pull/165
@@ -488,7 +495,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         $enabled = true;
 
         $has_no_patches = empty($extra['patches']);
-        $has_no_patches_file = ($this->getConfig('patches-file') == '');
+        $has_no_patches_file = ($this->getConfig('patches-file') === '');
         $patching_disabled = $this->getConfig('disable-patching');
 
         if ($patching_disabled || !($has_no_patches && $has_no_patches_file)) {
@@ -521,13 +528,27 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             $this->io->write('<comment>' . $command . '</comment>');
             $io = $this->io;
             $output = function ($type, $data) use ($io) {
-                if ($type == Process::ERR) {
+                if ($type === Process::ERR) {
                     $io->write('<error>' . $data . '</error>');
                 } else {
                     $io->write('<comment>' . $data . '</comment>');
                 }
             };
         }
-        return ($this->executor->execute($command, $output) == 0);
+        return ($this->executor->execute($command, $output) === 0);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function deactivate(Composer $composer, IOInterface $io)
+    {
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function uninstall(Composer $composer, IOInterface $io)
+    {
     }
 }
