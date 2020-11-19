@@ -84,6 +84,21 @@ class Patches implements PluginInterface, EventSubscriberInterface {
   }
 
   /**
+   * Turn local patch file uris into absolute paths.
+   * @param string $install_path
+   * @param array $patches
+   */
+  protected function checkUrls($install_path, &$patches) {
+    foreach ($patches as $package_name => $package_patches) {
+      foreach ($package_patches as $description => $url) {
+        if (strpos($url, '.') === 0) {
+          $patches[$package_name][$description] = implode(DIRECTORY_SEPARATOR, [$install_path, $url]);
+        }
+      }
+    }
+  }
+
+  /**
    * Before running composer install,
    * @param Event $event
    */
@@ -111,6 +126,9 @@ class Patches implements PluginInterface, EventSubscriberInterface {
                 $extra['patches'][$package_name] = array_diff($extra['patches'][$package_name], $patches);
               }
             }
+          }
+          if (!empty($extra['patches'])) {
+            $this->checkUrls($installationManager->getInstaller($package->getType())->getInstallPath($package), $extra['patches']);
           }
           $this->installedPatches[$package->getName()] = $extra['patches'];
         }
