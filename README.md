@@ -137,6 +137,40 @@ Composer [blocks](https://getcomposer.org/doc/06-config.md#secure-http) you from
 
 However, it's always advised to setup HTTPS to prevent MITM code injection.
 
+## Apply binary patches
+
+Binary patches can be useful if you have to apply a patch to a module with
+Windows line separator on a Unix environment. 
+
+Example composer.json:
+
+```json
+{
+  "require": {
+    "cweagans/composer-patches": "~1.0",
+    "drupal/core-recommended": "^8.8",
+  },
+  "config": {
+    "preferred-install": "source"
+  },
+  "extra": {
+    "patches": {
+      "drupal/core": {
+        "Add startup configuration for PHP server": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch"
+      }
+    },
+    "patches-options": {
+      "drupal/core": {
+        "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch": {
+          "binary": true
+        }
+      }
+    }
+  }
+}
+
+```
+
 ## Patches containing modifications to composer.json files
 
 Because patching occurs _after_ Composer calculates dependencies and installs packages, changes to an underlying dependency's `composer.json` file introduced in a patch will have _no effect_ on installed packages.

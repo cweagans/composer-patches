@@ -11,6 +11,7 @@ use Composer\Composer;
 use Composer\Installer\PackageEvent;
 use Composer\IO\IOInterface;
 use cweagans\Composer\PatchCollection;
+use cweagans\Composer\PatchOptionsCollection;
 
 interface ResolverInterface
 {
@@ -39,4 +40,18 @@ interface ResolverInterface
      * @return mixed
      */
     public function resolve(PatchCollection $collection, PackageEvent $event);
+
+    /**
+     * Find and add patches options to the supplied PatchOptionsCollection.
+     *
+     * Note that in this method, it is safe to assume that the resolver is enabled
+     * because this method will never be called if ::isEnabled() returns FALSE.
+     *
+     * @param PatchOptionsCollection $options_collection
+     *   A collection of patches options to use when to apply the patch
+     * @param PackageEvent $event
+     *   The event that's currently being responded to.
+     * @return mixed
+     */
+    public function resolveOptions(PatchOptionsCollection $options_collection, PackageEvent $event);
 }

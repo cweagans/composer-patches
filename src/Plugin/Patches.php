@@ -27,6 +27,8 @@ use Composer\Util\ProcessExecutor;
 use Composer\Util\RemoteFilesystem;
 use cweagans\Composer\Capability\ResolverProvider;
 use cweagans\Composer\PatchCollection;
+use cweagans\Composer\PatchOptions;
+use cweagans\Composer\PatchOptionsCollection;
 use cweagans\Composer\Resolvers\ResolverBase;
 use cweagans\Composer\Resolvers\ResolverInterface;
 use Symfony\Component\Process\Process;
@@ -77,6 +79,11 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
     protected $patchCollection;
 
     /**
+     * @var PatchOptionsCollection $patchOptionsCollection
+     */
+    protected $patchOptionsCollection;
+
+    /**
      * Apply plugin modifications to composer
      *
      * @param Composer $composer
@@ -92,6 +99,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         $this->installedPatches = array();
         $this->patchesResolved = false;
         $this->patchCollection = new PatchCollection();
+        $this->patchOptionsCollection = new PatchOptionsCollection();
 
         $this->configuration = [
             'exit-on-patch-failure' => [
@@ -210,6 +218,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         foreach ($this->getPatchResolvers() as $resolver) {
             if (!in_array(get_class($resolver), $this->getConfig('disable-resolvers'), true)) {
                 $resolver->resolve($this->patchCollection, $event);
+                $resolver->resolveOptions($this->patchOptionsCollection, $event);
             } else {
                 if ($this->io->isVerbose()) {
                     $this->io->write('<info>  - Skipping resolver ' . get_class($resolver) . '</info>');
@@ -322,7 +331,8 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                     null,
                     new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $package, $patch->url, $patch->description)
                 );
-                $this->getAndApplyPatch($downloader, $install_path, $patch->url);
+                $patchOptions = $this->patchOptionsCollection->getOptionsForPatch($package_name, $patch->url);
+                $this->getAndApplyPatch($downloader, $install_path, $patch->url, $patchOptions);
                 $this->eventDispatcher->dispatch(
                     null,
                     new PatchEvent(PatchEvents::POST_PATCH_APPLY, $package, $patch->url, $patch->description)
@@ -368,10 +378,19 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      * @param RemoteFilesystem $downloader
      * @param $install_path
      * @param $patch_url
+     * @param PatchOptions $patch_options
      * @throws \Exception
      */
-    protected function getAndApplyPatch(RemoteFilesystem $downloader, $install_path, $patch_url)
-    {
+    protected function getAndApplyPatch(
+        RemoteFilesystem $downloader,
+        $install_path,
+        $patch_url,
+        PatchOptions $patch_options = null
+    ) {
+        $force_binary = false;
+        if ($patch_options) {
+            $force_binary = $patch_options->binary;
+        }
 
         // Local patch file.
         if (file_exists($patch_url)) {
@@ -433,11 +452,16 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         // the 'patch' command.
         if (!$patched) {
             foreach ($patch_levels as $patch_level) {
+                $binary_option = "";
+                if ($force_binary) {
+                    $binary_option = '--binary';
+                }
                 // --no-backup-if-mismatch here is a hack that fixes some
                 // differences between how patch works on windows and unix.
                 if ($patched = $this->executeCommand(
-                    "patch %s --no-backup-if-mismatch -d %s < %s",
+                    "patch %s %s --no-backup-if-mismatch -d %s < %s",
                     $patch_level,
+                    $binary_option,
                     $install_path,
                     $filename
                 )
@@ -490,7 +514,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         // Shell-escape all arguments except the command.
         $args = func_get_args();
         foreach ($args as $index => $arg) {
-            if ($index !== 0) {
+            if ($index !== 0 && !empty($arg)) {
                 $args[$index] = escapeshellarg($arg);
             }
         }

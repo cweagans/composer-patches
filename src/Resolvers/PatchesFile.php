@@ -10,6 +10,7 @@ namespace cweagans\Composer\Resolvers;
 use Composer\Installer\PackageEvent;
 use cweagans\Composer\Patch;
 use cweagans\Composer\PatchCollection;
+use cweagans\Composer\PatchOptionsCollection;
 
 class PatchesFile extends ResolverBase
 {
@@ -37,6 +38,23 @@ class PatchesFile extends ResolverBase
             foreach ($patches as $patch) {
                 /** @var Patch $patch */
                 $collection->addPatch($patch);
+            }
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function resolveOptions(PatchOptionsCollection $options_collection, PackageEvent $event)
+    {
+        $extra = $this->composer->getPackage()->getExtra();
+        if (empty($extra['patches-options'])) {
+            return;
+        }
+        foreach ($this->findPatchesOptionsInJson($extra['patches-options']) as $package => $patches_options) {
+            foreach ($patches_options as $patch_options) {
+                /** @var Patch $patch */
+                $options_collection->addOptions($patch_options);
             }
         }
     }

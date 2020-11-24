@@ -11,7 +11,9 @@ use Composer\Composer;
 use Composer\Installer\PackageEvent;
 use Composer\IO\IOInterface;
 use cweagans\Composer\Patch;
+use cweagans\Composer\PatchOptions;
 use cweagans\Composer\PatchCollection;
+use cweagans\Composer\PatchOptionsCollection;
 
 abstract class ResolverBase implements ResolverInterface
 {
@@ -43,6 +45,11 @@ abstract class ResolverBase implements ResolverInterface
      * {@inheritdoc}
      */
     abstract public function resolve(PatchCollection $collection, PackageEvent $event);
+
+    /**
+     * {@inheritDoc}
+     */
+    abstract public function resolveOptions(PatchOptionsCollection $options_collection, PackageEvent $event);
 
     /**
      * Handles the different patch definition formats and returns a list of Patches.
@@ -89,5 +96,51 @@ abstract class ResolverBase implements ResolverInterface
         }
 
         return $patches;
+    }
+
+    /**
+     * Handles the different patch options definition formats and returns a list of PatchOptions.
+     *
+     * @param array $patches_options
+     *   An array of patch options from composer.json or a patches file.
+     *
+     * @return array An array of PatchOptions objects grouped by package name.
+     */
+    public function findPatchesOptionsInJson($patches_options)
+    {
+        // Given an array of patch options data (pulled directly from the root composer.json
+        // or a patches file), figure out what patch format each package is using and
+        // marshall everything into PatchOptions objects.
+        foreach ($patches_options as $package => $patch_opts) {
+            if (isset($patch_opts[0]) && is_array($patch_opts[0])) {
+                $this->io->write("<info>Using expanded definition format for package {$package}</info>");
+
+                foreach ($patch_opts as $index => $opts) {
+                    $patch_option = new PatchOptions();
+                    $patch_option->package = $package;
+                    $patch_option->url = $opts["url"];
+                    $patch_option->binary = $opts["binary"];
+
+                    $patches_options[$package][$index] = $patch_option;
+                }
+            } else {
+                $this->io->write("<info>Using compact definition format for package {$package}</info>");
+
+                $temporary_patch_list = [];
+
+                foreach ($patch_opts as $url => $opts) {
+                    $patch_option = new PatchOptions();
+                    $patch_option->package = $package;
+                    $patch_option->url = $url;
+                    $patch_option->binary = $opts['binary'];
+
+                    $temporary_patch_list[] = $patch_option;
+                }
+
+                $patches_options[$package] = $temporary_patch_list;
+            }
+        }
+
+        return $patches_options;
     }
 }
