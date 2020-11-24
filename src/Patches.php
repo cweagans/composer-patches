@@ -220,9 +220,22 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * @throws \Exception
    */
   public function grabPatches() {
-      // First, try to get the patches from the root composer.json.
+    $packages = $this->composer->getRepositoryManager()->getLocalRepository()->getPackages();
     $extra = $this->composer->getPackage()->getExtra();
-    if (isset($extra['patches'])) {
+    // First, try to get the patches from the root composer.lock, if no packages installed at locally.
+    if (empty($packages)) {
+      $locked_packages = $this->composer->getLocker()->getLockedRepository()->getPackages();
+      $patches = [];
+      foreach ($locked_packages as $package) {
+        $extra = $package->getExtra();
+        if (isset($extra['patches_applied'])) {
+          $patches[$package->getName()] = $extra['patches_applied'];
+        }
+      }
+      return $patches;
+    }
+    // Second, try to get the patches from the root composer.json.
+    elseif (isset($extra['patches'])) {
       $this->io->write('<info>Gathering patches for root package.</info>');
       $patches = $extra['patches'];
       return $patches;
