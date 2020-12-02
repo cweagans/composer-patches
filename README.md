@@ -1,20 +1,12 @@
 # composer-patches
 
-[![Build Status](https://travis-ci.org/cweagans/composer-patches.svg?branch=master)](https://travis-ci.org/cweagans/composer-patches)
-[![Coverage Status](https://coveralls.io/repos/github/cweagans/composer-patches/badge.svg?branch=master)](https://coveralls.io/github/cweagans/composer-patches?branch=master)
-
 Simple patches plugin for Composer. Applies a patch from a local or remote file to any package required with composer.
 
-## Support notes
-
-* If you need PHP 5.3, 5.4, or 5.5 support, you should probably use a 1.x release.
-* 1.x is mostly unsupported, but bugfixes and security fixes will still be accepted.
-  1.7.0 will be the last minor release in the 1.x series.
-* Beginning in 2.x, the automated tests will not allow us to use language features
-  that will cause syntax errors in PHP 5.6 and later. The unit/acceptance tests do
-  not run on anything earlier than PHP 7.1, so while pull requests will be accepted
-  for those versions, support is on a best-effort basis.
-
+Note that the 1.x versions of Composer Patches are supported on a best-effort
+basis due to the imminent release of 2.0.0. You may still be interested in
+using 1.x if you need Composer to cooperate with earlier PHP versions. No new
+features will be added to 1.x releases, but any security or bug fixes will
+still be accepted.
 
 ## Usage
 
@@ -24,14 +16,14 @@ Example composer.json:
 {
   "require": {
     "cweagans/composer-patches": "~1.0",
-    "drupal/core-recommended": "^8.8",
+    "drupal/drupal": "~8.2"
   },
   "config": {
     "preferred-install": "source"
   },
   "extra": {
     "patches": {
-      "drupal/core": {
+      "drupal/drupal": {
         "Add startup configuration for PHP server": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch"
       }
     }
@@ -48,7 +40,7 @@ Instead of a patches key in your root composer.json, use a patches-file key.
 {
   "require": {
     "cweagans/composer-patches": "~1.0",
-    "drupal/core-recommended": "^8.8",
+    "drupal/drupal": "~8.2"
   },
   "config": {
     "preferred-install": "source"
@@ -74,7 +66,7 @@ Then your `composer.patches.json` should look like this:
 
 ## Allowing patches to be applied from dependencies
 
-If you want your project to accept patches from dependencies, you must have the following in your composer file:
+If your project doesn't supply any patches of its own, but you still want to accept patches from dependencies, you must have the following in your composer file:
 
 ```json
 {
@@ -86,6 +78,8 @@ If you want your project to accept patches from dependencies, you must have the 
   }
 }
 ```
+
+If you do have a `patches` section in your composer file that defines your own set of patches then the `enable-patching` setting will be ignored and patches from dependencies will always be applied.
 
 ## Ignoring patches
 
@@ -100,7 +94,7 @@ There may be situations in which you want to ignore a patch supplied by a depend
 {
   "require": {
     "cweagans/composer-patches": "~1.0",
-    "drupal/core-recommended": "^8.8",
+    "drupal/drupal": "~8.2",
     "drupal/lightning": "~8.1"
   },
   "config": {
@@ -108,7 +102,7 @@ There may be situations in which you want to ignore a patch supplied by a depend
   },
   "extra": {
     "patches": {
-      "drupal/core": {
+      "drupal/drupal": {
         "Add startup configuration for PHP server": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch"
       }
     },
@@ -118,6 +112,21 @@ There may be situations in which you want to ignore a patch supplied by a depend
           "This patch has known conflicts with our Quick Edit integration": "https://www.drupal.org/files/issues/2664682-49.patch"
         }
       }
+    }
+  }
+}
+```
+
+## Allowing to force the patch level (-pX)
+
+Some situations require to force the patchLevel used to apply patches on a particular package.
+Its useful for packages like drupal/core which packages only a subdir of the original upstream project on which patches are based.
+
+```json
+{
+  "extra": {
+    "patchLevel": {
+      "drupal/core": "-p2"
     }
   }
 }
@@ -163,17 +172,6 @@ By default, failed patches are skipped.
 - This plugin doesn't require you to specify which package version you're patching
 - This plugin is easy to use with Drupal modules (which don't use semantic versioning).
 - This plugin will gather patches from all dependencies and apply them as if they were in the root composer.json
-
-## Contributing
-1. `composer install`
-1. `vendor/bin/grumphp run`
-1. `vendor/bin/codecept run unit`
-1. `<write code>`
-1. `vendor/bin/grumphp run`
-1. `vendor/bin/codecept run unit`
-1. `<commit code>`
-1. `<create pull request>`
-
 
 ## Credits
 
