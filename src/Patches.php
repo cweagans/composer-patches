@@ -309,16 +309,16 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     foreach ($this->patches[$package_name] as $description => $url) {
       $this->io->write('    <info>' . $url . '</info> (<comment>' . $description. '</comment>)');
       try {
-        $this->eventDispatcher->dispatch(NULL, new PatchEvent(PatchEvents::PRE_PATCH_APPLY,$event->getComposer(), $event->getIO, $package, $url, $description));
+        $this->eventDispatcher->dispatch(NULL, new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $event->getComposer(), $this->io, $package, $url, $description));
         $this->getAndApplyPatch($downloader, $install_path, $url, $package);
-        $this->eventDispatcher->dispatch(NULL, new PatchEvent(PatchEvents::POST_PATCH_APPLY,$event->getComposer(), $event->getIO, $package, $url, $description));
+        $this->eventDispatcher->dispatch(NULL, new PatchEvent(PatchEvents::POST_PATCH_APPLY, $event->getComposer(), $this->io, $package, $url, $description));
         $extra['patches_applied'][$description] = $url;
       }
       catch (\Exception $e) {
         $this->io->write('   <error>Could not apply patch! Skipping. The error was: ' . $e->getMessage() . '</error>');
         $this->eventDispatcher->dispatch(
           null,
-          new PatchEvent(PatchEvents::PATCH_APPLY_ERROR, $event->getComposer(), $event->getIO, $package, $patch->url, $patch->description, $e)
+          new PatchEvent(PatchEvents::PATCH_APPLY_ERROR, $event->getComposer(), $this->io, $package, $patch->url, $patch->description, $e)
       );
         if ($exitOnFailure) {
           throw new \Exception("Cannot apply patch $description ($url)!");

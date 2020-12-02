@@ -113,7 +113,7 @@ class PatchEvent extends Event {
    */
   public function getError()
   {
-      return $this->error;
+    return $this->error;
   }
 
 }
