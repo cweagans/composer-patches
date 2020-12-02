@@ -48,7 +48,7 @@ class PatchEvent extends Event {
    * @param string $url
    * @param string $description
    */
-  public function __construct($eventName, Composer $composer, IOInterface $io, PackageInterface $package, $url, $description, \Exception $error = NULL)
+  public function __construct($eventName, Composer $composer, IOInterface $io, PackageInterface $package, $url, $description, \Exception $error = null)
   {
     parent::__construct($eventName);
     $this->composer = $composer;
@@ -56,7 +56,7 @@ class PatchEvent extends Event {
     $this->url = $url;
     $this->description = $description;
     $this->error = $error;
-    $this->io - $io;
+    $this->io = $io;
   }
 
   /**
