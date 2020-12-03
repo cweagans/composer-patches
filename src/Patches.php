@@ -69,6 +69,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
   public static function getSubscribedEvents() {
     return array(
       ScriptEvents::PRE_INSTALL_CMD => array('checkPatches'),
+      ScriptEvents::POST_INSTALL_CMD => array('checkMissing'),
       ScriptEvents::PRE_UPDATE_CMD => array('checkPatches'),
       PackageEvents::PRE_PACKAGE_INSTALL => array('gatherPatches'),
       PackageEvents::PRE_PACKAGE_UPDATE => array('gatherPatches'),
@@ -148,6 +149,37 @@ class Patches implements PluginInterface, EventSubscriberInterface {
   }
 
   /**
+   * After running composer install,
+   * @param Event $event
+   */
+  public function checkMissing(Event $event) {
+    if (!$this->isPatchingEnabled()) {
+      return;
+    }
+
+    $extra = $this->composer->getPackage()->getExtra();
+    $exitOnFailure = getenv('COMPOSER_EXIT_ON_PATCH_FAILURE') || !empty($extra['composer-exit-on-patch-failure']);
+
+    $repositoryManager = $this->composer->getRepositoryManager();
+    $localRepository = $repositoryManager->getLocalRepository();
+    $packages = $localRepository->getPackages();
+
+    $patches = $this->grabPatches();
+    foreach ($packages as $package) {
+      unset($patches[$package->getName()]);
+    }
+
+    $missingPackages = [];
+    foreach (array_keys($patches) as $package) {
+      $this->io->write('<error>Patches were found for ' . $package . ' - but it was never installed.</error>');
+      $missingPackages[] = $package;
+    }
+    if (count($missingPackages) && $exitOnFailure) {
+      throw new \Exception('Patches found for not installed packages: ' . implode(', ', $missingPackages) . '!');
+    }
+  }
+
+  /**
    * Gather patches from dependencies and store them for later use.
    *
    * @param PackageEvent $event
@@ -216,7 +248,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
 
   /**
    * Get the patches from root composer or external file
-   * @return Patches
+   * @return array
    * @throws \Exception
    */
   public function grabPatches() {
@@ -321,6 +353,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
         }
       }
     }
+    /** @var \Composer\Package\Package $localPackage */
     $localPackage->setExtra($extra);
 
     $this->io->write('');
