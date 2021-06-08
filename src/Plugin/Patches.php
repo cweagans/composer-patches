@@ -253,6 +253,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             }
 
             // Remove packages for which the patch set has changed.
+            $promises = [];
             foreach ($packages as $package) {
                 if (!($package instanceof AliasPackage)) {
                     $package_name = $package->getName();
@@ -270,9 +271,13 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                         $this->io->write('<info>Removing package ' .
                             $package_name .
                             ' so that it can be re-installed and re-patched.</info>');
-                        $installationManager->uninstall($localRepository, $uninstallOperation);
+                        $promises[] = $installationManager->uninstall($localRepository, $uninstallOperation);
                     }
                 }
+            }
+            $promises = array_filter($promises);
+            if ($promises) {
+                $this->composer->getLoop()->wait($promises);
             }
         } catch (\LogicException $e) {
             // If the Locker isn't available, then we don't need to do this.
