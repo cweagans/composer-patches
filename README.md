@@ -40,6 +40,8 @@ Example composer.json:
 
 ```
 
+After modifying `composer.json`, run `composer update --lock` to apply the patch.
+
 ## Using an external patch file
 
 Instead of a patches key in your root composer.json, use a patches-file key.
