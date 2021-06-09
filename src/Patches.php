@@ -47,6 +47,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * @var array $patches
    */
   protected $patches;
+  /**
+   * @var array $packages
+   */
+  protected $reInstallPackages = [];
 
   /**
    * Apply plugin modifications to composer
@@ -136,6 +140,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
             $uninstallOperation = new UninstallOperation($package, 'Removing package so it can be re-installed and re-patched.');
             $this->io->write('<info>Removing package ' . $package_name . ' so that it can be re-installed and re-patched.</info>');
             $installationManager->uninstall($localRepository, $uninstallOperation);
+            $this->reInstallPackages[] = $package_name;
           }
         }
       }
@@ -225,6 +230,34 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     if (isset($extra['patches'])) {
       $this->io->write('<info>Gathering patches for root package.</info>');
       $patches = $extra['patches'];
+
+      // Merge patches from lock file, if the package is first install.
+      // in this case, re-install or re-patch should not merge by lock file,
+      // so introduce reInstallPackages variable.
+      // @see line 53, 143, 232, 356.
+      $local_repository = $this->composer->getRepositoryManager()->getLocalRepository();
+
+      // Local packages & re-install packages.
+      // Local packages means this package was installed.
+      $local_packages = array_map(function ($package) {
+        return $package->getName();
+      }, $local_repository->getPackages());
+      $local_packages = array_merge($local_packages, $this->reInstallPackages);
+
+      // Locaked packages.
+      $locked_packages = $this->composer->getLocker()->getLockedRepository()->getPackages();
+
+      foreach ($locked_packages as $locked_package) {
+        // Skip if the locked package was installed.
+        if (in_array($locked_package->getName(), $local_packages)) {
+          continue;
+        }
+        $extra = $locked_package->getExtra();
+        if (isset($extra['patches_applied'])) {
+          $patches = $this->arrayMergeRecursiveDistinct([$locked_package->getName() => $extra['patches_applied']], $patches);
+        }
+      }
+
       return $patches;
     }
     // If it's not specified there, look for a patches-file definition.
@@ -322,6 +355,9 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       }
     }
     $localPackage->setExtra($extra);
+
+    // Remove the current package from reInstallPackages.
+    $this->reInstallPackages = array_diff($this->reInstallPackages, [$package_name]);
 
     $this->io->write('');
     $this->writePatchReport($this->patches[$package_name], $install_path);
