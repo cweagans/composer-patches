@@ -392,14 +392,18 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     // p0 is next likely. p2 is extremely unlikely, but for some special cases,
     // it might be useful. p4 is useful for Magento 2 patches
     $patch_levels = array('-p1', '-p0', '-p2', '-p4');
+    $ignore_whitespace = false;
 
     // Check for specified patch level for this package.
     $extra = $this->composer->getPackage()->getExtra();
     if (!empty($extra['patchLevel'][$package->getName()])){
       $patch_levels = array($extra['patchLevel'][$package->getName()]);
     }
+    if (!empty($extra['ignoreWhitespace'][$package->getName()])){
+      $ignore_whitespace = array($extra['ignoreWhitespace'][$package->getName()]);
+    }
     // Attempt to apply with git apply.
-    $patched = $this->applyPatchWithGit($install_path, $patch_levels, $filename);
+    $patched = $this->applyPatchWithGit($install_path, $patch_levels, $ignore_whitespace, $filename);
 
     // In some rare cases, git will fail to apply a patch, fallback to using
     // the 'patch' command.
@@ -407,7 +411,12 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       foreach ($patch_levels as $patch_level) {
         // --no-backup-if-mismatch here is a hack that fixes some
         // differences between how patch works on windows and unix.
-        if ($patched = $this->executeCommand("patch %s --no-backup-if-mismatch -d %s < %s", $patch_level, $install_path, $filename)) {
+        if ($ignore_whitespace) {
+          $patched = $this->executeCommand("patch %s --ignore-whitespace --no-backup-if-mismatch -d %s < %s", $patch_level, $install_path, $filename);
+        } else {
+          $patched = $this->executeCommand("patch %s --no-backup-if-mismatch -d %s < %s", $patch_level, $install_path, $filename);
+        }
+        if ($patched) {
           break;
         }
       }
@@ -533,7 +542,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * @return bool
    *   TRUE if patch was applied, FALSE otherwise.
    */
-  protected function applyPatchWithGit($install_path, $patch_levels, $filename) {
+  protected function applyPatchWithGit($install_path, $patch_levels, $ignore_whitespace, $filename) {
     // Do not use git apply unless the install path is itself a git repo
     // @see https://stackoverflow.com/a/27283285
     if (!is_dir($install_path . '/.git')) {
@@ -547,7 +556,13 @@ class Patches implements PluginInterface, EventSubscriberInterface {
         $comment .= ' This command may produce errors that can be safely ignored.';
         $this->io->write('<comment>' . $comment . '</comment>');
       }
-      $checked = $this->executeCommand('git -C %s apply --check -v %s %s', $install_path, $patch_level, $filename);
+
+      if ($ignore_whitespace) {
+        $checked = $this->executeCommand('git -C %s apply --check --ignore-whitespace -v %s %s', $install_path, $patch_level, $filename);
+      } else {
+        $checked = $this->executeCommand('git -C %s apply --check -v %s %s', $install_path, $patch_level, $filename);
+      }
+
       $output = $this->executor->getErrorOutput();
       if (substr($output, 0, 7) == 'Skipped') {
         // Git will indicate success but silently skip patches in some scenarios.
@@ -557,7 +572,11 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       }
       if ($checked) {
         // Apply the first successful style.
-        $patched = $this->executeCommand('git -C %s apply %s %s', $install_path, $patch_level, $filename);
+        if ($ignore_whitespace) {
+          $patched = $this->executeCommand('git -C %s apply --ignore-whitespace %s %s', $install_path, $patch_level, $filename);
+        } else {
+          $patched = $this->executeCommand('git -C %s apply %s %s', $install_path, $patch_level, $filename);
+        }
         break;
       }
     }

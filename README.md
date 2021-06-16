@@ -132,6 +132,20 @@ Its useful for packages like drupal/core which packages only a subdir of the ori
 }
 ```
 
+## Ignoring whitespace for patches (--ignore-whitespace)
+
+In some cases, patches won't apply correctly if the original file has some weird whitespace stuff going on. This option can help mitigate those issues.
+
+```json
+{
+  "extra": {
+    "ignoreWhitespace": {
+      "drupal/example-module": true
+    }
+  }
+}
+```
+
 ## Using patches from HTTP URLs
 
 Composer [blocks](https://getcomposer.org/doc/06-config.md#secure-http) you from downloading anything from HTTP URLs, you can disable this for your project by adding a `secure-http` setting in the config section of your `composer.json`. Note that the `config` section should be under the root of your `composer.json`.
