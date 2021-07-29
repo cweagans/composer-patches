@@ -98,10 +98,16 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       $installationManager = $this->composer->getInstallationManager();
       $packages = $localRepository->getPackages();
 
+      // Gather up the extra for the main composer.json
       $extra = $this->composer->getPackage()->getExtra();
       $patches_ignore = isset($extra['patches-ignore']) ? $extra['patches-ignore'] : array();
-
       $tmp_patches = $this->grabPatches();
+
+      if ($this->isSubPackagePatchingEnabled() && $this->checkPatchesIgnoreWhitelist()) {
+        $patches_package_whitelist = $extra['patches-ignore-whitelist'];
+      }
+
+      // Walk through all the various packages
       foreach ($packages as $package) {
         $extra = $package->getExtra();
         if (isset($extra['patches'])) {
@@ -112,6 +118,18 @@ class Patches implements PluginInterface, EventSubscriberInterface {
               }
             }
           }
+          // Perform subpackage patches ignore
+          if ($this->isSubPackagePatchingEnabled()) {
+            $package_patches_ignore = isset($extra['patches-ignore']) ? $extra['patches-ignore'] : array();
+            if (isset($package_patches_ignore[$package->getName()])) {
+              foreach ($package_patches_ignore[$package->getName()] as $package_name => $patches) {
+                if (isset($extra['patches'][$package_name])) {
+                  $extra['patches'][$package_name] = array_diff($extra['patches'][$package_name], $patches);
+                }
+              }
+            }
+          }
+
           $this->installedPatches[$package->getName()] = $extra['patches'];
         }
         $patches = isset($extra['patches']) ? $extra['patches'] : array();
@@ -439,6 +457,39 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       return isset($extra['enable-patching']) ? $extra['enable-patching'] : FALSE;
     }
     else {
+      return TRUE;
+    }
+  }
+
+  /**
+   * Checks if the root package enables subpackage patching.
+   *
+   * @return bool
+   *   Whether subpackage patching is enabled. Defaults to TRUE.
+   */
+  protected function isSubPackagePatchingEnabled() {
+    $extra = $this->composer->getPackage()->getExtra();
+
+    if (empty($extra['patches']) && empty($extra['patches-ignore']) && !isset($extra['patches-file'])) {
+      return $extra['enable-patching-subpackages'] ?? FALSE;
+    }
+    else {
+      return TRUE;
+    }
+  }
+
+  /**
+   * Checks to see if we have any Patches to Ignore from the whitelist.
+   *
+   * @return bool
+   *   Whether the whitelist exists or not.
+   */
+  protected function checkPatchesIgnoreWhitelist() {
+    $extra = $this->composer->getPackage()->getExtra();
+
+    if (empty($extra['patches-ignore-whitelist'])) {
+      return FALSE;
+    } else {
       return TRUE;
     }
   }
