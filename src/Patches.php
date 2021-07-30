@@ -23,6 +23,8 @@ use Composer\Script\ScriptEvents;
 use Composer\Installer\PackageEvent;
 use Composer\Util\ProcessExecutor;
 use Composer\Util\RemoteFilesystem;
+use RecursiveArrayIterator;
+use RecursiveIteratorIterator;
 use Symfony\Component\Process\Process;
 
 class Patches implements PluginInterface, EventSubscriberInterface {
@@ -47,6 +49,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * @var array $patches
    */
   protected $patches;
+  /**
+   * @var array $installedPatches
+   */
+  protected $installedPatches;
 
   /**
    * Apply plugin modifications to composer
@@ -103,37 +109,48 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       $patches_ignore = isset($extra['patches-ignore']) ? $extra['patches-ignore'] : array();
       $tmp_patches = $this->grabPatches();
 
-      if ($this->isSubPackagePatchingEnabled() && $this->checkPatchesIgnoreWhitelist()) {
-        $patches_package_whitelist = $extra['patches-ignore-whitelist'];
-      }
-
-      // Walk through all the various packages
+      // First Pass: Walk through packages against main composer.json
       foreach ($packages as $package) {
         $extra = $package->getExtra();
         if (isset($extra['patches'])) {
+          // Apply the main composer.json patches-ignore list
           if (isset($patches_ignore[$package->getName()])) {
-            foreach ($patches_ignore[$package->getName()] as $package_name => $patches) {
+            foreach ($patches_ignore[$package->getName()] as $package_name => $patches_to_ignore) {
               if (isset($extra['patches'][$package_name])) {
-                $extra['patches'][$package_name] = array_diff($extra['patches'][$package_name], $patches);
+                $extra['patches'][$package_name] = array_diff($extra['patches'][$package_name], $patches_to_ignore);
               }
             }
           }
-          // Perform subpackage patches ignore
-          if ($this->isSubPackagePatchingEnabled()) {
-            $package_patches_ignore = isset($extra['patches-ignore']) ? $extra['patches-ignore'] : array();
-            if (isset($package_patches_ignore[$package->getName()])) {
-              foreach ($package_patches_ignore[$package->getName()] as $package_name => $patches) {
-                if (isset($extra['patches'][$package_name])) {
-                  $extra['patches'][$package_name] = array_diff($extra['patches'][$package_name], $patches);
-                }
-              }
-            }
-          }
-
+          unset($patches_to_ignore);
           $this->installedPatches[$package->getName()] = $extra['patches'];
         }
         $patches = isset($extra['patches']) ? $extra['patches'] : array();
         $tmp_patches = $this->arrayMergeRecursiveDistinct($tmp_patches, $patches);
+      }
+      if (is_array($tmp_patches)) {
+        $this->io->write('<info>First Pass: main composer.json patches collected.</info>');
+      }
+
+      // Second Pass: Remove patches from patches-ignore in dependencies
+      if ($this->isPackagePatchingEnabled()) {
+        $firstPassPatches = $this->installedPatches;
+        foreach ($packages as $package) {
+          $extra = $package->getExtra();
+          // Apply the package patches-ignore list
+          if ($this->checkPatchesIgnoreLegal($package) && isset($extra['patches-ignore'])) {
+            $package_patches_ignore = $extra['patches-ignore'] ?? [];
+            foreach ($this->getPatchesIgnore($package_patches_ignore) as $package_name => $patches_to_ignore) {
+              if (isset($firstPassPatches[$package->getName()][$package_name])) {
+                $firstPassPatches[$package->getName()][$package_name] = array_diff($firstPassPatches[$package->getName()][$package_name], $patches_to_ignore);
+              }
+            }
+            unset($patches_to_ignore);
+          }
+          $patches = isset($extra['patches']) ? $extra['patches'] : array();
+          $tmp_patches = $this->arrayMergeRecursiveDistinct($tmp_patches, $patches);
+        }
+        $this->installedPatches = $firstPassPatches;
+        $this->io->write('<info>Second Pass: dependency composer.json patches ignored.</info>');
       }
 
       if ($tmp_patches == FALSE) {
@@ -462,16 +479,16 @@ class Patches implements PluginInterface, EventSubscriberInterface {
   }
 
   /**
-   * Checks if the root package enables subpackage patching.
+   * Checks if the root package enables sub-package patching.
    *
    * @return bool
-   *   Whether subpackage patching is enabled. Defaults to TRUE.
+   *   Whether sub-package patching is enabled. Defaults to TRUE.
    */
-  protected function isSubPackagePatchingEnabled() {
+  protected function isPackagePatchingEnabled() {
     $extra = $this->composer->getPackage()->getExtra();
 
     if (empty($extra['patches']) && empty($extra['patches-ignore']) && !isset($extra['patches-file'])) {
-      return $extra['enable-patching-subpackages'] ?? FALSE;
+      return $extra['enable-patch-ignore-subpackages'] ?? FALSE;
     }
     else {
       return TRUE;
@@ -492,6 +509,79 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     } else {
       return TRUE;
     }
+  }
+
+  /**
+   * Checks to see if the patches being ignored are in fact legal to use.
+   *
+   * @param \Composer\Package\PackageInterface $package
+   *
+   * @return bool
+   */
+  protected function checkPatchesIgnoreLegal(PackageInterface $package) {
+    if (!$this->isPackagePatchingEnabled()) {
+      return FALSE;
+    }
+
+    $extra = $package->getExtra();
+    $package_patches_ignore = $extra['patches-ignore'] ?? [];
+    $package_name = $package->getName();
+    if ($this->checkPatchesIgnoreWhitelist()) {
+      $patches_package_whitelist = $this->getPatchesIgnoreWhitelist();
+      if (in_array($package_name, $patches_package_whitelist)) {
+        return TRUE;
+      } else {
+        return FALSE;
+      }
+    }
+    if (!$this->checkPatchesIgnoreWhitelist() && isset($package_patches_ignore[$package_name])) {
+      return TRUE;
+    }
+    return FALSE;
+  }
+
+  /**
+   * getPatchesIgnore returns the lowest leaf of a multidimensional array.
+   *
+   * If you have
+   *
+   * @param $package_patches_ignore
+   *
+   * @return array
+   */
+  protected function getPatchesIgnore($package_patches_ignore) {
+    if ($this->isMultidimensionalArray($package_patches_ignore)) {
+      foreach($package_patches_ignore as $package_name => $patches) {
+        if ($this->isMultidimensionalArray($patches)) {
+          $this->getPatchesIgnore($patches);
+        } else {
+          return [$package_name => $patches];
+        }
+      }
+    }
+    if (isset($patches)) {
+      return $patches;
+    }
+    return $package_patches_ignore;
+  }
+
+
+  protected function getPatchesIgnoreWhitelist() {
+    $extra = $this->composer->getPackage()->getExtra();
+    return $extra['patches-ignore-whitelist'];
+  }
+
+  /**
+   * Checks to see if the requested array is multidimensional or not.
+   *
+   * @param array $array
+   *   The array to check.
+   * @return bool
+   *   TRUE or FALSE return.
+   */
+  protected function isMultidimensionalArray(array $array):bool
+  {
+    return is_array($array[array_key_first($array)]);
   }
 
   /**
@@ -572,6 +662,29 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     }
 
     return $merged;
+  }
+
+  /**
+   * A recursive search for a needle in an array haystack.
+   *
+   * @param $needle
+   * @param array $haystack
+   *
+   * @return mixed
+   */
+  public function recursiveSearch($needle, array $haystack)
+  {
+    $iterator  = new RecursiveArrayIterator($haystack);
+    $recursive = new RecursiveIteratorIterator(
+      $iterator,
+      RecursiveIteratorIterator::SELF_FIRST
+    );
+    foreach ($recursive as $key => $value) {
+      if ($key === $needle) {
+        return TRUE;
+      }
+    }
+    return FALSE;
   }
 
   /**
