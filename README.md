@@ -138,9 +138,9 @@ In the event you need the patches-ignore of dependency packages to be relevant, 
 }
 ```
 
-In the example provided, the settting ```enable-patches-ignore-subpackages``` set to ```TRUE``` enables the ```patches-ignore``` from dependency packages to be collected and collated into the final patch list. You will also note, that we didn't include a ```patches-ignore``` section. This is completely optional at this point. Should you include it, it will be consumed and calculated into the final aggregated patch ignore list.
+In the example provided, the settting ```enable-patches-ignore-subpackages``` set to ```TRUE``` which enables the ```patches-ignore``` from dependency packages to be collected and collated into the final patch list. You will also note, that we didn't include a ```patches-ignore``` section. This is completely optional at this point. Should you include it, it will be consumed and calculated into the final aggregated patch ignore list as usual.
 
- We have added a new ```patches-ignore-whitelist``` section though. This list of packages creates a whitelist of ```patches-ignore``` you wish to have consumed as opposed to allowing ALL dependencies to be factored in. This is a good way to limit the playing field.
+ A new section has been added: ```patches-ignore-whitelist```. This list of packages creates a whitelist of ```patches-ignore``` you wish to have consumed as opposed to allowing ALL dependencies to be factored in. This is a good way to limit the playing field.
 
  This option really becomes useful when the dependencies for a project, which are managed independently of the main ```composer.json```, will be updated from upstream sources and having to maintain the main ```composer.json``` would lead to doubling up of efforts.
 
