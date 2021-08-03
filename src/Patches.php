@@ -107,12 +107,15 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       // Gather up the extra for the main composer.json
       $extra = $this->composer->getPackage()->getExtra();
       $patches_ignore = isset($extra['patches-ignore']) ? $extra['patches-ignore'] : array();
+      $full_patches_ignore = $patches_ignore;
       $tmp_patches = $this->grabPatches();
+      $full_patches = $tmp_patches;
 
       // First Pass: Walk through packages against main composer.json
       foreach ($packages as $package) {
         $extra = $package->getExtra();
         if (isset($extra['patches'])) {
+          $full_patches = $this->arrayMergeRecursiveDistinct($full_patches, $extra['patches']);
           // Apply the main composer.json patches-ignore list
           if (isset($patches_ignore[$package->getName()])) {
             foreach ($patches_ignore[$package->getName()] as $package_name => $patches_to_ignore) {
@@ -129,19 +132,21 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       }
       if (is_array($tmp_patches)) {
         $this->io->write('<info>First Pass: main composer.json patches collected.</info>');
+        $this->writePatchLog('patches-full', $full_patches, 'Full list of patches in all packages');
       }
 
       // Second Pass: Remove patches from patches-ignore in dependencies
       if ($this->isPackagePatchingEnabled()) {
-        $firstPassPatches = $this->installedPatches;
+        $installedPatches = $this->installedPatches;
         foreach ($packages as $package) {
           $extra = $package->getExtra();
           // Apply the package patches-ignore list
           if ($this->checkPatchesIgnoreLegal($package) && isset($extra['patches-ignore'])) {
             $package_patches_ignore = $extra['patches-ignore'] ?? [];
-            foreach ($this->getPatchesIgnore($package_patches_ignore) as $package_name => $patches_to_ignore) {
-              if (isset($firstPassPatches[$package->getName()][$package_name])) {
-                $firstPassPatches[$package->getName()][$package_name] = array_diff($firstPassPatches[$package->getName()][$package_name], $patches_to_ignore);
+            $full_patches_ignore = $this->arrayMergeRecursiveDistinct($full_patches_ignore, $package_patches_ignore);
+            foreach ($this->flattenPatchesIgnore($package_patches_ignore) as $package_name => $patches_to_ignore) {
+              if (isset($installedPatches[$package->getName()][$package_name])) {
+                $installedPatches[$package->getName()][$package_name] = array_diff($installedPatches[$package->getName()][$package_name], $patches_to_ignore);
               }
             }
             unset($patches_to_ignore);
@@ -149,8 +154,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
           $patches = isset($extra['patches']) ? $extra['patches'] : array();
           $tmp_patches = $this->arrayMergeRecursiveDistinct($tmp_patches, $patches);
         }
-        $this->installedPatches = $firstPassPatches;
+        $this->installedPatches = $installedPatches;
         $this->io->write('<info>Second Pass: dependency composer.json patches ignored.</info>');
+        $this->writePatchLog('patches-ignore', $full_patches_ignore, 'Full list of patches to ignore from all packages');
+        $this->writePatchLog('patches', $installedPatches, 'Final list of patches to be applied');
       }
 
       if ($tmp_patches == FALSE) {
@@ -488,7 +495,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     $extra = $this->composer->getPackage()->getExtra();
 
     if (empty($extra['patches']) && empty($extra['patches-ignore']) && !isset($extra['patches-file'])) {
-      return $extra['enable-patch-ignore-subpackages'] ?? FALSE;
+      return $extra['enable-patches-ignore-subpackages'] ?? FALSE;
     }
     else {
       return TRUE;
@@ -534,14 +541,14 @@ class Patches implements PluginInterface, EventSubscriberInterface {
         return FALSE;
       }
     }
-    if (!$this->checkPatchesIgnoreWhitelist() && isset($package_patches_ignore[$package_name])) {
+    if (!$this->checkPatchesIgnoreWhitelist() && isset($package_patches_ignore)) {
       return TRUE;
     }
     return FALSE;
   }
 
   /**
-   * getPatchesIgnore returns the lowest leaf of a multidimensional array.
+   * flattenPatchesIgnore returns the lowest leaf of a multidimensional array.
    *
    * If you have
    *
@@ -549,11 +556,11 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    *
    * @return array
    */
-  protected function getPatchesIgnore($package_patches_ignore) {
+  protected function flattenPatchesIgnore($package_patches_ignore) {
     if ($this->isMultidimensionalArray($package_patches_ignore)) {
       foreach($package_patches_ignore as $package_name => $patches) {
         if ($this->isMultidimensionalArray($patches)) {
-          $this->getPatchesIgnore($patches);
+          $this->flattenPatchesIgnore($patches);
         } else {
           return [$package_name => $patches];
         }
@@ -595,9 +602,91 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     $output .= "Patches applied to this directory:\n\n";
     foreach ($patches as $description => $url) {
       $output .= $description . "\n";
-      $output .= 'Source: ' . $url . "\n\n\n";
+      $output .= 'Source: ' . $url . "\n\n";
     }
     file_put_contents($directory . "/PATCHES.txt", $output);
+  }
+
+  /**
+   * Writes a patch log for debugging purposes.
+   *
+   * @param array $patches
+   * @param string $directory
+   */
+  protected function writePatchLog($filename, array $patches, $message = "Patches applied to this folder") {
+    $package = $this->composer->getPackage();
+
+    if ($this->checkPatchLog()) {
+      $directory = $this->getPatchLogParameter('location');
+      $file_format = strtolower($this->getPatchLogParameter('format'));
+      if (!file_exists($directory)) {
+        mkdir($directory, 0755);
+      }
+      switch ($file_format) {
+        case 'yml':
+        case 'yaml':
+          file_put_contents($directory . "/" . $filename . ".yml", yaml_emit($patches, JSON_PRETTY_PRINT));
+          break;
+        case 'json':
+          file_put_contents($directory . "/" . $filename . ".json", json_encode($patches, JSON_PRETTY_PRINT));
+          break;
+        case 'txt':
+        case 'text':
+          $output = $message . ":\n\n";
+          foreach ($patches as $patch => $patch_info) {
+            if (isset($patch_info) && !empty($patch_info)) {
+              if ($this->isMultidimensionalArray($patch_info)) {
+                $output .= '=== ' . $patch;
+                foreach ($this->flattenPatchesIgnore($patch_info) as $flatten_patch => $info) {
+                  $output .= ' ' . $flatten_patch . "\n";
+                  foreach ($info as $description => $url) {
+                    $output .= '   ' . $url . "\n";
+                    $output .= '   ' . $description . "\n\n";
+                  }
+                }
+              } else {
+                $output .= '=== ' . $patch . "\n";
+                foreach ($patch_info as $description => $url) {
+                  $output .= '   ' . $url . "\n";
+                  $output .= '   ' . $description . "\n\n";
+                }
+              }
+            }
+          }
+          file_put_contents($directory . "/" . $filename . ".txt", $output);
+
+          // TODO: Add a collapsed set of files here.
+
+          break;
+        default:
+          // Raw output
+          file_put_contents($directory . "/" . $filename . ".php", var_export($patches, true));
+      }
+    }
+  }
+
+  /**
+   * @return bool
+   */
+  protected function checkPatchLog() {
+    $extra = $this->composer->getPackage()->getExtra();
+    if (isset($extra['patches-log'])) {
+      return TRUE;
+    }
+    return FALSE;
+  }
+
+  /**
+   * @param $parameter
+   *
+   * @return false|mixed
+   */
+  protected function getPatchLogParameter($parameter) {
+    $extra = $this->composer->getPackage()->getExtra();
+    if (isset($extra['patches-log'][$parameter])) {
+      return $extra['patches-log'][$parameter];
+    }
+    return FALSE;
   }
 
   /**
