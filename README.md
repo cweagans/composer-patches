@@ -117,6 +117,35 @@ There may be situations in which you want to ignore a patch supplied by a depend
 }
 ```
 
+### Sub-package Ignoring Patches
+
+In the event you need the patches-ignore of dependency packages to be relevant, the following settings will allow for these to bubble up.
+
+```json
+{
+  "require": {
+    "cweagans/composer-patches": "~1.0",
+    "drupal/drupal": "~8.2",
+    "drupal/lightning": "~8.1"
+  },
+  "extra": {
+    "enable-patches-ignore-subpackages": true,
+    "patches-ignore-whitelist": [
+      "drupal/lightning",
+      "drupal/core"
+    ]
+  }
+}
+```
+
+In the example provided, the settting ```enable-patches-ignore-subpackages``` set to ```TRUE``` enables the ```patches-ignore``` from dependency packages to be collected and collated into the final patch list. You will also note, that we didn't include a ```patches-ignore``` section. This is completely optional at this point. Should you include it, it will be consumed and calculated into the final aggregated patch ignore list.
+
+ We have added a new ```patches-ignore-whitelist``` section though. This list of packages creates a whitelist of ```patches-ignore``` you wish to have consumed as opposed to allowing ALL dependencies to be factored in. This is a good way to limit the playing field.
+
+ This option really becomes useful when the dependencies for a project, which are managed independently of the main ```composer.json```, will be updated from upstream sources and having to maintain the main ```composer.json``` would lead to doubling up of efforts.
+
+ Consider a drupal distro as a dependency of a project which has patches and ```patches-ignore```.  You might like to take advantage of the distro but do not wish to duplicate its list in your project's ```composer.json``` file. With these options, you can allow the maintenance of these patch values to be handled upstream. You can even add another dependency to add or remove patches by including a new package and whitelisting. This can help to decentralize the controls and keep the main ```composer.json``` file clean of continual patch file management.
+
 ## Allowing to force the patch level (-pX)
 
 Some situations require to force the patchLevel used to apply patches on a particular package.
@@ -127,6 +156,21 @@ Its useful for packages like drupal/core which packages only a subdir of the ori
   "extra": {
     "patchLevel": {
       "drupal/core": "-p2"
+    }
+  }
+}
+```
+
+## Patch File Logging
+
+To help manage the potential on slaught of
+
+```json
+{
+  "extra": {
+    "patches-log": {
+      "location": "patches",
+      "format": "txt"
     }
   }
 }
