@@ -658,6 +658,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
           // TODO: Add a collapsed set of files here.
 
           break;
+        case 'php':
         default:
           // Raw output
           file_put_contents($directory . "/" . $filename . ".php", var_export($patches, true));

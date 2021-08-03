@@ -163,7 +163,7 @@ Its useful for packages like drupal/core which packages only a subdir of the ori
 
 ## Patch File Logging
 
-To help manage the potential on slaught of
+To help manage the potential onslaught of patches and patches-ignore files, the introduction of a logging option should help to review what the plugin is aggregating. You will get a full list of all patches requested, a list of patches to be ignored as well as the final outcome of the patch files removed from the full aggregated list. Use this to review if all the requested files have been properly consumed.
 
 ```json
 {
@@ -175,6 +175,8 @@ To help manage the potential on slaught of
   }
 }
 ```
+
+The ```format``` parameter can be either ```yml```, ```json```, ```txt``` or ```php``` as output formats.
 
 ## Using patches from HTTP URLs
 
