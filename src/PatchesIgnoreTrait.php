@@ -19,34 +19,33 @@ use RecursiveIteratorIterator;
  */
 trait PatchesIgnoreTrait {
 
+  protected $patches_ignore_flattened;
+  protected $patches_flattened;
 
-  protected $full_patch_ignore_list;
-  protected $full_patch_list;
-
-  public function doPatchesIgnoreCollation() {
-    // Second Pass: Remove patches from patches-ignore in dependencies
+  public function doPatchesIgnoreCollation(array &$tmp_patches = NULL) {
+    if ($tmp_patches === NULL) {
+      $tmp_patches = $this->patches;
+    }
     if ($this->isPackagePatchingEnabled()) {
-      $full_patches_ignore = $this->full_patch_ignore_list;
-      $installedPatches = $this->installedPatches;
+      $patches = array();
       foreach ($this->packages as $package) {
         $extra = $package->getExtra();
-        // Apply the package patches-ignore list
+        // Review patches-ignore legality of the package per settings
         if ($this->checkPatchesIgnoreLegal($package) && isset($extra['patches-ignore'])) {
-          $package_patches_ignore = isset($extra['patches-ignore']) ? $extra['patches-ignore'] : array();
-          $full_patches_ignore = $this->arrayMergeRecursiveDistinct($full_patches_ignore, $package_patches_ignore);
-          foreach ($this->flattenPatchesIgnore($package_patches_ignore) as $package_name => $patches_to_ignore) {
-            if (isset($installedPatches[$package->getName()][$package_name])) {
-              $installedPatches[$package->getName()][$package_name] = array_diff($installedPatches[$package->getName()][$package_name], $patches_to_ignore);
+          $this->patches_ignore_flattened = $this->arrayMergeRecursiveDistinct($this->patches_ignore_flattened, $extra['patches-ignore']);
+          // Apply the package composer.json patches-ignore list
+          foreach ($this->flattenPatchesIgnore($extra['patches-ignore']) as $package_name => $patches_to_ignore) {
+            if (isset($tmp_patches[$package_name])) {
+              $tmp_patches[$package_name] = array_diff($tmp_patches[$package_name], $patches_to_ignore);
             }
           }
         }
-        $patches = isset($extra['patches']) ? $extra['patches'] : array();
-        $this->patches_temp_list = $this->arrayMergeRecursiveDistinct($this->patches_temp_list, $patches);
       }
-      $this->installedPatches = $installedPatches;
-      $this->io->write('<info>Second Pass: dependency composer.json patches ignored.</info>');
-      $this->writePatchLog('patches-ignore', $full_patches_ignore, 'Full list of patches to ignore from all packages');
-      $this->writePatchLog('patches', $installedPatches, 'Final list of patches to be applied');
+      // If the patches array is empty, we're in CheckPatches step, otherwise
+      // set the patches variable as we're in the GatherPatches step.
+      if (!empty($this->patches)) {
+        $this->patches = $tmp_patches;
+      }
     }
   }
 
@@ -155,8 +154,11 @@ trait PatchesIgnoreTrait {
    * @return bool
    *   TRUE or FALSE return.
    */
-  protected function isMultidimensionalArray(array $array):bool
+  protected function isMultidimensionalArray(array $array)
   {
+    if (array_key_first($array) === null) {
+      return FALSE;
+    }
     return is_array($array[array_key_first($array)]);
   }
 

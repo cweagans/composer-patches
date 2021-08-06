@@ -67,10 +67,6 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * @var PackageInterface $packages
    */
   protected $packages;
-  /**
-   * @var array $patches_temp_list
-   */
-  protected $patches_temp_list;
 
   /**
    * Apply plugin modifications to composer
@@ -88,7 +84,6 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     $this->repositoryManager = $composer->getRepositoryManager();
     $this->localRepository = $this->repositoryManager->getLocalRepository();
     $this->packages = $this->localRepository->getPackages();
-    $this->patches_temp_list = array();
   }
 
   /**
@@ -129,16 +124,17 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       // Gather up the extra for the main composer.json
       $extra = $this->composer->getPackage()->getExtra();
       $patches_ignore = isset($extra['patches-ignore']) ? $extra['patches-ignore'] : array();
-      $this->patches_temp_list = $this->grabPatches();
+      $tmp_patches = $this->grabPatches();
 
-      $this->full_patch_list = $this->patches_temp_list;
-      $this->full_patch_ignore_list = $patches_ignore;
+      // Prep some baseline variables for use in later processes
+      $this->patches_flattened = $tmp_patches;
+      $this->patches_ignore_flattened = $patches_ignore;
 
       // First Pass: Walk through packages against main composer.json
       foreach ($this->packages as $package) {
         $extra = $package->getExtra();
         if (isset($extra['patches'])) {
-          $this->full_patch_list = $this->arrayMergeRecursiveDistinct($this->full_patch_list, $extra['patches']);
+          $this->patches_flattened = $this->arrayMergeRecursiveDistinct($this->patches_flattened, $extra['patches']);
           // Apply the main composer.json patches-ignore list
           if (isset($patches_ignore[$package->getName()])) {
             foreach ($patches_ignore[$package->getName()] as $package_name => $patches_to_ignore) {
@@ -150,18 +146,20 @@ class Patches implements PluginInterface, EventSubscriberInterface {
           $this->installedPatches[$package->getName()] = $extra['patches'];
         }
         $patches = isset($extra['patches']) ? $extra['patches'] : array();
-        $this->patches_temp_list = $this->arrayMergeRecursiveDistinct($this->patches_temp_list, $patches);
-      }
-      if (is_array($this->patches_temp_list)) {
-        $this->io->write('<info>First Pass: main composer.json patches collected.</info>');
-        $this->writePatchLog('patches-full', $this->full_patch_list, 'Full list of patches in all packages');
+        $tmp_patches = $this->arrayMergeRecursiveDistinct($tmp_patches, $patches);
       }
 
-      $this->doPatchesIgnoreCollation();
+      // Second Pass: Remove patches from patches-ignore in dependencies
+      $this->doPatchesIgnoreCollation($tmp_patches);
 
-      if ($this->patches_temp_list == FALSE) {
+      if ($tmp_patches == FALSE) {
         $this->io->write('<info>No patches supplied.</info>');
         return;
+      } else {
+        $this->io->write('<info>Patch logs written to the [' . $this->getPatchLogParameter('location') . '] folder.</info>', TRUE, IOInterface::VERBOSE);
+        $this->writePatchLog('patches-full', $this->patches_flattened, 'Full list of patches in all packages');
+        $this->writePatchLog('patches-ignore', $this->patches_ignore_flattened, 'Full list of patches to ignore from all packages');
+        $this->writePatchLog('patches', $tmp_patches, 'Final list of patches to be applied');
       }
 
       // Remove packages for which the patch set has changed.
@@ -170,11 +168,11 @@ class Patches implements PluginInterface, EventSubscriberInterface {
         if (!($package instanceof AliasPackage)) {
           $package_name = $package->getName();
           $extra = $package->getExtra();
-          $has_patches = isset($this->patches_temp_list[$package_name]);
+          $has_patches = isset($tmp_patches[$package_name]);
           $has_applied_patches = isset($extra['patches_applied']) && count($extra['patches_applied']) > 0;
           if (($has_patches && !$has_applied_patches)
             || (!$has_patches && $has_applied_patches)
-            || ($has_patches && $has_applied_patches && $this->patches_temp_list[$package_name] !== $extra['patches_applied'])) {
+            || ($has_patches && $has_applied_patches && $tmp_patches[$package_name] !== $extra['patches_applied'])) {
             $uninstallOperation = new UninstallOperation($package, 'Removing package so it can be re-installed and re-patched.');
             $this->io->write('<info>Removing package ' . $package_name . ' so that it can be re-installed and re-patched.</info>');
             $promises[] = $installationManager->uninstall($this->localRepository, $uninstallOperation);
@@ -197,6 +195,8 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * Gather patches from dependencies and store them for later use.
    *
    * @param PackageEvent $event
+   *
+   * @throws \Exception
    */
   public function gatherPatches(PackageEvent $event) {
     // If we've already done this, then don't do it again.
@@ -212,24 +212,28 @@ class Patches implements PluginInterface, EventSubscriberInterface {
 
     $this->patches = $this->grabPatches();
     if (empty($this->patches)) {
-      $this->io->write('<info>No patches supplied.</info>');
+      $this->io->write('<info>No patches supplied in main composer.json.</info>');
     }
 
     $extra = $this->composer->getPackage()->getExtra();
     $patches_ignore = isset($extra['patches-ignore']) ? $extra['patches-ignore'] : array();
 
+    $this->patches_flattened = $this->patches;
+    $this->patches_ignore_flattened = $patches_ignore;
+
     // Now add all the patches from dependencies that will be installed.
     $operations = $event->getOperations();
-    $this->io->write('<info>Gathering patches for dependencies. This might take a minute.</info>');
+    $this->io->write('<info>Gathering patches for dependencies. This may take a moment, please stand by...</info>');
     foreach ($operations as $operation) {
       if ($operation instanceof InstallOperation || $operation instanceof UpdateOperation) {
         $package = $this->getPackageFromOperation($operation);
         $extra = $package->getExtra();
         if (isset($extra['patches'])) {
+          $this->patches_flattened = $this->arrayMergeRecursiveDistinct($this->patches_flattened, $extra['patches']);
           if (isset($patches_ignore[$package->getName()])) {
-            foreach ($patches_ignore[$package->getName()] as $package_name => $patches) {
+            foreach ($patches_ignore[$package->getName()] as $package_name => $patches_to_ignore) {
               if (isset($extra['patches'][$package_name])) {
-                $extra['patches'][$package_name] = array_diff($extra['patches'][$package_name], $patches);
+                $extra['patches'][$package_name] = array_diff($extra['patches'][$package_name], $patches_to_ignore);
               }
             }
           }
@@ -241,11 +245,12 @@ class Patches implements PluginInterface, EventSubscriberInterface {
         }
       }
     }
-
     // Merge installed patches from dependencies that did not receive an update.
     foreach ($this->installedPatches as $patches) {
       $this->patches = $this->arrayMergeRecursiveDistinct($this->patches, $patches);
     }
+
+    $this->doPatchesIgnoreCollation();
 
     // If we're in verbose mode, list the projects we're going to patch.
     if ($this->io->isVerbose()) {
@@ -550,14 +555,23 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * @see http://php.net/manual/en/function.array-merge-recursive.php#92195
    */
   protected function arrayMergeRecursiveDistinct(array $array1, array $array2) {
+    if (empty($array1)) {
+      $array1 = array();
+    }
     $merged = $array1;
 
-    foreach ($array2 as $key => &$value) {
+    foreach ($array2 as $key => $value) {
       if (is_array($value) && isset($merged[$key]) && is_array($merged[$key])) {
         $merged[$key] = $this->arrayMergeRecursiveDistinct($merged[$key], $value);
       }
       else {
-        $merged[$key] = $value;
+        // This checks to see if the patch file exists in the list of not.
+        // We should not rely on the description as a key to denote whether
+        // a patch is being installed or not or exists or not. Rather, the
+        // uniqueness of the patch path should be the defining comparison.
+        if ($this->isMultidimensionalArray($merged) || (!$this->isMultidimensionalArray($merged) && !is_array($value) && !array_key_exists($value, array_flip($merged))) || empty($merged)) {
+          $merged[$key] = $value;
+        }
       }
     }
 
