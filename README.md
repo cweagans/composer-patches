@@ -18,6 +18,8 @@ Simple patches plugin for Composer. Applies a patch from a local or remote file 
 
 ## Usage
 
+Before you begin, make sure that `patch` is installed on your system.
+
 Example composer.json:
 
 ```json
