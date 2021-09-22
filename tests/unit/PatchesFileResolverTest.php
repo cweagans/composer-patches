@@ -58,4 +58,30 @@ class PatchesFileResolverTest extends Unit
 
         $this->resolver->resolve($this->collection, $this->event);
     }
+
+    public function testPatchesFileNotFound()
+    {
+        $this->package->setExtra([
+            'patches-file' => __DIR__ . '/../_data/noSuchFile.json',
+        ]);
+
+        // Check that the collection is emtpy to start with
+        $this->assertSame(['patches' => null], $this->collection->jsonSerialize());
+
+        // This error is handled silently.
+        $this->resolver->resolve($this->collection, $this->event);
+
+        $this->assertSame(['patches' => null], $this->collection->jsonSerialize());
+    }
+
+    public function testNoPatchesFile()
+    {
+        // Check that the collection is emtpy to start with
+        $this->assertSame(['patches' => null], $this->collection->jsonSerialize());
+
+        // This is not an error. No changes should be made to the collection.
+        $this->resolver->resolve($this->collection, $this->event);
+
+        $this->assertSame(['patches' => null], $this->collection->jsonSerialize());
+    }
 }
