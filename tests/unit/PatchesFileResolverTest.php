@@ -13,41 +13,36 @@ use cweagans\Composer\Resolvers\PatchesFile;
 
 class PatchesFileResolverTest extends Unit
 {
+    public function setUp(): void
+    {
+        $this->package = new RootPackage('test/package', '1.0.0.0', '1.0.0');
+        $this->composer = new Composer();
+        $this->composer->setPackage($this->package);
+        $this->io = new NullIO();
+        $this->event = Stub::make(PackageEvent::class, []);
+        $this->collection = new PatchCollection();
+        $this->resolver = new PatchesFile($this->composer, $this->io);
+    }
+
     public function testHappyPath()
     {
-        $package = new RootPackage('test/package', '1.0.0.0', '1.0.0');
-        $package->setExtra([
+        $this->package->setExtra([
             'patches-file' => __DIR__ . '/../_data/dummyPatches.json',
         ]);
 
-        $composer = new Composer();
-        $composer->setPackage($package);
-        $io = new NullIO();
-        $event = Stub::make(PackageEvent::class, []);
-
-        $collection = new PatchCollection();
-        $resolver = new PatchesFile($composer, $io);
-        $resolver->resolve($collection, $event);
-        $this->assertCount(2, $collection->getPatchesForPackage('test/package'));
-        $this->assertCount(2, $collection->getPatchesForPackage('test/package2'));
+        $this->resolver->resolve($this->collection, $this->event);
+        $this->assertCount(2, $this->collection->getPatchesForPackage('test/package'));
+        $this->assertCount(2, $this->collection->getPatchesForPackage('test/package2'));
     }
 
     public function testEmptyPatches()
     {
         try {
-            $package = new RootPackage('test/package', '1.0.0.0', '1.0.0');
-            $package->setExtra([
+            $this->package->setExtra([
                 'patches-file' => __DIR__ . '/../_data/dummyPatchesEmpty.json',
             ]);
 
-            $composer = new Composer();
-            $composer->setPackage($package);
-            $io = new NullIO();
-            $event = Stub::make(PackageEvent::class, []);
-
-            $collection = new PatchCollection();
-            $resolver = new PatchesFile($composer, $io);
-            $resolver->resolve($collection, $event);
+            $this->resolver->resolve($this->collection, $this->event);
         } catch (\InvalidArgumentException $e) {
             $this->assertEquals('No patches found.', $e->getMessage());
         }
@@ -56,19 +51,11 @@ class PatchesFileResolverTest extends Unit
     public function testInvalidJSON()
     {
         try {
-            $package = new RootPackage('test/package', '1.0.0.0', '1.0.0');
-            $package->setExtra([
+            $this->package->setExtra([
                 'patches-file' => __DIR__ . '/../_data/dummyPatchesInvalid.json',
             ]);
 
-            $composer = new Composer();
-            $composer->setPackage($package);
-            $io = new NullIO();
-            $event = Stub::make(PackageEvent::class, []);
-
-            $collection = new PatchCollection();
-            $resolver = new PatchesFile($composer, $io);
-            $resolver->resolve($collection, $event);
+            $this->resolver->resolve($this->collection, $this->event);
         } catch (\InvalidArgumentException $e) {
             $this->assertEquals('Syntax error', $e->getMessage());
         }
