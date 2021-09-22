@@ -13,15 +13,14 @@ use cweagans\Composer\Resolvers\PatchesFile;
 
 class PatchesFileResolverTest extends Unit
 {
-    public function testResolve()
+    public function testHappyPath()
     {
-        $composer = new Composer();
-
-        // Happy path.
         $package = new RootPackage('test/package', '1.0.0.0', '1.0.0');
         $package->setExtra([
             'patches-file' => __DIR__ . '/../_data/dummyPatches.json',
         ]);
+
+        $composer = new Composer();
         $composer->setPackage($package);
         $io = new NullIO();
         $event = Stub::make(PackageEvent::class, []);
@@ -31,28 +30,42 @@ class PatchesFileResolverTest extends Unit
         $resolver->resolve($collection, $event);
         $this->assertCount(2, $collection->getPatchesForPackage('test/package'));
         $this->assertCount(2, $collection->getPatchesForPackage('test/package2'));
+    }
 
-        // Empty patches.
+    public function testEmptyPatches()
+    {
         try {
             $package = new RootPackage('test/package', '1.0.0.0', '1.0.0');
             $package->setExtra([
                 'patches-file' => __DIR__ . '/../_data/dummyPatchesEmpty.json',
             ]);
+
+            $composer = new Composer();
             $composer->setPackage($package);
+            $io = new NullIO();
+            $event = Stub::make(PackageEvent::class, []);
+
             $collection = new PatchCollection();
             $resolver = new PatchesFile($composer, $io);
             $resolver->resolve($collection, $event);
         } catch (\InvalidArgumentException $e) {
             $this->assertEquals('No patches found.', $e->getMessage());
         }
+    }
 
-        // Invalid JSON.
+    public function testInvalidJSON()
+    {
         try {
             $package = new RootPackage('test/package', '1.0.0.0', '1.0.0');
             $package->setExtra([
                 'patches-file' => __DIR__ . '/../_data/dummyPatchesInvalid.json',
             ]);
+
+            $composer = new Composer();
             $composer->setPackage($package);
+            $io = new NullIO();
+            $event = Stub::make(PackageEvent::class, []);
+
             $collection = new PatchCollection();
             $resolver = new PatchesFile($composer, $io);
             $resolver->resolve($collection, $event);
