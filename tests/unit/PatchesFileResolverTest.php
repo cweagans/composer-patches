@@ -37,27 +37,25 @@ class PatchesFileResolverTest extends Unit
 
     public function testEmptyPatches()
     {
-        try {
-            $this->package->setExtra([
-                'patches-file' => __DIR__ . '/../_data/dummyPatchesEmpty.json',
-            ]);
+        $this->package->setExtra([
+            'patches-file' => __DIR__ . '/../_data/dummyPatchesEmpty.json',
+        ]);
 
-            $this->resolver->resolve($this->collection, $this->event);
-        } catch (\InvalidArgumentException $e) {
-            $this->assertEquals('No patches found.', $e->getMessage());
-        }
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('No patches found.');
+
+        $this->resolver->resolve($this->collection, $this->event);
     }
 
     public function testInvalidJSON()
     {
-        try {
-            $this->package->setExtra([
-                'patches-file' => __DIR__ . '/../_data/dummyPatchesInvalid.json',
-            ]);
+        $this->package->setExtra([
+            'patches-file' => __DIR__ . '/../_data/dummyPatchesInvalid.json',
+        ]);
 
-            $this->resolver->resolve($this->collection, $this->event);
-        } catch (\InvalidArgumentException $e) {
-            $this->assertEquals('Syntax error', $e->getMessage());
-        }
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Syntax error');
+
+        $this->resolver->resolve($this->collection, $this->event);
     }
 }
