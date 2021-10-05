@@ -28,7 +28,7 @@ trait PatchesIgnoreTrait {
   /**
    * @var array $patches_flattened
    */
-  protected patches_ignore_flattened;
+  protected $patches_ignore_flattened;
 
   /**
    * Do the Patches Ignore collation.
