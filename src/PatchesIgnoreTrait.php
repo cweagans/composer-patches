@@ -7,6 +7,7 @@
 
 namespace cweagans\Composer;
 
+use Composer\IO\IOInterface;
 use Composer\Package\PackageInterface;
 use RecursiveArrayIterator;
 use RecursiveIteratorIterator;
@@ -19,8 +20,21 @@ use RecursiveIteratorIterator;
  */
 trait PatchesIgnoreTrait {
 
+  /**
+   * @var array $patches_flattened
+   */
   protected $patches_flattened;
 
+  /**
+   * @var array $patches_flattened
+   */
+  protected patches_ignore_flattened;
+
+  /**
+   * Do the Patches Ignore collation.
+   *
+   * @param array|null $tmp_patches
+   */
   public function doPatchesIgnoreCollation(array &$tmp_patches = NULL) {
     if ($tmp_patches === NULL) {
       $tmp_patches = $this->patches;
@@ -32,11 +46,11 @@ trait PatchesIgnoreTrait {
         // Review patches-ignore legality of the package per settings.
         if ($this->checkPatchesIgnoreLegal($package) && isset($extra['patches-ignore'])) {
           $this->patches_ignore_flattened = $this->arrayMergeRecursiveDistinct($this->patches_ignore_flattened, $extra['patches-ignore']);
-          $this->io->write('<info>Package ' . $package->getName() . ' has patches-ignore.</info>');
+          $this->io->write('<info>Package ' . $package->getName() . ' has patches-ignore.</info>', TRUE, IOInterface::VERBOSE);
           // Apply the package composer.json patches-ignore list.
           $flattened_patches_ignore = $this->flattenPatchesIgnore($extra['patches-ignore']);
           foreach ($flattened_patches_ignore as $package_name => $patches_to_ignore) {
-            $this->io->write('<info> - preparing list for ' . $package_name . ':</info>');
+            $this->io->write('<comment> - preparing patches-ignore for ' . $package_name . ':</comment>', TRUE, IOInterface::VERBOSE);
             if (isset($tmp_patches[$package_name])) {
               $tmp_patches[$package_name] = array_diff($tmp_patches[$package_name], $patches_to_ignore);
             }
