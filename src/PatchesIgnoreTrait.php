@@ -19,7 +19,6 @@ use RecursiveIteratorIterator;
  */
 trait PatchesIgnoreTrait {
 
-  protected $patches_ignore_flattened;
   protected $patches_flattened;
 
   public function doPatchesIgnoreCollation(array &$tmp_patches = NULL) {
@@ -27,14 +26,17 @@ trait PatchesIgnoreTrait {
       $tmp_patches = $this->patches;
     }
     if ($this->isPackagePatchingEnabled()) {
-      $patches = array();
+      $this->io->write('<info>Gathering patches ignore from dependencies. This may take a moment, please stand by...</info>');
       foreach ($this->packages as $package) {
         $extra = $package->getExtra();
-        // Review patches-ignore legality of the package per settings
+        // Review patches-ignore legality of the package per settings.
         if ($this->checkPatchesIgnoreLegal($package) && isset($extra['patches-ignore'])) {
           $this->patches_ignore_flattened = $this->arrayMergeRecursiveDistinct($this->patches_ignore_flattened, $extra['patches-ignore']);
-          // Apply the package composer.json patches-ignore list
-          foreach ($this->flattenPatchesIgnore($extra['patches-ignore']) as $package_name => $patches_to_ignore) {
+          $this->io->write('<info>Package ' . $package->getName() . ' has patches-ignore.</info>');
+          // Apply the package composer.json patches-ignore list.
+          $flattened_patches_ignore = $this->flattenPatchesIgnore($extra['patches-ignore']);
+          foreach ($flattened_patches_ignore as $package_name => $patches_to_ignore) {
+            $this->io->write('<info> - preparing list for ' . $package_name . ':</info>');
             if (isset($tmp_patches[$package_name])) {
               $tmp_patches[$package_name] = array_diff($tmp_patches[$package_name], $patches_to_ignore);
             }
@@ -58,11 +60,15 @@ trait PatchesIgnoreTrait {
   protected function isPackagePatchingEnabled() {
     $extra = $this->composer->getPackage()->getExtra();
 
-    if (empty($extra['patches']) && empty($extra['patches-ignore']) && !isset($extra['patches-file'])) {
-      return isset($extra['enable-patches-ignore-subpackages']) ? $extra['enable-patches-ignore-subpackages'] : FALSE;
-    }
-    else {
+    if (isset($extra['enable-patches-ignore-subpackages']) && $extra['enable-patches-ignore-subpackages']) {
       return TRUE;
+    } else {
+      if (!empty($extra['patches']) || !empty($extra['patches-ignore']) || isset($extra['patches-file'])) {
+        return TRUE;
+      }
+      else {
+        return FALSE;
+      }
     }
   }
 
@@ -118,22 +124,22 @@ trait PatchesIgnoreTrait {
    *
    * @param $package_patches_ignore
    *
-   * @return array
+   * @return array|bool
    */
   protected function flattenPatchesIgnore($package_patches_ignore) {
-    if ($this->isMultidimensionalArray($package_patches_ignore)) {
-      foreach($package_patches_ignore as $package_name => $patches) {
-        if ($this->isMultidimensionalArray($patches)) {
-          $this->flattenPatchesIgnore($patches);
-        } else {
-          return [$package_name => $patches];
-        }
+    if (!is_array($package_patches_ignore)) {
+      return FALSE;
+    }
+    $result = array();
+    foreach ($package_patches_ignore as $key => $value) {
+      if ($this->isMultidimensionalArray($value)) {
+        $result = array_merge($result, $this->flattenPatchesIgnore($value));
+      }
+      else {
+        $result[$key] = $value;
       }
     }
-    if (isset($patches)) {
-      return $patches;
-    }
-    return $package_patches_ignore;
+    return $result;
   }
 
   /**
