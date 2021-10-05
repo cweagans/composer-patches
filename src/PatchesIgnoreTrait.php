@@ -40,7 +40,7 @@ trait PatchesIgnoreTrait {
       $tmp_patches = $this->patches;
     }
     if ($this->isPackagePatchingEnabled()) {
-      $this->io->write('<info>Gathering patches ignore from dependencies. This may take a moment, please stand by...</info>');
+      $this->io->write('<info>Gathering patches-ignore from dependencies. This may take a moment, please stand by...</info>');
       foreach ($this->packages as $package) {
         $extra = $package->getExtra();
         // Review patches-ignore legality of the package per settings.
@@ -57,6 +57,8 @@ trait PatchesIgnoreTrait {
           }
         }
       }
+      // Once collation is complete, we must clean up the array of empty elements.
+      $tmp_patches = array_filter(array_map('array_filter', $tmp_patches));
       // If the patches array is empty, we're in CheckPatches step, otherwise
       // set the patches variable as we're in the GatherPatches step.
       if (!empty($this->patches)) {
