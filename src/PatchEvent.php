@@ -24,6 +24,10 @@ class PatchEvent extends Event {
   * @var string $description
   */
  protected $description;
+ /**
+  * @var array $checksums
+  */
+ protected $checksums;
 
   /**
    * Constructs a PatchEvent object.
@@ -32,12 +36,14 @@ class PatchEvent extends Event {
    * @param PackageInterface $package
    * @param string $url
    * @param string $description
+   * @param array $checksums
    */
-  public function __construct($eventName, PackageInterface $package, $url, $description) {
+  public function __construct($eventName, PackageInterface $package, $url, $description, $checksums = array()) {
     parent::__construct($eventName);
     $this->package = $package;
     $this->url = $url;
     $this->description = $description;
+    $this->checksums = $checksums;
   }
 
   /**
@@ -65,6 +71,15 @@ class PatchEvent extends Event {
    */
   public function getDescription() {
     return $this->description;
+  }
+
+  /**
+   * Returns the checksums of the patch.
+   *
+   * @return array
+   */
+  public function getChecksums() {
+    return $this->checksums;
   }
 
 }

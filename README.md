@@ -24,7 +24,11 @@ Example composer.json:
   "extra": {
     "patches": {
       "drupal/drupal": {
-        "Add startup configuration for PHP server": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch"
+        "Add startup configuration for PHP server": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch",
+        "Remove unnecessary calls to drupal_get_path(), replace with __DIR__": {
+          "url": "https://git.drupalcode.org/project/drupal/-/merge_requests/2/diffs.diff?diff_id=160",
+          "sha1": "60dbb3698b22b74b4e7c6405e7e46e5498345215"
+        }
       }
     }
   }
@@ -130,6 +134,31 @@ Its useful for packages like drupal/core which packages only a subdir of the ori
     }
   }
 }
+```
+
+## Verify patch integrity
+
+To verify the integrity of a patch a checksum of its content can be provided using any hashing algorithm supported by [`hash_algos()`](http://php.net/manual/en/function.hash-algos.php).
+
+```json
+{
+  "patches": {
+    "vendor/project": [
+      "Description of patch": {
+        "url": "https://example.com/url/to/patch.patch",
+        "sha256": "c03905fcdab297513a620ec81ed46ca44ddb62d41cbbd83eb4a5a3592be26a69"
+      }
+    ]
+  }
+}
+```
+
+To calculate the checksum of a remote patch URL you could use something like:
+
+```bash
+curl -s https://example.com/url/to/patch.patch | sha1sum
+curl -s https://example.com/url/to/patch.patch | sha256sum
+curl -s https://example.com/url/to/patch.patch | openssl sha1
 ```
 
 ## Using patches from HTTP URLs
