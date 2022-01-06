@@ -25,9 +25,9 @@ class PatchEvent extends Event {
   */
  protected $description;
  /**
-  * @var array $checksums
+  * @var ?string $sha256
   */
- protected $checksums;
+ protected $sha256;
 
   /**
    * Constructs a PatchEvent object.
@@ -36,14 +36,14 @@ class PatchEvent extends Event {
    * @param PackageInterface $package
    * @param string $url
    * @param string $description
-   * @param array $checksums
+   * @param ?string $sha256
    */
-  public function __construct($eventName, PackageInterface $package, $url, $description, $checksums = array()) {
+  public function __construct($eventName, PackageInterface $package, $url, $description, $sha256 = NULL) {
     parent::__construct($eventName);
     $this->package = $package;
     $this->url = $url;
     $this->description = $description;
-    $this->checksums = $checksums;
+    $this->sha256 = $sha256;
   }
 
   /**
@@ -74,12 +74,12 @@ class PatchEvent extends Event {
   }
 
   /**
-   * Returns the checksums of the patch.
+   * Returns the sha256 checksum of the patch.
    *
-   * @return array
+   * @return ?string
    */
-  public function getChecksums() {
-    return $this->checksums;
+  public function getSha256() {
+    return $this->sha256;
   }
 
 }
