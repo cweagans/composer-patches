@@ -1,12 +1,11 @@
-parameters:
-    git_dir: .
-    bin_dir: vendor/bin
+grumphp:
+    hooks_dir: ~
     tasks:
         phplint: ~
         yamllint: ~
         composer: ~
         phpcpd:
-            directory: './src'
+            directory: ['./src']
         jsonlint:
             ignore_patterns:
                 - tests/_data/dummyPatchesInvalid.json
