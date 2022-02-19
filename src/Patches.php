@@ -409,7 +409,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       // --no-backup-if-mismatch here is a hack that fixes some
       // differences between how patch works on windows and unix.
       $patch_options = '--no-backup-if-mismatch';
-      if (PHP_OS_FAMILY == 'BSD') {
+      if (PHP_OS_FAMILY == 'BSD' || PHP_OS == ('FreeBSD' || 'NetBSD' || 'OpenBSD')) {
           $patch_options = '--posix --batch';
       }
       foreach ($patch_levels as $patch_level) {
