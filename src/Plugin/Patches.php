@@ -504,6 +504,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         foreach ($args as $index => $arg) {
             if ($index !== 0) {
                 if(is_array($arg)) {
+                    $args[$index] = '';
                     foreach($arg as $option) {
                         $args[$index] .= ' '.escapeshellarg($option);
                     }
