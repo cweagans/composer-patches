@@ -132,6 +132,23 @@ Its useful for packages like drupal/core which packages only a subdir of the ori
 }
 ```
 
+## Allowing patches to be applied as binary
+
+If you want your project to be able patching files with non-Unix (CR and CRLF) line endings, you must have the following in your composer file:
+
+```json
+{
+    "require": {
+        "cweagans/composer-patches": "^1.7.3"
+    },
+    "extra": {
+        "allow-binary-patching": true
+    }
+}
+```
+
+_please note, that line endings of the patch file should be the same as line endings of the file patch to_
+
 ## Using patches from HTTP URLs
 
 Composer [blocks](https://getcomposer.org/doc/06-config.md#secure-http) you from downloading anything from HTTP URLs, you can disable this for your project by adding a `secure-http` setting in the config section of your `composer.json`. Note that the `config` section should be under the root of your `composer.json`.

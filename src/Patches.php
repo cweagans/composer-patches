@@ -398,8 +398,9 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     if (!empty($extra['patchLevel'][$package->getName()])){
       $patch_levels = array($extra['patchLevel'][$package->getName()]);
     }
+    $allow_binary = (!empty($extra['allow-binary-patching']) && $extra['allow-binary-patching'] === true) ? '--binary' : '';
     // Attempt to apply with git apply.
-    $patched = $this->applyPatchWithGit($install_path, $patch_levels, $filename);
+    $patched = $this->applyPatchWithGit($install_path, $patch_levels, $filename, $allow_binary);
 
     // In some rare cases, git will fail to apply a patch, fallback to using
     // the 'patch' command.
@@ -407,7 +408,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       foreach ($patch_levels as $patch_level) {
         // --no-backup-if-mismatch here is a hack that fixes some
         // differences between how patch works on windows and unix.
-        if ($patched = $this->executeCommand("patch %s --no-backup-if-mismatch -d %s < %s", $patch_level, $install_path, $filename)) {
+        if ($patched = $this->executeCommand("patch %s --no-backup-if-mismatch %s -d %s < %s", $patch_level, $allow_binary, $install_path, $filename)) {
           break;
         }
       }
@@ -529,11 +530,11 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * @param $install_path
    * @param $patch_levels
    * @param $filename
-   *
+   * @param string $allow_binary
    * @return bool
    *   TRUE if patch was applied, FALSE otherwise.
    */
-  protected function applyPatchWithGit($install_path, $patch_levels, $filename) {
+  protected function applyPatchWithGit($install_path, $patch_levels, $filename, $allow_binary = '') {
     // Do not use git apply unless the install path is itself a git repo
     // @see https://stackoverflow.com/a/27283285
     if (!is_dir($install_path . '/.git')) {
@@ -547,7 +548,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
         $comment .= ' This command may produce errors that can be safely ignored.';
         $this->io->write('<comment>' . $comment . '</comment>');
       }
-      $checked = $this->executeCommand('git -C %s apply --check -v %s %s', $install_path, $patch_level, $filename);
+      $checked = $this->executeCommand('git -C %s apply --check -v %s %s %s', $install_path, $allow_binary, $patch_level, $filename);
       $output = $this->executor->getErrorOutput();
       if (substr($output, 0, 7) == 'Skipped') {
         // Git will indicate success but silently skip patches in some scenarios.
@@ -557,7 +558,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       }
       if ($checked) {
         // Apply the first successful style.
-        $patched = $this->executeCommand('git -C %s apply %s %s', $install_path, $patch_level, $filename);
+        $patched = $this->executeCommand('git -C %s apply %s %s %s', $install_path, $allow_binary, $patch_level, $filename);
         break;
       }
     }
