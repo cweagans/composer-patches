@@ -81,13 +81,30 @@ If you want your project to accept patches from dependencies, you must have the 
 ```json
 {
   "require": {
-      "cweagans/composer-patches": "^1.5.0"
+    "cweagans/composer-patches": "^1.5.0"
   },
   "extra": {
-      "enable-patching": true
+    "enable-patching": true
   }
 }
 ```
+
+## Allowing patches to be applied as binary
+
+If you want your project to be able patching files with non-Unix line endings, you must have the following in your composer file:
+
+```json
+{
+    "require": {
+        "cweagans/composer-patches": "^1.5.0"
+    },
+    "extra": {
+        "allow-binary-patching": true
+    }
+}
+```
+
+_please note, that line endings of the patch file should be the same as line endings of the file patch to_
 
 ## Ignoring patches
 

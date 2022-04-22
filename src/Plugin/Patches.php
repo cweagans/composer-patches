@@ -113,6 +113,10 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             'patches-file' => [
                 'type' => 'string',
                 'default' => '',
+            ],
+            'allow-binary-patching' => [
+                'type' => 'bool',
+                'default' => 'false',
             ]
         ];
         $this->configure($this->composer->getPackage()->getExtra(), 'composer-patches');
@@ -403,6 +407,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         // p0 is next likely. p2 is extremely unlikely, but for some special cases,
         // it might be useful. p4 is useful for Magento 2 patches
         $patch_levels = $this->getConfig('patch-levels');
+        $allow_binary = $this->getConfig('allow-binary-patching') ? '--allow-binary-replacement' : '';
         foreach ($patch_levels as $patch_level) {
             if ($this->io->isVerbose()) {
                 $comment = 'Testing ability to patch with git apply.';
@@ -410,8 +415,9 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                 $this->io->write('<comment>' . $comment . '</comment>');
             }
             $checked = $this->executeCommand(
-                'git -C %s apply --check -v %s %s',
+                'git -C %s apply --check %s -v %s %s',
                 $install_path,
+                $allow_binary,
                 $patch_level,
                 $filename
             );
@@ -425,8 +431,9 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             if ($checked) {
                 // Apply the first successful style.
                 $patched = $this->executeCommand(
-                    'git -C %s apply %s %s',
+                    'git -C %s apply %s %s %s',
                     $install_path,
+                    $allow_binary,
                     $patch_level,
                     $filename
                 );
