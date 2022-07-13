@@ -404,6 +404,10 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     // In some rare cases, git will fail to apply a patch, fallback to using
     // the 'patch' command.
     if (!$patched) {
+      if (!$this->executeCommand('patch -v')) {
+        throw new \Exception('Failed to run the "patch" command. Is it installed on the system?');
+      }
+
       foreach ($patch_levels as $patch_level) {
         // --no-backup-if-mismatch here is a hack that fixes some
         // differences between how patch works on windows and unix.
