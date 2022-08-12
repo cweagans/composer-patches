@@ -368,6 +368,25 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    */
   protected function getAndApplyPatch(RemoteFilesystem $downloader, $install_path, $patch_url, PackageInterface $package) {
 
+    // Patch located in dependency
+    if (preg_match('#^//(.+)//(.+)$#', $patch_url, $m)) {
+        if ($m[1] === $this->composer->getPackage()->getName()) {
+            $patch_url = $m[2];
+        } else {
+            foreach (array_merge(
+                $this->composer->getRepositoryManager()->getLocalRepository()->getPackages(),
+                []
+            ) as $package) {
+                if ($package->getName() === $m[1]) {
+                    $packagePath = $this->composer->getInstallationManager()->getInstallPath($package);
+                    $patch_url = $packagePath . '/' . $m[2];
+                    break;
+                }
+            }
+        }
+        $this->io->isVerbose() && $this->io->write('    Resolved patch location: <info>' . $patch_url . '</info>');
+    }
+
     // Local patch file.
     if (file_exists($patch_url)) {
       $filename = realpath($patch_url);
