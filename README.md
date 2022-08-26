@@ -5,6 +5,15 @@
 
 Simple patches plugin for Composer. Applies a patch from a local or remote file to any package required with composer.
 
+## Quick install
+You can quickly add the package and enable patching via those commands:
+```
+composer require cweagans/composer-patches
+composer config --merge --json extra.enable-patching true
+composer config --merge --json extra.patches '{"vendor/project": {"Patch title": "http://example.com/url/to/patch.patch"}}'
+```
+After this - open the `composer.json` file and edit the `extra.patches` section to add needed patches.
+
 ## Support notes
 
 * If you need PHP 5.3, 5.4, or 5.5 support, you should probably use a 1.x release.
@@ -14,7 +23,6 @@ Simple patches plugin for Composer. Applies a patch from a local or remote file 
   that will cause syntax errors in PHP 5.6 and later. The unit/acceptance tests do
   not run on anything earlier than PHP 7.1, so while pull requests will be accepted
   for those versions, support is on a best-effort basis.
-
 
 ## Usage
 
