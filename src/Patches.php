@@ -49,6 +49,11 @@ class Patches implements PluginInterface, EventSubscriberInterface {
   protected $patches;
 
   /**
+   * @var array $installedPatches
+   */
+  protected $installedPatches;
+
+  /**
    * Apply plugin modifications to composer
    *
    * @param Composer    $composer
