@@ -443,6 +443,14 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             // differences between how patch works on windows and unix.
             $patch_options = '--no-backup-if-mismatch';
             if (PHP_OS_FAMILY == 'BSD') {
+                $patchVersion = '';
+                $this->executor->execute('patch --version', $patchVersion);
+                if (strpos($patchBinaryVersion, 'GNU patch') === false) {
+                    throw new \Exception(
+                        "Please make sure to have GNU patch installed, see "
+                        . "https://github.com/cweagans/composer-patches/wiki/Install-%22patch%22-binary"
+                    );
+                }
                 $patch_options = '--posix --batch';
             }
             foreach ($patch_levels as $patch_level) {
