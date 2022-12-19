@@ -1,0 +1,24 @@
+name: CI
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 2 * * *"
+  release:
+    types: [published]
+jobs:
+  test:
+    runs-on: "ubuntu-22.04"
+    strategy:
+      matrix:
+        php: ["8.0", "8.1", "8.2"]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: shivammathur/setup-php@v2
+        with:
+          ini-file: development
+          php-version: ${{ matrix.php }}
+      - name: Composer install
+        run: composer install --no-interaction --optimize-autoloader
+      - name: Run tests
+        run: composer test
