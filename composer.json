@@ -42,6 +42,11 @@
     }
   },
   "scripts": {
-    "test": "grumphp run"
+    "grumphp": "grumphp run",
+    "codecept": "codecept run",
+    "test": [
+      "@grumphp",
+      "@codecept"
+    ]
   }
 }
