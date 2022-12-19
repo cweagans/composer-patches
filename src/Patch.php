@@ -90,7 +90,8 @@ class Patch implements \JsonSerializable
    * @return bool
    *   TRUE if the package has been patched.
    */
-    public static function isPackagePatched(PackageInterface $package) {
-      return array_key_exists('patches_applied', $package->getExtra());
+    public static function isPackagePatched(PackageInterface $package)
+    {
+        return array_key_exists('patches_applied', $package->getExtra());
     }
 }
