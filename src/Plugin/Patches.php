@@ -82,11 +82,10 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      * @param Composer $composer
      * @param IOInterface $io
      */
-    public function activate(Composer $composer, IOInterface $io)
+    public function activate(Composer $composer, IOInterface $io): void
     {
         $this->composer = $composer;
         $this->io = $io;
-        $this->eventDispatcher = $composer->getEventDispatcher();
         $this->executor = new ProcessExecutor($this->io);
         $this->patches = array();
         $this->installedPatches = array();
@@ -322,12 +321,12 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             /** @var Patch $patch */
             $this->io->write('    <info>' . $patch->url . '</info> (<comment>' . $patch->description . '</comment>)');
             try {
-                $this->eventDispatcher->dispatch(
+                $this->composer->getEventDispatcher()->dispatch(
                     null,
                     new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $package, $patch->url, $patch->description)
                 );
                 $this->getAndApplyPatch($downloader, $install_path, $patch->url);
-                $this->eventDispatcher->dispatch(
+                $this->composer->getEventDispatcher()->dispatch(
                     null,
                     new PatchEvent(PatchEvents::POST_PATCH_APPLY, $package, $patch->url, $patch->description)
                 );
