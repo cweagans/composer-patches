@@ -23,6 +23,8 @@ jobs:
           ini-file: development
           php-version: ${{ matrix.php }}
           coverage: ${{ matrix.coverage }}
+          # Tests don't run in PHP 8.0 due to pcntl_signal_dispatch being disabled ¯\_(ツ)_/¯
+          ini-values: disable_functions=""
       - name: Composer install
         run: composer install --no-interaction --optimize-autoloader
       - name: Run tests
