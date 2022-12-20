@@ -65,6 +65,11 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      * @var array $patches
      */
     protected $patches;
+    
+    /**
+     * @var array $installedPatches
+     */
+    protected $installedPatches;
 
     /**
      * @var bool $patchesResolved
