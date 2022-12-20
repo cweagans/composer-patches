@@ -39,6 +39,9 @@
   "config": {
     "allow-plugins": {
       "phpro/grumphp": true
+    },
+    "platform": {
+      "php": "8.0"
     }
   },
   "scripts": {
@@ -46,6 +49,7 @@
     "unit": "codecept run unit",
     "acceptance": "codecept run acceptance",
     "coverage": "codecept run --coverage-xml",
+    "coveralls": "php-coveralls",
     "test": [
       "@static",
       "@unit",
