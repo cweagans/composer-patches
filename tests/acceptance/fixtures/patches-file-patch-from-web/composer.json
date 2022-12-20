@@ -11,7 +11,7 @@
   ],
   "require": {
     "cweagans/composer-patches": "*@dev",
-    "drupal/core-recommended": "^9"
+    "drupal/core": "^9"
   },
   "extra": {
     "patches-file": "patches.json"
