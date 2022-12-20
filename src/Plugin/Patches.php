@@ -305,8 +305,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             return;
         }
         $this->io->write('  - Applying patches for <info>' . $package_name . '</info>');
-
-        // Get the install path from the package object.
+        // Get the installation path from the package object.
         $manager = $event->getComposer()->getInstallationManager();
         $install_path = $manager->getInstaller($package->getType())->getInstallPath($package);
 
