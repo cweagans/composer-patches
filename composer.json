@@ -15,11 +15,11 @@
   "require": {
     "php": ">=8.0.0",
     "ext-json": "*",
-    "composer-plugin-api": "^1.0 || ^2.0",
+    "composer-plugin-api": "^2.0",
     "cweagans/composer-configurable-plugin": "^1.0"
   },
   "require-dev": {
-    "composer/composer": "~1.0",
+    "composer/composer": "~2.0",
     "codeception/codeception": "~4.0",
     "php-coveralls/php-coveralls": "~2.0",
     "phpro/grumphp": "^1.8.0",
