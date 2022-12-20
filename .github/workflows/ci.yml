@@ -12,13 +12,27 @@ jobs:
     strategy:
       matrix:
         php: ["8.0", "8.1", "8.2"]
+        coverage: ["none"]
+        include:
+          - php: "8.2"
+            coverage: "xdebug"
     steps:
       - uses: actions/checkout@v3
       - uses: shivammathur/setup-php@v2
         with:
           ini-file: development
           php-version: ${{ matrix.php }}
+          coverage: ${{ matrix.coverage }}
       - name: Composer install
         run: composer install --no-interaction --optimize-autoloader
       - name: Run tests
+        if: matrix.coverage == 'none'
         run: composer test
+      - name: Run coverage
+        if: matrix.coverage == 'xdebug'
+        run: composer coverage
+      - name: Upload coverage results to Coveralls
+        if: matrix.coverage == 'xdebug'
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: composer coveralls
