@@ -26,7 +26,7 @@ Example composer.json:
 {
   "require": {
     "cweagans/composer-patches": "~1.0",
-    "drupal/core-recommended": "^8.8",
+    "drupal/core-recommended": "^8.8"
   },
   "config": {
     "preferred-install": "source"
