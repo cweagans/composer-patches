@@ -4,7 +4,7 @@
  * @file
  * Test the RootComposer resolver.
  */
-namespace cweagans\Composer\Tests;
+namespace cweagans\Composer\Tests\Unit;
 
 use Codeception\Test\Unit;
 use Codeception\Util\Stub;
