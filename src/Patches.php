@@ -238,7 +238,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       return $patches;
     }
     // If it's not specified there, look for a patches-file definition.
-    elseif (isset($extra['patches-file'])) {
+    elseif (isset($extra['patches-file']) && is_string($extra['patches-file'])) {
       $this->io->write('<info>Gathering patches from patch file.</info>');
       $patches = file_get_contents($extra['patches-file']);
       $patches = json_decode($patches, TRUE);
