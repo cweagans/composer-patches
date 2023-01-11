@@ -16,7 +16,9 @@ use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
 use Composer\Package\AliasPackage;
 use Composer\Package\PackageInterface;
+use Composer\Package\Version\VersionParser;
 use Composer\Plugin\PluginInterface;
+use Composer\Composer\InstalledVersions;
 use Composer\Installer\PackageEvents;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
@@ -238,7 +240,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       return $patches;
     }
     // If it's not specified there, look for a patches-file definition.
-    elseif (isset($extra['patches-file']) && is_string($extra['patches-file'])) {
+    elseif (isset($extra['patches-file'])) {
       $this->io->write('<info>Gathering patches from patch file.</info>');
       $patches = file_get_contents($extra['patches-file']);
       $patches = json_decode($patches, TRUE);
@@ -316,28 +318,56 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     $localPackage = $localRepository->findPackage($package_name, $package->getVersion());
     $extra = $localPackage->getExtra();
     $extra['patches_applied'] = array();
-
-    foreach ($this->patches[$package_name] as $description => $url) {
-      $this->io->write('    <info>' . $url . '</info> (<comment>' . $description. '</comment>)');
-      try {
-        $this->eventDispatcher->dispatch(NULL, new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $package, $url, $description));
-        $this->getAndApplyPatch($downloader, $install_path, $url, $package);
-        $this->eventDispatcher->dispatch(NULL, new PatchEvent(PatchEvents::POST_PATCH_APPLY, $package, $url, $description));
-        $extra['patches_applied'][$description] = $url;
-      }
-      catch (\Exception $e) {
-        $this->io->write('   <error>Could not apply patch! Skipping. The error was: ' . $e->getMessage() . '</error>');
-        if ($exitOnFailure) {
-          throw new \Exception("Cannot apply patch $description ($url)!");
+    $package_version = \Composer\InstalledVersions::getPrettyVersion($package_name);
+    foreach ($this->patches[$package_name] as $version => $patches) {
+      $applied_patches = [];
+      if (is_array($patches)) {
+        $package_version = \Composer\InstalledVersions::getPrettyVersion($package_name);
+        //if ($package_version == $version ) {
+        if ((version_compare($package_version, $version) == 0) || version_compare($package_version, $version)) {
+          foreach ($patches as $description => $url) {
+            $this->applyPatch($package, $url, $description, $downloader, $install_path, $exitOnFailure);
+            $applied_patches[$description] = $url;
+          }
         }
       }
+      else {
+        $this->applyPatch($package, $patches, $version, $downloader, $install_path, $exitOnFailure);
+        $applied_patches[$version] = $patches;
+      }
+
     }
     $localPackage->setExtra($extra);
 
     $this->io->write('');
 
     if (true !== $skipReporting) {
-      $this->writePatchReport($this->patches[$package_name], $install_path);
+      $this->writePatchReport($applied_patches, $install_path);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected function applyPatch(
+    PackageInterface $package,
+    string $url,
+    string $description,
+    RemoteFilesystem $downloader,
+    string $install_path,
+    bool $exitOnFailure){
+    $this->io->write('    <info>' . $url . '</info> (<comment>' . $description. '</comment>)');
+    try {
+      $this->eventDispatcher->dispatch(NULL, new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $package, $url, $description));
+      $this->getAndApplyPatch($downloader, $install_path, $url, $package);
+      $this->eventDispatcher->dispatch(NULL, new PatchEvent(PatchEvents::POST_PATCH_APPLY, $package, $url, $description));
+      $extra['patches_applied'][$description] = $url;
+    }
+    catch (\Exception $e) {
+      $this->io->write('   <error>Could not apply patch! Skipping. The error was: ' . $e->getMessage() . '</error>');
+      if ($exitOnFailure) {
+        throw new \Exception("Cannot apply patch $description ($url)!");
+      }
     }
   }
 
@@ -579,18 +609,18 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     return array_key_exists('patches_applied', $package->getExtra());
   }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function deactivate(Composer $composer, IOInterface $io)
-    {
-    }
+  /**
+   * {@inheritDoc}
+   */
+  public function deactivate(Composer $composer, IOInterface $io)
+  {
+  }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function uninstall(Composer $composer, IOInterface $io)
-    {
-    }
+  /**
+   * {@inheritDoc}
+   */
+  public function uninstall(Composer $composer, IOInterface $io)
+  {
+  }
 
 }
