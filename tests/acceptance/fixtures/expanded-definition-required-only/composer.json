@@ -11,16 +11,21 @@
   ],
   "require": {
     "cweagans/composer-patches": "*@dev",
-    "drupal/drupal": "~8.2"
+    "drupal/core": "^9"
   },
   "extra": {
     "patches": {
-      "drupal/drupal": [
+      "drupal/core": [
         {
           "description": "Add a startup config for the PHP web server",
           "url": "https://www.drupal.org/files/issues/add_a_startup-1543858-58.patch"
         }
       ]
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "cweagans/composer-patches": true
     }
   }
 }

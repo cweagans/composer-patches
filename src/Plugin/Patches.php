@@ -24,7 +24,7 @@ use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
 use Composer\Installer\PackageEvent;
 use Composer\Util\ProcessExecutor;
-use Composer\Util\RemoteFilesystem;
+use Composer\Util\HttpDownloader;
 use cweagans\Composer\Capability\ResolverProvider;
 use cweagans\Composer\PatchCollection;
 use cweagans\Composer\Resolvers\ResolverBase;
@@ -65,6 +65,11 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      * @var array $patches
      */
     protected $patches;
+    
+    /**
+     * @var array $installedPatches
+     */
+    protected $installedPatches;
 
     /**
      * @var bool $patchesResolved
@@ -82,11 +87,10 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      * @param Composer $composer
      * @param IOInterface $io
      */
-    public function activate(Composer $composer, IOInterface $io)
+    public function activate(Composer $composer, IOInterface $io): void
     {
         $this->composer = $composer;
         $this->io = $io;
-        $this->eventDispatcher = $composer->getEventDispatcher();
         $this->executor = new ProcessExecutor($this->io);
         $this->patches = array();
         $this->installedPatches = array();
@@ -305,13 +309,12 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             return;
         }
         $this->io->write('  - Applying patches for <info>' . $package_name . '</info>');
-
-        // Get the install path from the package object.
+        // Get the installation path from the package object.
         $manager = $event->getComposer()->getInstallationManager();
         $install_path = $manager->getInstaller($package->getType())->getInstallPath($package);
 
         // Set up a downloader.
-        $downloader = new RemoteFilesystem($this->io, $this->composer->getConfig());
+        $downloader = new HttpDownloader($this->io, $this->composer->getConfig());
 
         // Track applied patches in the package info in installed.json
         $localRepository = $this->composer->getRepositoryManager()->getLocalRepository();
@@ -323,12 +326,12 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             /** @var Patch $patch */
             $this->io->write('    <info>' . $patch->url . '</info> (<comment>' . $patch->description . '</comment>)');
             try {
-                $this->eventDispatcher->dispatch(
+                $this->composer->getEventDispatcher()->dispatch(
                     null,
                     new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $package, $patch->url, $patch->description)
                 );
                 $this->getAndApplyPatch($downloader, $install_path, $patch->url);
-                $this->eventDispatcher->dispatch(
+                $this->composer->getEventDispatcher()->dispatch(
                     null,
                     new PatchEvent(PatchEvents::POST_PATCH_APPLY, $package, $patch->url, $patch->description)
                 );
@@ -370,12 +373,12 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
     /**
      * Apply a patch on code in the specified directory.
      *
-     * @param RemoteFilesystem $downloader
+     * @param HttpDownloader $downloader
      * @param $install_path
      * @param $patch_url
      * @throws \Exception
      */
-    protected function getAndApplyPatch(RemoteFilesystem $downloader, $install_path, $patch_url)
+    protected function getAndApplyPatch(HttpDownloader $downloader, $install_path, $patch_url)
     {
 
         // Local patch file.
@@ -385,15 +388,12 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             // Generate random (but not cryptographically so) filename.
             $filename = uniqid(sys_get_temp_dir() . '/') . ".patch";
 
-            // Download file from remote filesystem to this location.
-            $hostname = parse_url($patch_url, PHP_URL_HOST);
-
             try {
-                $downloader->copy($hostname, $patch_url, $filename, false);
+                $downloader->copy($patch_url, $filename, []);
             } catch (\Exception $e) {
                 // In case of an exception, retry once as the download might
                 // have failed due to intermittent network issues.
-                $downloader->copy($hostname, $patch_url, $filename, false);
+                $downloader->copy($patch_url, $filename, []);
             }
         }
 
