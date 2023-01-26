@@ -1,5 +1,6 @@
 <?php
 
+namespace cweagans\Composer\Tests;
 
 /**
  * Inherited Methods

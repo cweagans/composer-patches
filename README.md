@@ -50,7 +50,7 @@ Instead of a patches key in your root composer.json, use a patches-file key.
 {
   "require": {
     "cweagans/composer-patches": "~1.0",
-    "drupal/core-recommended": "^8.8",
+    "drupal/core-recommended": "^8.8"
   },
   "config": {
     "preferred-install": "source"

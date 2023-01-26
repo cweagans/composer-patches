@@ -1,5 +1,6 @@
 <?php
-namespace Helper;
+
+namespace cweagans\Composer\Tests\Helper;
 
 // here you can define custom actions
 // all public methods declared in helper class will be available in $I
@@ -38,7 +39,7 @@ class Acceptance extends \Codeception\Module
 
     protected function _getFixturesDir()
     {
-        return dirname(__DIR__, 2) . '/acceptance/fixtures';
+        return codecept_data_dir('fixtures');
     }
 
     protected function _getPluginDir()

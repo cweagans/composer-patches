@@ -1,6 +1,6 @@
 <?php
 
-namespace cweagans\Composer\Tests;
+namespace cweagans\Composer\Tests\Unit;
 
 use Codeception\Test\Unit;
 use cweagans\Composer\PatchCollection;
