@@ -26,5 +26,10 @@
   },
   "autoload-dev": {
     "psr-4": {"cweagans\\Composer\\Tests\\": "tests"}
+  },
+  "config": {
+    "allow-plugins": {
+      "phpro/grumphp": true
+    }
   }
 }
