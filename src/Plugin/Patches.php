@@ -65,7 +65,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      * @var array $patches
      */
     protected $patches;
-    
+
     /**
      * @var array $installedPatches
      */
@@ -503,9 +503,9 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         $args = func_get_args();
         foreach ($args as $index => $arg) {
             if ($index !== 0) {
-                if(is_array($arg)) {
+                if (is_array($arg)) {
                     $args[$index] = '';
-                    foreach($arg as $option) {
+                    foreach ($arg as $option) {
                         $args[$index] .= ' '.escapeshellarg($option);
                     }
                 } else {
