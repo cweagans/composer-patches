@@ -1,8 +1,7 @@
-
-/vendor/
-
+/codeception.yml
+/tests/acceptance/fixtures/**/vendor/
+/tests/acceptance/fixtures/**/composer.lock
 /tests/_output/
 /tests/_support/_generated/
 /tests/*.suite.yml
-/codeception.yml
-
+/vendor/
