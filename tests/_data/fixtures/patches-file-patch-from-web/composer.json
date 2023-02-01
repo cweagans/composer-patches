@@ -11,7 +11,7 @@
   ],
   "require": {
     "cweagans/composer-patches": "*@dev",
-    "drupal/core": "^9"
+    "cweagans/composer-patches-testrepo": "~1.0"
   },
   "extra": {
     "patches-file": "patches.json"
