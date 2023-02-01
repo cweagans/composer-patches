@@ -9,7 +9,6 @@ namespace cweagans\Composer;
 
 class PatchEvents
 {
-
     /**
      * The PRE_PATCH_APPLY event occurs before a patch is applied.
      *
@@ -17,7 +16,7 @@ class PatchEvents
      *
      * @var string
      */
-    const PRE_PATCH_APPLY = 'pre-patch-apply';
+    public const PRE_PATCH_APPLY = 'pre-patch-apply';
 
     /**
      * The POST_PATCH_APPLY event occurs after a patch is applied.
@@ -26,5 +25,5 @@ class PatchEvents
      *
      * @var string
      */
-    const POST_PATCH_APPLY = 'post-patch-apply';
+    public const POST_PATCH_APPLY = 'post-patch-apply';
 }

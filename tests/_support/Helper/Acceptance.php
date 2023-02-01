@@ -5,9 +5,10 @@ namespace cweagans\Composer\Tests\Helper;
 // here you can define custom actions
 // all public methods declared in helper class will be available in $I
 
+use Codeception\Module;
 use Symfony\Component\Filesystem\Filesystem;
 
-class Acceptance extends \Codeception\Module
+class Acceptance extends Module
 {
     /**
      * Build a local repo that Composer can use as a path repository.

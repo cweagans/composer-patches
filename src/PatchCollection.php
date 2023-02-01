@@ -2,7 +2,9 @@
 
 namespace cweagans\Composer;
 
-class PatchCollection implements \JsonSerializable
+use JsonSerializable;
+
+class PatchCollection implements JsonSerializable
 {
     /**
      * A deep list of patches to apply.

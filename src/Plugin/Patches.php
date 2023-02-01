@@ -29,16 +29,18 @@ use cweagans\Composer\Capability\ResolverProvider;
 use cweagans\Composer\PatchCollection;
 use cweagans\Composer\Resolvers\ResolverBase;
 use cweagans\Composer\Resolvers\ResolverInterface;
+use Exception;
+use LogicException;
 use Symfony\Component\Process\Process;
 use cweagans\Composer\Util;
 use cweagans\Composer\PatchEvent;
 use cweagans\Composer\PatchEvents;
 use cweagans\Composer\ConfigurablePlugin;
 use cweagans\Composer\Patch;
+use UnexpectedValueException;
 
 class Patches implements PluginInterface, EventSubscriberInterface, Capable
 {
-
     use ConfigurablePlugin;
 
     /**
@@ -65,7 +67,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      * @var array $patches
      */
     protected $patches;
-    
+
     /**
      * @var array $installedPatches
      */
@@ -166,20 +168,22 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
     {
         $resolvers = [];
         $plugin_manager = $this->composer->getPluginManager();
-        foreach ($plugin_manager->getPluginCapabilities(
-            'cweagans\Composer\Capability\ResolverProvider',
-            ['composer' => $this->composer, 'io' => $this->io]
-        ) as $capability) {
+        foreach (
+            $plugin_manager->getPluginCapabilities(
+                'cweagans\Composer\Capability\ResolverProvider',
+                ['composer' => $this->composer, 'io' => $this->io]
+            ) as $capability
+        ) {
             /** @var ResolverProvider $capability */
             $newResolvers = $capability->getResolvers();
             if (!is_array($newResolvers)) {
-                throw new \UnexpectedValueException(
+                throw new UnexpectedValueException(
                     'Plugin capability ' . get_class($capability) . ' failed to return an array from getResolvers().'
                 );
             }
             foreach ($newResolvers as $resolver) {
                 if (!$resolver instanceof ResolverBase) {
-                    throw new \UnexpectedValueException(
+                    throw new UnexpectedValueException(
                         'Plugin capability ' . get_class($capability) . ' returned an invalid value.'
                     );
                 }
@@ -264,17 +268,24 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                     $extra = $package->getExtra();
                     $has_patches = isset($tmp_patches[$package_name]);
                     $has_applied_patches = isset($extra['patches_applied']);
-                    if (($has_patches && !$has_applied_patches)
+                    if (
+                        ($has_patches && !$has_applied_patches)
                         || (!$has_patches && $has_applied_patches)
-                        || ($has_patches && $has_applied_patches &&
-                            $tmp_patches[$package_name] !== $extra['patches_applied'])) {
+                        || (
+                            $has_patches
+                            && $has_applied_patches
+                            && $tmp_patches[$package_name] !== $extra['patches_applied']
+                        )
+                    ) {
                         $uninstallOperation = new UninstallOperation(
                             $package,
                             'Removing package so it can be re-installed and re-patched.'
                         );
-                        $this->io->write('<info>Removing package ' .
+                        $this->io->write(
+                            '<info>Removing package ' .
                             $package_name .
-                            ' so that it can be re-installed and re-patched.</info>');
+                            ' so that it can be re-installed and re-patched.</info>'
+                        );
                         $promises[] = $installationManager->uninstall($localRepository, $uninstallOperation);
                     }
                 }
@@ -283,7 +294,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             if ($promises) {
                 $this->composer->getLoop()->wait($promises);
             }
-        } catch (\LogicException $e) {
+        } catch (LogicException $e) {
             // If the Locker isn't available, then we don't need to do this.
             // It's the first time packages have been installed.
             return;
@@ -292,7 +303,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
 
     /**
      * @param PackageEvent $event
-     * @throws \Exception
+     * @throws Exception
      */
     public function postInstall(PackageEvent $event)
     {
@@ -336,14 +347,14 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                     new PatchEvent(PatchEvents::POST_PATCH_APPLY, $package, $patch->url, $patch->description)
                 );
                 $extra['patches_applied'][$patch->description] = $patch->url;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->io->write(
                     '   <error>Could not apply patch! Skipping. The error was: ' .
                     $e->getMessage() .
                     '</error>'
                 );
                 if ($this->getConfig('exit-on-patch-failure')) {
-                    throw new \Exception("Cannot apply patch $patch->description ($patch->url)!");
+                    throw new Exception("Cannot apply patch $patch->description ($patch->url)!");
                 }
             }
         }
@@ -355,7 +366,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      *
      * @param OperationInterface $operation
      * @return PackageInterface
-     * @throws \Exception
+     * @throws Exception
      */
     protected function getPackageFromOperation(OperationInterface $operation)
     {
@@ -364,7 +375,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         } elseif ($operation instanceof UpdateOperation) {
             $package = $operation->getTargetPackage();
         } else {
-            throw new \Exception('Unknown operation: ' . get_class($operation));
+            throw new Exception('Unknown operation: ' . get_class($operation));
         }
 
         return $package;
@@ -376,11 +387,10 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      * @param HttpDownloader $downloader
      * @param $install_path
      * @param $patch_url
-     * @throws \Exception
+     * @throws Exception
      */
     protected function getAndApplyPatch(HttpDownloader $downloader, $install_path, $patch_url)
     {
-
         // Local patch file.
         if (file_exists($patch_url)) {
             $filename = realpath($patch_url);
@@ -446,13 +456,14 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                 $patch_options = '--posix --batch';
             }
             foreach ($patch_levels as $patch_level) {
-                if ($patched = $this->executeCommand(
-                    "patch %s %s -d %s < %s",
-                    $patch_level,
-                    $patch_options,
-                    $install_path,
-                    $filename
-                )
+                if (
+                    $patched = $this->executeCommand(
+                        "patch %s %s -d %s < %s",
+                        $patch_level,
+                        $patch_options,
+                        $install_path,
+                        $filename
+                    )
                 ) {
                     break;
                 }
@@ -466,7 +477,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         // If the patch *still* isn't applied, then give up and throw an Exception.
         // Otherwise, let the user know it worked.
         if (!$patched) {
-            throw new \Exception("Cannot apply patch $patch_url");
+            throw new Exception("Cannot apply patch $patch_url");
         }
     }
 

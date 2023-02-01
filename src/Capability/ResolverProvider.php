@@ -3,6 +3,7 @@
 namespace cweagans\Composer\Capability;
 
 use Composer\Plugin\Capability\Capability;
+use cweagans\Composer\Resolvers\ResolverBase;
 
 /**
  * Resolver provider interface.
@@ -16,7 +17,7 @@ interface ResolverProvider extends Capability
     /**
      * Retrieves an array of PatchResolvers.
      *
-     * @return \cweagans\Composer\Resolvers\ResolverBase[]
+     * @return ResolverBase[]
      */
     public function getResolvers();
 }
