@@ -451,16 +451,13 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             // systems which doesn't support this option -> use posix then.
             // --no-backup-if-mismatch here is a hack that fixes some
             // differences between how patch works on windows and unix.
-            $patch_options = '--no-backup-if-mismatch';
-            if (PHP_OS_FAMILY == 'BSD') {
-                $patch_options = '--posix --batch';
-            }
             foreach ($patch_levels as $patch_level) {
                 if (
                     $patched = $this->executeCommand(
-                        "patch %s %s -d %s < %s",
+                        "patch %s %s %s -d %s < %s",
                         $patch_level,
-                        $patch_options,
+                        '--batch',
+                        '--no-backup-if-mismatch',
                         $install_path,
                         $filename
                     )
