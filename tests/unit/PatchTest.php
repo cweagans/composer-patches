@@ -7,7 +7,6 @@ use cweagans\Composer\Patch;
 
 class PatchTest extends Unit
 {
-
     public function testSerializeDeserialize()
     {
         $patch = new Patch();

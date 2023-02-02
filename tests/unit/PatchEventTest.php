@@ -15,7 +15,6 @@ use Composer\Package\PackageInterface;
 
 class PatchEventTest extends Unit
 {
-
     /**
      * Tests all the getters.
      *

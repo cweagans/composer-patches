@@ -14,7 +14,6 @@ use cweagans\Composer\PatchCollection;
 
 interface ResolverInterface
 {
-
     /**
      * ResolverInterface constructor.
      *
