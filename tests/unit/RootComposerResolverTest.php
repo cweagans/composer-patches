@@ -34,7 +34,7 @@ class RootComposerResolverTest extends Unit
         $resolver->resolve($patch_collection, $event);
         $this->assertCount(0, $patch_collection->getPatchesForPackage('test/package'));
 
-        // One patch.
+        // One patch (expanded definition)
         $root_package->setExtra([
             'patches' => [
                 'test/package' => [
@@ -42,8 +42,24 @@ class RootComposerResolverTest extends Unit
                         'url' => 'https://drupal.org',
                         'description' => 'Test patch'
                     ],
-                ]
-            ]
+                ],
+            ],
+        ]);
+
+        $composer->setPackage($root_package);
+        $resolver = new RootComposer($composer, $io);
+        $resolver->resolve($patch_collection, $event);
+        $this->assertCount(1, $patch_collection->getPatchesForPackage('test/package'));
+
+
+        // One patch (compact definition)
+        $patch_collection = new PatchCollection();
+        $root_package->setExtra([
+            'patches' => [
+                'test/package' => [
+                    'Test patch' => 'https://drupal.org',
+                ],
+            ],
         ]);
 
         $composer->setPackage($root_package);

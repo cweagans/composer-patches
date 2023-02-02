@@ -49,7 +49,7 @@ class Patch implements JsonSerializable
      *   A json_encode'd representation of a Patch.
      *
      * @return Patch
-     *   A Patch with all of the serialized properties set.
+     *   A Patch with all serialized properties set.
      */
     public static function fromJson($json): static
     {
