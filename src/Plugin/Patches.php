@@ -447,6 +447,10 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         // In some rare cases, git will fail to apply a patch, fallback to using
         // the 'patch' command.
         if (!$patched) {
+            if (! $this->executeCommand('command -v patch')) {
+                throw new Exception('Cannot find "patch" command; unable to apply patches');
+            }
+
             // This is a workaround for the outdated patch version on BSD
             // systems which doesn't support this option -> use posix then.
             // --no-backup-if-mismatch here is a hack that fixes some
