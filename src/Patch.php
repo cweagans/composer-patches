@@ -3,8 +3,9 @@
 namespace cweagans\Composer;
 
 use Composer\Package\PackageInterface;
+use JsonSerializable;
 
-class Patch implements \JsonSerializable
+class Patch implements JsonSerializable
 {
     /**
      * The package that the patch belongs to.
@@ -70,7 +71,7 @@ class Patch implements \JsonSerializable
     /**
      * {@inheritDoc}
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         return [
             'package' => $this->package,
@@ -81,15 +82,15 @@ class Patch implements \JsonSerializable
         ];
     }
 
-  /**
-   * Indicates if a package has been patched.
-   *
-   * @param \Composer\Package\PackageInterface $package
-   *   The package to check.
-   *
-   * @return bool
-   *   TRUE if the package has been patched.
-   */
+    /**
+     * Indicates if a package has been patched.
+     *
+     * @param PackageInterface $package
+     *   The package to check.
+     *
+     * @return bool
+     *   TRUE if the package has been patched.
+     */
     public static function isPackagePatched(PackageInterface $package)
     {
         return array_key_exists('patches_applied', $package->getExtra());

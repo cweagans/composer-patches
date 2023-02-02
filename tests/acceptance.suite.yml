@@ -1,6 +1,0 @@
-class_name: AcceptanceTester
-modules:
-    enabled:
-        - \Helper\Acceptance
-        - Cli
-        - Filesystem

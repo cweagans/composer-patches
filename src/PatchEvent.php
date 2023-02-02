@@ -12,7 +12,6 @@ use Composer\Package\PackageInterface;
 
 class PatchEvent extends Event
 {
-
     /**
      * @var PackageInterface $package
      */

@@ -10,10 +10,10 @@ namespace cweagans\Composer\Resolvers;
 use Composer\Installer\PackageEvent;
 use cweagans\Composer\Patch;
 use cweagans\Composer\PatchCollection;
+use InvalidArgumentException;
 
 class PatchesFile extends ResolverBase
 {
-
     /**
      * {@inheritDoc}
      */
@@ -48,7 +48,7 @@ class PatchesFile extends ResolverBase
      *   A URI to a file. Can be anything accepted by file_get_contents().
      * @return array
      *   A list of patches.
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected function readPatchesFile($patches_file)
     {
@@ -58,12 +58,12 @@ class PatchesFile extends ResolverBase
         // First, check for JSON syntax issues.
         $json_error = json_last_error_msg();
         if ($json_error !== "No error") {
-            throw new \InvalidArgumentException($json_error);
+            throw new InvalidArgumentException($json_error);
         }
 
         // Next, make sure there is a patches key in the file.
         if (!array_key_exists('patches', $patches)) {
-            throw new \InvalidArgumentException('No patches found.');
+            throw new InvalidArgumentException('No patches found.');
         }
 
         // If nothing is wrong at this point, we can return the list of patches.

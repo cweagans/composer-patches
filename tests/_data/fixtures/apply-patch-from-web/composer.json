@@ -11,10 +11,14 @@
   ],
   "require": {
     "cweagans/composer-patches": "*@dev",
-    "drupal/core": "^9"
+    "cweagans/composer-patches-testrepo": "~1.0"
   },
   "extra": {
-    "patches-file": "patches.json"
+    "patches": {
+      "cweagans/composer-patches-testrepo": {
+        "Add a file": "https://patch-diff.githubusercontent.com/raw/cweagans/composer-patches-testrepo/pull/1.patch"
+      }
+    }
   },
   "config": {
     "allow-plugins": {

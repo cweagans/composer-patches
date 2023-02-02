@@ -1,6 +1,6 @@
 <?php
 
-namespace cweagans\Composer\Tests;
+namespace cweagans\Composer\Tests\Unit;
 
 use Codeception\Test\Unit;
 use Codeception\Util\Stub;
@@ -10,6 +10,7 @@ use Composer\IO\NullIO;
 use Composer\Package\RootPackage;
 use cweagans\Composer\PatchCollection;
 use cweagans\Composer\Resolvers\PatchesFile;
+use InvalidArgumentException;
 
 class PatchesFileResolverTest extends Unit
 {
@@ -42,7 +43,7 @@ class PatchesFileResolverTest extends Unit
             $collection = new PatchCollection();
             $resolver = new PatchesFile($composer, $io);
             $resolver->resolve($collection, $event);
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             $this->assertEquals('No patches found.', $e->getMessage());
         }
 
@@ -56,7 +57,7 @@ class PatchesFileResolverTest extends Unit
             $collection = new PatchCollection();
             $resolver = new PatchesFile($composer, $io);
             $resolver->resolve($collection, $event);
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             $this->assertEquals('Syntax error', $e->getMessage());
         }
     }

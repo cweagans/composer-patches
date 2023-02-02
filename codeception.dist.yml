@@ -1,3 +1,6 @@
+
+namespace: cweagans\Composer\Tests
+
 actor: Tester
 paths:
     tests: tests

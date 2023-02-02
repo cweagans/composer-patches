@@ -11,16 +11,13 @@
   ],
   "require": {
     "cweagans/composer-patches": "*@dev",
-    "drupal/core": "^9"
+    "cweagans/composer-patches-testrepo": "~1.0"
   },
   "extra": {
     "patches": {
-      "drupal/core": [
-        {
-          "description": "Add a startup config for the PHP web server",
-          "url": "https://www.drupal.org/files/issues/add_a_startup-1543858-58.patch"
-        }
-      ]
+      "cweagans/composer-patches-testrepo": {
+        "Add a file": "https://patch-diff.githubusercontent.com/raw/cweagans/composer-patches-testrepo/pull/1.patch"
+      }
     }
   },
   "config": {

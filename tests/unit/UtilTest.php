@@ -5,7 +5,7 @@
  * Tests the Util class methods.
  */
 
-namespace cweagans\Composer\Tests;
+namespace cweagans\Composer\Tests\Unit;
 
 use Codeception\Test\Unit;
 use cweagans\Composer\Util;
