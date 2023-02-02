@@ -5,14 +5,14 @@ on:
   schedule:
     - cron: "0 2 * * *"
   release:
-    types: [published]
+    types: [ published ]
 jobs:
   test:
     runs-on: "ubuntu-22.04"
     strategy:
       matrix:
-        php: ["8.0", "8.1", "8.2"]
-        coverage: ["none"]
+        php: [ "8.0", "8.1", "8.2" ]
+        coverage: [ "none" ]
         include:
           - php: "8.2"
             coverage: "xdebug"
@@ -26,7 +26,9 @@ jobs:
           # Tests don't run in PHP 8.0 due to pcntl_signal_dispatch being disabled ¯\_(ツ)_/¯
           ini-values: disable_functions=""
       - name: Composer install
-        run: composer install --no-interaction --optimize-autoloader
+        uses: "ramsey/composer-install@v2"
+        with:
+          composer-options: "--optimize-autoloader"
       - name: Run tests
         if: matrix.coverage == 'none'
         run: composer test
