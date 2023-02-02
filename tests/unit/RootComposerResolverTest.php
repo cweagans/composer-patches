@@ -35,13 +35,13 @@ class RootComposerResolverTest extends Unit
         $this->assertCount(0, $patch_collection->getPatchesForPackage('test/package'));
 
         // One patch.
-        $patch = new stdClass();
-        $patch->url = 'http://drupal.org';
-        $patch->description = 'Test patch';
         $root_package->setExtra([
             'patches' => [
                 'test/package' => [
-                    0 => $patch,
+                    0 => [
+                        'url' => 'https://drupal.org',
+                        'description' => 'Test patch'
+                    ],
                 ]
             ]
         ]);

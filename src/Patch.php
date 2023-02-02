@@ -12,35 +12,35 @@ class Patch implements JsonSerializable
      *
      * @var string $package
      */
-    public $package;
+    public string $package;
 
     /**
      * The description of what the patch does.
      *
      * @var string $description
      */
-    public $description;
+    public string $description;
 
     /**
      * The URL where the patch is stored. Can be local.
      *
      * @var string $url
      */
-    public $url;
+    public string $url;
 
     /**
      * The sha1 hash of the patch file.
      *
-     * @var string $sha1
+     * @var ?string $sha1
      */
-    public $sha1;
+    public ?string $sha1;
 
     /**
      * The patch depth to use when applying the patch (-p flag for `patch`)
      *
-     * @var int $depth
+     * @var ?int $depth
      */
-    public $depth;
+    public ?int $depth;
 
     /**
      * Create a Patch from a serialized representation.
@@ -51,7 +51,7 @@ class Patch implements JsonSerializable
      * @return Patch
      *   A Patch with all of the serialized properties set.
      */
-    public static function fromJson($json)
+    public static function fromJson($json): static
     {
         if (!is_object($json)) {
             $json = json_decode($json);
@@ -77,8 +77,8 @@ class Patch implements JsonSerializable
             'package' => $this->package,
             'description' => $this->description,
             'url' => $this->url,
-            'sha1' => $this->sha1,
-            'depth' => $this->depth,
+            'sha1' => $this->sha1 ?? null,
+            'depth' => $this->depth ?? null,
         ];
     }
 
@@ -91,7 +91,7 @@ class Patch implements JsonSerializable
      * @return bool
      *   TRUE if the package has been patched.
      */
-    public static function isPackagePatched(PackageInterface $package)
+    public static function isPackagePatched(PackageInterface $package): bool
     {
         return array_key_exists('patches_applied', $package->getExtra());
     }

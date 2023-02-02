@@ -15,15 +15,17 @@ class PatchEvent extends Event
     /**
      * @var PackageInterface $package
      */
-    protected $package;
+    protected PackageInterface $package;
+
     /**
      * @var string $url
      */
-    protected $url;
+    protected string $url;
+
     /**
      * @var string $description
      */
-    protected $description;
+    protected string $description;
 
     /**
      * Constructs a PatchEvent object.
@@ -33,7 +35,7 @@ class PatchEvent extends Event
      * @param string $url
      * @param string $description
      */
-    public function __construct($eventName, PackageInterface $package, $url, $description)
+    public function __construct(string $eventName, PackageInterface $package, string $url, string $description)
     {
         parent::__construct($eventName);
         $this->package = $package;
@@ -46,7 +48,7 @@ class PatchEvent extends Event
      *
      * @return PackageInterface
      */
-    public function getPackage()
+    public function getPackage(): PackageInterface
     {
         return $this->package;
     }
@@ -56,7 +58,7 @@ class PatchEvent extends Event
      *
      * @return string
      */
-    public function getUrl()
+    public function getUrl(): string
     {
         return $this->url;
     }
@@ -66,7 +68,7 @@ class PatchEvent extends Event
      *
      * @return string
      */
-    public function getDescription()
+    public function getDescription(): string
     {
         return $this->description;
     }

@@ -35,7 +35,6 @@ interface ResolverInterface
      *   A collection of patches that will eventually be applied.
      * @param PackageEvent $event
      *   The event that's currently being responded to.
-     * @return mixed
      */
-    public function resolve(PatchCollection $collection, PackageEvent $event);
+    public function resolve(PatchCollection $collection, PackageEvent $event): void;
 }

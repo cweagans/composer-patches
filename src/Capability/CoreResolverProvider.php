@@ -10,7 +10,7 @@ class CoreResolverProvider extends BaseResolverProvider
     /**
      * {@inheritDoc}
      */
-    public function getResolvers()
+    public function getResolvers(): array
     {
         return [
             new RootComposer($this->composer, $this->io),

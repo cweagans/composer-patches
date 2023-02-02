@@ -13,7 +13,7 @@ class PatchCollection implements JsonSerializable
      *
      * @var array
      */
-    protected $patches;
+    protected array $patches;
 
     /**
      * Add a patch to the collection.
@@ -35,7 +35,7 @@ class PatchCollection implements JsonSerializable
      * @return array
      *   An array of Patch objects.
      */
-    public function getPatchesForPackage($package)
+    public function getPatchesForPackage(string $package): array
     {
         if (isset($this->patches[$package])) {
             return $this->patches[$package];
@@ -53,7 +53,7 @@ class PatchCollection implements JsonSerializable
      * @return PatchCollection
      *   A PatchCollection with all of the serialized patches included.
      */
-    public static function fromJson($json)
+    public static function fromJson($json): static
     {
         if (!is_object($json)) {
             $json = json_decode($json);
