@@ -442,10 +442,10 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             // --no-backup-if-mismatch here is a hack that fixes some
             // differences between how patch works on windows and unix.
             $patch_options = '--no-backup-if-mismatch';
-            // sniff if we're using GNU patch
+            // sniff if we're using not using GNU patch or Apple patch
             $patchVersion = '';
             $this->executor->execute('patch --version', $patchVersion);
-            if (strpos($patchVersion, 'GNU patch') === false) {
+            if (strpos($patchVersion, 'GNU patch') === false && strpos($patchVersion, 'Apple') === false) {
                 $patch_options = ['--posix', '--batch'];
             }
             foreach ($patch_levels as $patch_level) {
