@@ -14,51 +14,75 @@ use InvalidArgumentException;
 
 class PatchesFileResolverTest extends Unit
 {
-    public function testResolve()
+    public function setUp(): void
     {
-        $composer = new Composer();
+        $this->package = new RootPackage('test/package', '1.0.0.0', '1.0.0');
+        $this->composer = new Composer();
+        $this->composer->setPackage($this->package);
+        $this->io = new NullIO();
+        $this->event = Stub::make(PackageEvent::class, []);
+        $this->collection = new PatchCollection();
+        $this->resolver = new PatchesFile($this->composer, $this->io);
+    }
 
-        // Happy path.
-        $package = new RootPackage('test/package', '1.0.0.0', '1.0.0');
-        $package->setExtra([
+    public function testHappyPath()
+    {
+        $this->package->setExtra([
             'patches-file' => __DIR__ . '/../_data/dummyPatches.json',
         ]);
-        $composer->setPackage($package);
-        $io = new NullIO();
-        $event = Stub::make(PackageEvent::class, []);
 
-        $collection = new PatchCollection();
-        $resolver = new PatchesFile($composer, $io);
-        $resolver->resolve($collection, $event);
-        $this->assertCount(2, $collection->getPatchesForPackage('test/package'));
-        $this->assertCount(2, $collection->getPatchesForPackage('test/package2'));
+        $this->resolver->resolve($this->collection, $this->event);
+        $this->assertCount(2, $this->collection->getPatchesForPackage('test/package'));
+        $this->assertCount(2, $this->collection->getPatchesForPackage('test/package2'));
+    }
 
-        // Empty patches.
-        try {
-            $package = new RootPackage('test/package', '1.0.0.0', '1.0.0');
-            $package->setExtra([
-                'patches-file' => __DIR__ . '/../_data/dummyPatchesEmpty.json',
-            ]);
-            $composer->setPackage($package);
-            $collection = new PatchCollection();
-            $resolver = new PatchesFile($composer, $io);
-            $resolver->resolve($collection, $event);
-        } catch (InvalidArgumentException $e) {
-            $this->assertEquals('No patches found.', $e->getMessage());
-        }
+    public function testEmptyPatches()
+    {
+        $this->package->setExtra([
+            'patches-file' => __DIR__ . '/../_data/dummyPatchesEmpty.json',
+        ]);
 
-        // Invalid JSON.
-        try {
-            $package = new RootPackage('test/package', '1.0.0.0', '1.0.0');
-            $package->setExtra([
-                'patches-file' => __DIR__ . '/../_data/dummyPatchesInvalid.json',
-            ]);
-            $composer->setPackage($package);
-            $collection = new PatchCollection();
-            $resolver = new PatchesFile($composer, $io);
-            $resolver->resolve($collection, $event);
-        } catch (InvalidArgumentException $e) {
-            $this->assertEquals('Syntax error', $e->getMessage());
-        }
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('No patches found.');
+
+        $this->resolver->resolve($this->collection, $this->event);
+    }
+
+    public function testInvalidJSON()
+    {
+        $this->package->setExtra([
+            'patches-file' => __DIR__ . '/../_data/dummyPatchesInvalid.json',
+        ]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Syntax error');
+
+        $this->resolver->resolve($this->collection, $this->event);
+    }
+
+    public function testPatchesFileNotFound()
+    {
+        $this->package->setExtra([
+            'patches-file' => __DIR__ . '/../_data/noSuchFile.json',
+        ]);
+
+        // Check that the collection is emtpy to start with
+        $this->assertSame(['patches' => null], $this->collection->jsonSerialize());
+
+        // This error is handled silently.
+        $this->resolver->resolve($this->collection, $this->event);
+
+        $this->assertSame(['patches' => null], $this->collection->jsonSerialize());
+    }
+
+    public function testNoPatchesFile()
+    {
+        // Check that the collection is emtpy to start with
+        $this->assertSame(['patches' => null], $this->collection->jsonSerialize());
+
+        // This is not an error. No changes should be made to the collection.
+        $this->resolver->resolve($this->collection, $this->event);
+
+        $this->assertSame(['patches' => null], $this->collection->jsonSerialize());
     }
 }
