@@ -73,7 +73,7 @@ class PatchCollection implements JsonSerializable
     /**
      * {@inheritDoc}
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         return [
             'patches' => $this->patches,

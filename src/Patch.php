@@ -71,7 +71,7 @@ class Patch implements JsonSerializable
     /**
      * {@inheritDoc}
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         return [
             'package' => $this->package,
