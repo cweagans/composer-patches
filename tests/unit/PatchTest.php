@@ -1,13 +1,12 @@
 <?php
 
-namespace cweagans\Composer\Tests;
+namespace cweagans\Composer\Tests\Unit;
 
 use Codeception\Test\Unit;
 use cweagans\Composer\Patch;
 
 class PatchTest extends Unit
 {
-
     public function testSerializeDeserialize()
     {
         $patch = new Patch();

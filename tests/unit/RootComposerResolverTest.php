@@ -4,7 +4,8 @@
  * @file
  * Test the RootComposer resolver.
  */
-namespace cweagans\Composer\Tests;
+
+namespace cweagans\Composer\Tests\Unit;
 
 use Codeception\Test\Unit;
 use Codeception\Util\Stub;
@@ -14,6 +15,7 @@ use Composer\IO\NullIO;
 use Composer\Package\RootPackage;
 use cweagans\Composer\PatchCollection;
 use cweagans\Composer\Resolvers\RootComposer;
+use stdClass;
 
 class RootComposerResolverTest extends Unit
 {
@@ -33,7 +35,7 @@ class RootComposerResolverTest extends Unit
         $this->assertCount(0, $patch_collection->getPatchesForPackage('test/package'));
 
         // One patch.
-        $patch = new \stdClass();
+        $patch = new stdClass();
         $patch->url = 'http://drupal.org';
         $patch->description = 'Test patch';
         $root_package->setExtra([

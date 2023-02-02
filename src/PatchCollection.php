@@ -2,7 +2,9 @@
 
 namespace cweagans\Composer;
 
-class PatchCollection implements \JsonSerializable
+use JsonSerializable;
+
+class PatchCollection implements JsonSerializable
 {
     /**
      * A deep list of patches to apply.
@@ -71,7 +73,7 @@ class PatchCollection implements \JsonSerializable
     /**
      * {@inheritDoc}
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         return [
             'patches' => $this->patches,

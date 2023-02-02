@@ -1,20 +1,15 @@
 # composer-patches
 
-[![Build Status](https://travis-ci.org/cweagans/composer-patches.svg?branch=master)](https://travis-ci.org/cweagans/composer-patches)
+![Build status](https://github.com/cweagans/composer-patches/actions/workflows/ci.yml/badge.svg?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/cweagans/composer-patches/badge.svg?branch=master)](https://coveralls.io/github/cweagans/composer-patches?branch=master)
 
 Simple patches plugin for Composer. Applies a patch from a local or remote file to any package required with composer.
 
 ## Support notes
 
-* If you need PHP 5.3, 5.4, or 5.5 support, you should probably use a 1.x release.
-* 1.x is mostly unsupported, but bugfixes and security fixes will still be accepted.
-  1.7.0 will be the last minor release in the 1.x series.
-* Beginning in 2.x, the automated tests will not allow us to use language features
-  that will cause syntax errors in PHP 5.6 and later. The unit/acceptance tests do
-  not run on anything earlier than PHP 7.1, so while pull requests will be accepted
-  for those versions, support is on a best-effort basis.
-
+* Beginning in 2.x, only PHP 8 and Composer 2 will be supported. If you need PHP 5 or PHP 7 support, use a 1.x release.
+* 1.x is mostly unsupported, but bugfixes and security fixes will still be accepted. 1.7.0 will be the last minor
+  release in the 1.x series.
 
 ## Usage
 
@@ -24,20 +19,20 @@ Example composer.json:
 
 ```json
 {
-  "require": {
-    "cweagans/composer-patches": "~1.0",
-    "drupal/core-recommended": "^8.8",
-  },
-  "config": {
-    "preferred-install": "source"
-  },
-  "extra": {
-    "patches": {
-      "drupal/core": {
-        "Add startup configuration for PHP server": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch"
-      }
+    "require": {
+        "cweagans/composer-patches": "~1.0",
+        "drupal/core-recommended": "^8.8"
+    },
+    "config": {
+        "preferred-install": "source"
+    },
+    "extra": {
+        "patches": {
+            "drupal/core": {
+                "Add startup configuration for PHP server": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch"
+            }
+        }
     }
-  }
 }
 
 ```
@@ -48,16 +43,16 @@ Instead of a patches key in your root composer.json, use a patches-file key.
 
 ```json
 {
-  "require": {
-    "cweagans/composer-patches": "~1.0",
-    "drupal/core-recommended": "^8.8",
-  },
-  "config": {
-    "preferred-install": "source"
-  },
-  "extra": {
-    "patches-file": "local/path/to/your/composer.patches.json"
-  }
+    "require": {
+        "cweagans/composer-patches": "~1.0",
+        "drupal/core-recommended": "^8.8"
+    },
+    "config": {
+        "preferred-install": "source"
+    },
+    "extra": {
+        "patches-file": "local/path/to/your/composer.patches.json"
+    }
 }
 
 ```
@@ -80,12 +75,12 @@ If you want your project to accept patches from dependencies, you must have the 
 
 ```json
 {
-  "require": {
-      "cweagans/composer-patches": "^1.5.0"
-  },
-  "extra": {
-      "enable-patching": true
-  }
+    "require": {
+        "cweagans/composer-patches": "^1.5.0"
+    },
+    "extra": {
+        "enable-patching": true
+    }
 }
 ```
 
@@ -100,40 +95,42 @@ There may be situations in which you want to ignore a patch supplied by a depend
 
 ```json
 {
-  "require": {
-    "cweagans/composer-patches": "~1.0",
-    "drupal/core-recommended": "^8.8",
-    "drupal/lightning": "~8.1"
-  },
-  "config": {
-    "preferred-install": "source"
-  },
-  "extra": {
-    "patches": {
-      "drupal/core": {
-        "Add startup configuration for PHP server": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch"
-      }
+    "require": {
+        "cweagans/composer-patches": "~1.0",
+        "drupal/core-recommended": "^8.8",
+        "drupal/lightning": "~8.1"
     },
-    "patches-ignore": {
-      "drupal/lightning": {
-        "drupal/panelizer": {
-          "This patch has known conflicts with our Quick Edit integration": "https://www.drupal.org/files/issues/2664682-49.patch"
+    "config": {
+        "preferred-install": "source"
+    },
+    "extra": {
+        "patches": {
+            "drupal/core": {
+                "Add startup configuration for PHP server": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch"
+            }
+        },
+        "patches-ignore": {
+            "drupal/lightning": {
+                "drupal/panelizer": {
+                    "This patch has known conflicts with our Quick Edit integration": "https://www.drupal.org/files/issues/2664682-49.patch"
+                }
+            }
         }
-      }
     }
-  }
 }
 ```
 
 ## Using patches from HTTP URLs
 
-Composer [blocks](https://getcomposer.org/doc/06-config.md#secure-http) you from downloading anything from HTTP URLs, you can disable this for your project by adding a `secure-http` setting in the config section of your `composer.json`. Note that the `config` section should be under the root of your `composer.json`.
+Composer [blocks](https://getcomposer.org/doc/06-config.md#secure-http) you from downloading anything from HTTP URLs,
+you can disable this for your project by adding a `secure-http` setting in the config section of your `composer.json`.
+Note that the `config` section should be under the root of your `composer.json`.
 
 ```json
 {
-  "config": {
-    "secure-http": false
-  }
+    "config": {
+        "secure-http": false
+    }
 }
 ```
 
@@ -141,16 +138,21 @@ However, it's always advised to setup HTTPS to prevent MITM code injection.
 
 ## Patches containing modifications to composer.json files
 
-Because patching occurs _after_ Composer calculates dependencies and installs packages, changes to an underlying dependency's `composer.json` file introduced in a patch will have _no effect_ on installed packages.
+Because patching occurs _after_ Composer calculates dependencies and installs packages, changes to an underlying
+dependency's `composer.json` file introduced in a patch will have _no effect_ on installed packages.
 
-If you need to modify a dependency's `composer.json` or its underlying dependencies, you cannot use this plugin. Instead, you must do one of the following:
+If you need to modify a dependency's `composer.json` or its underlying dependencies, you cannot use this plugin.
+Instead, you must do one of the following:
+
 - Work to get the underlying issue resolved in the upstream package.
-- Fork the package and [specify your fork as the package repository](https://getcomposer.org/doc/05-repositories.md#vcs) in your root `composer.json`
+- Fork the package and [specify your fork as the package repository](https://getcomposer.org/doc/05-repositories.md#vcs)
+  in your root `composer.json`
 - Specify compatible package version requirements in your root `composer.json`
 
 ## Error handling
 
-If a patch cannot be applied (hunk failed, different line endings, etc.) a message will be shown and the patch will be skipped.
+If a patch cannot be applied (hunk failed, different line endings, etc.) a message will be shown and the patch will be
+skipped.
 
 To enforce throwing an error and stopping package installation/update immediately, you have two available options:
 
@@ -180,16 +182,17 @@ that particular problem for a Drupal 8 -> Drupal 9 upgrade:
 - This plugin will gather patches from all dependencies and apply them as if they were in the root composer.json
 
 ## Contributing
-1. `composer install`
-1. `vendor/bin/grumphp run`
-1. `vendor/bin/codecept run unit`
-1. `<write code>`
-1. `vendor/bin/grumphp run`
-1. `vendor/bin/codecept run unit`
-1. `<commit code>`
-1. `<create pull request>`
 
+1. `composer install`
+2. `vendor/bin/grumphp run`
+3. `vendor/bin/codecept run unit`
+4. `<write code>`
+5. `vendor/bin/grumphp run`
+6. `vendor/bin/codecept run unit`
+7. `<commit code>`
+8. `<create pull request>`
 
 ## Credits
 
-A ton of this code is adapted or taken straight from https://github.com/jpstacey/composer-patcher, which is abandoned in favor of https://github.com/netresearch/composer-patches-plugin, which is (IMHO) overly complex and difficult to use.
+A ton of this code is adapted or taken straight from https://github.com/jpstacey/composer-patcher, which is abandoned in
+favor of https://github.com/netresearch/composer-patches-plugin, which is (IMHO) overly complex and difficult to use.

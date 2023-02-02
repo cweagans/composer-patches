@@ -1,6 +1,6 @@
 <?php
 
-namespace cweagans\Composer\Tests;
+namespace cweagans\Composer\Tests\Unit;
 
 use Codeception\Test\Unit;
 use Codeception\Util\Stub;
@@ -10,6 +10,7 @@ use Composer\IO\NullIO;
 use Composer\Package\RootPackage;
 use cweagans\Composer\PatchCollection;
 use cweagans\Composer\Resolvers\PatchesFile;
+use InvalidArgumentException;
 
 class PatchesFileResolverTest extends Unit
 {

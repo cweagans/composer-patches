@@ -15,7 +15,6 @@ use cweagans\Composer\PatchCollection;
 
 abstract class ResolverBase implements ResolverInterface
 {
-
     /**
      * The main Composer object.
      *

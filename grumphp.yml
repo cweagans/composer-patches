@@ -1,17 +1,15 @@
-parameters:
-    git_dir: .
-    bin_dir: vendor/bin
-    tasks:
-        phplint: ~
-        yamllint: ~
-        composer: ~
-        phpcpd:
-            directory: './src'
-        jsonlint:
-            ignore_patterns:
-                - tests/_data/dummyPatchesInvalid.json
-        phpcs:
-            standard: PSR2
-            ignore_patterns:
-                - ./tests/_support/*.php
-                - ./tests/_support/_generated/*.php
+grumphp:
+  tasks:
+    phplint: ~
+    yamllint: ~
+    composer: ~
+    phpcpd:
+      directory: [ './src' ]
+    jsonlint:
+      ignore_patterns:
+        - tests/_data/dummyPatchesInvalid.json
+    phpcs:
+      standard: PSR12
+      ignore_patterns:
+        - ./tests/_support/*.php
+        - ./tests/_support/_generated/*.php
