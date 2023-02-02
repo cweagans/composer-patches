@@ -1,0 +1,7 @@
+{
+  "patches": {
+    "cweagans/composer-patches-testrepo": {
+      "Add a file": "https://patch-diff.githubusercontent.com/raw/cweagans/composer-patches-testrepo/pull/1.patch"
+    }
+  }
+}

@@ -5,7 +5,7 @@
  * Test the Patches plugin class.
  */
 
-namespace cweagans\Composer\Tests;
+namespace cweagans\Composer\Tests\Unit;
 
 use Codeception\Test\Unit;
 use Composer\Composer;

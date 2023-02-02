@@ -1,5 +1,9 @@
 <?php
 
+namespace cweagans\Composer\Tests;
+
+use Codeception\Actor;
+use Codeception\Lib\Friend;
 
 /**
  * Inherited Methods
@@ -12,15 +16,15 @@
  * @method void am($role)
  * @method void lookForwardTo($achieveValue)
  * @method void comment($description)
- * @method \Codeception\Lib\Friend haveFriend($name, $actorClass = NULL)
+ * @method Friend haveFriend($name, $actorClass = null)
  *
  * @SuppressWarnings(PHPMD)
-*/
-class AcceptanceTester extends \Codeception\Actor
+ */
+class AcceptanceTester extends Actor
 {
     use _generated\AcceptanceTesterActions;
 
-   /**
-    * Define custom actions here
-    */
+    /**
+     * Define custom actions here
+     */
 }

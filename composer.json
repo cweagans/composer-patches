@@ -34,7 +34,11 @@
     "psr-4": {"cweagans\\Composer\\": "src"}
   },
   "autoload-dev": {
-    "psr-4": {"cweagans\\Composer\\Tests\\": "tests"}
+    "psr-4": {
+      "cweagans\\Composer\\Tests\\Acceptance\\": "tests/acceptance/",
+      "cweagans\\Composer\\Tests\\Unit\\": "tests/unit/",
+      "cweagans\\Composer\\Tests\\": "tests/_support/"
+    }
   },
   "config": {
     "allow-plugins": {

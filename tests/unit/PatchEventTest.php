@@ -5,7 +5,7 @@
  * Tests event dispatching.
  */
 
-namespace cweagans\Composer\Tests;
+namespace cweagans\Composer\Tests\Unit;
 
 use Codeception\Test\Unit;
 use Composer\Package\Package;
@@ -15,7 +15,6 @@ use Composer\Package\PackageInterface;
 
 class PatchEventTest extends Unit
 {
-
     /**
      * Tests all the getters.
      *
