@@ -67,22 +67,22 @@ class PatchesFileResolverTest extends Unit
         ]);
 
         // Check that the collection is emtpy to start with
-        $this->assertSame(['patches' => null], $this->collection->jsonSerialize());
+        $this->assertSame(['patches' => []], $this->collection->jsonSerialize());
 
         // This error is handled silently.
         $this->resolver->resolve($this->collection, $this->event);
 
-        $this->assertSame(['patches' => null], $this->collection->jsonSerialize());
+        $this->assertSame(['patches' => []], $this->collection->jsonSerialize());
     }
 
     public function testNoPatchesFile()
     {
         // Check that the collection is emtpy to start with
-        $this->assertSame(['patches' => null], $this->collection->jsonSerialize());
+        $this->assertSame(['patches' => []], $this->collection->jsonSerialize());
 
         // This is not an error. No changes should be made to the collection.
         $this->resolver->resolve($this->collection, $this->event);
 
-        $this->assertSame(['patches' => null], $this->collection->jsonSerialize());
+        $this->assertSame(['patches' => []], $this->collection->jsonSerialize());
     }
 }

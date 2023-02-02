@@ -13,7 +13,7 @@ class PatchCollection implements JsonSerializable
      *
      * @var array
      */
-    protected array $patches;
+    protected array $patches = [];
 
     /**
      * Add a patch to the collection.
