@@ -447,12 +447,16 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         // In some rare cases, git will fail to apply a patch, fallback to using
         // the 'patch' command.
         if (!$patched) {
+            // Patch on macOS Ventura expects file input unless you use --batch.
+            // @todo use --batch always, if we can determine that all versions
+            // of patch support it.
+            $batch = $this->executeCommand('patch %s', '--batch');
             // This is a workaround for the outdated patch version on BSD
             // systems which doesn't support this option -> use posix then.
             // --no-backup-if-mismatch here is a hack that fixes some
             // differences between how patch works on windows and unix.
             foreach ($patch_levels as $patch_level) {
-                if (
+                if ($batch) {
                     $patched = $this->executeCommand(
                         "patch %s %s %s -d %s < %s",
                         $patch_level,
@@ -460,7 +464,18 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                         '--no-backup-if-mismatch',
                         $install_path,
                         $filename
-                    )
+                    );
+                } else {
+                    $patched = $this->executeCommand(
+                        "patch %s %s -d %s < %s",
+                        $patch_level,
+                        '--no-backup-if-mismatch',
+                        $install_path,
+                        $filename
+                    );
+                }
+                if (
+                    $patched
                 ) {
                     break;
                 }
