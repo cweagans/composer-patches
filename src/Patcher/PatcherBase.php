@@ -52,9 +52,10 @@ abstract class PatcherBase implements PatcherInterface
      */
     protected function patchTool(): string
     {
-        if (isset($this->toolPathOverride)) {
+        if (isset($this->toolPathOverride) && !empty($this->toolPathOverride)) {
             return $this->toolPathOverride;
         }
+
 
         return $this->tool;
     }
@@ -63,4 +64,9 @@ abstract class PatcherBase implements PatcherInterface
      * @inheritDoc
      */
     abstract public function apply(Patch $patch): void;
+
+    /**
+     * @inheritDoc
+     */
+    abstract public function canUse(): bool;
 }

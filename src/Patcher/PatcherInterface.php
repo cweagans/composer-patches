@@ -26,4 +26,13 @@ interface PatcherInterface
      *   The patch to apply.
      */
     public function apply(Patch $patch): void;
+
+    /**
+     * Check to see if this patcher is usable.
+     *
+     * For CLI tool-based patchers (all Patchers included in this plugin), this is usually sanity-checking the CLI tool.
+     *
+     * @return bool
+     */
+    public function canUse(): bool;
 }

@@ -4,7 +4,6 @@ namespace cweagans\Composer\Patcher;
 
 use Composer\Util\ProcessExecutor;
 use cweagans\Composer\Patch;
-use cweagans\Composer\Patcher\Exception\ToolNotAvailableException;
 
 class GnuPatchPatcher extends PatcherBase
 {
@@ -12,25 +11,13 @@ class GnuPatchPatcher extends PatcherBase
 
     public function apply(Patch $patch): void
     {
-        if (!$this->checkGnuPatch()) {
-            throw new ToolNotAvailableException('patch (GNU)');
-        }
-
-        return;
     }
 
-    protected function checkGnuPatch(): bool
+    public function canUse(): bool
     {
-        static $gnuPatchAvailable;
-
-        if (!is_null($gnuPatchAvailable)) {
-            return $gnuPatchAvailable;
-        }
-
         $executor = new ProcessExecutor($this->io);
         $output = "";
         $result = $executor->execute($this->patchTool() . ' --version', $output);
-        $gnuPatchAvailable = ($result === 0) && (str_contains($output, 'GNU patch'));
-        return $gnuPatchAvailable;
+        return ($result === 0) && (str_contains($output, 'GNU patch'));
     }
 }

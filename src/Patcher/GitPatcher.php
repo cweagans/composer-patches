@@ -4,7 +4,6 @@ namespace cweagans\Composer\Patcher;
 
 use Composer\Util\ProcessExecutor;
 use cweagans\Composer\Patch;
-use cweagans\Composer\Patcher\Exception\ToolNotAvailableException;
 
 class GitPatcher extends PatcherBase
 {
@@ -12,24 +11,13 @@ class GitPatcher extends PatcherBase
 
     public function apply(Patch $patch): void
     {
-        if (!$this->checkGit()) {
-            throw new ToolNotAvailableException('git');
-        }
-
-        return;
     }
 
-    protected function checkGit(): bool
+    public function canUse(): bool
     {
-        static $gitAvailable;
-
-        if (!is_null($gitAvailable)) {
-            return $gitAvailable;
-        }
-
         $executor = new ProcessExecutor($this->io);
-        $result = $executor->execute($this->patchTool());
-        $gitAvailable = ($result === 0);
-        return $gitAvailable;
+        $output = "";
+        $result = $executor->execute($this->patchTool() . ' --version', $output);
+        return ($result === 0);
     }
 }
