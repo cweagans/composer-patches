@@ -20,14 +20,14 @@ abstract class ResolverBase implements ResolverInterface
      *
      * @var Composer
      */
-    protected $composer;
+    protected Composer $composer;
 
     /**
      * An array of operations that will be executed during this composer execution.
      *
      * @var IOInterface
      */
-    protected $io;
+    protected IOInterface $io;
 
     /**
      * {@inheritDoc}
@@ -41,7 +41,7 @@ abstract class ResolverBase implements ResolverInterface
     /**
      * {@inheritdoc}
      */
-    abstract public function resolve(PatchCollection $collection, PackageEvent $event);
+    abstract public function resolve(PatchCollection $collection, PackageEvent $event): void;
 
     /**
      * Handles the different patch definition formats and returns a list of Patches.
@@ -52,7 +52,7 @@ abstract class ResolverBase implements ResolverInterface
      * @return array $patches
      *   An array of Patch objects grouped by package name.
      */
-    public function findPatchesInJson($patches)
+    public function findPatchesInJson(array $patches): array
     {
         // Given an array of patch data (pulled directly from the root composer.json
         // or a patches file), figure out what patch format each package is using and
@@ -64,8 +64,8 @@ abstract class ResolverBase implements ResolverInterface
                 foreach ($patch_defs as $index => $def) {
                     $patch = new Patch();
                     $patch->package = $package;
-                    $patch->url = $def["url"];
-                    $patch->description = $def["description"];
+                    $patch->url = $def['url'];
+                    $patch->description = $def['description'];
 
                     $patches[$package][$index] = $patch;
                 }

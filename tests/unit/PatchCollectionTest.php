@@ -39,7 +39,7 @@ class PatchCollectionTest extends Unit
         $patch4->description = 'patch4';
         $collection->addPatch($patch4);
 
-        foreach ([ 'some/package', 'other/package' ] as $package_name) {
+        foreach (['some/package', 'other/package'] as $package_name) {
             // We should get 2 patches each for some/package and other/package.
             $this->assertCount(2, $collection->getPatchesForPackage($package_name));
 
@@ -58,10 +58,12 @@ class PatchCollectionTest extends Unit
         $patch1 = new Patch();
         $patch1->package = 'some/package';
         $patch1->description = 'patch1';
+        $patch1->url = 'https://example.com/test.patch';
 
         $patch2 = new Patch();
         $patch2->package = 'another/package';
         $patch2->description = 'patch2';
+        $patch2->url = 'https://example.com/test.patch';
 
         $collection->addPatch($patch1);
         $collection->addPatch($patch2);
@@ -72,7 +74,7 @@ class PatchCollectionTest extends Unit
 
         $this->assertEquals($collection, $new_collection);
 
-        foreach ([ 'some/package', 'another/package'] as $package_name) {
+        foreach (['some/package', 'another/package'] as $package_name) {
             // We should get 1 patch for each package.
             $this->assertCount(1, $new_collection->getPatchesForPackage($package_name));
 

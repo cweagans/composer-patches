@@ -16,7 +16,7 @@ class RootComposer extends ResolverBase
     /**
      * {@inheritDoc}
      */
-    public function resolve(PatchCollection $collection, PackageEvent $event)
+    public function resolve(PatchCollection $collection, PackageEvent $event): void
     {
         $this->io->write('  - <info>Gathering patches from root package</info>');
 

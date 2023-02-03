@@ -17,7 +17,7 @@ class PatchesFile extends ResolverBase
     /**
      * {@inheritDoc}
      */
-    public function resolve(PatchCollection $collection, PackageEvent $event)
+    public function resolve(PatchCollection $collection, PackageEvent $event): void
     {
         $this->io->write('  - <info>Gathering patches from patches file.</info>');
 
@@ -50,7 +50,7 @@ class PatchesFile extends ResolverBase
      *   A list of patches.
      * @throws InvalidArgumentException
      */
-    protected function readPatchesFile($patches_file)
+    protected function readPatchesFile($patches_file): array
     {
         $patches = file_get_contents($patches_file);
         $patches = json_decode($patches, true);
