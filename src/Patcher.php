@@ -52,7 +52,7 @@ class Patcher
             }
         }
 
-        throw new Exception("No available patcher was able to apply patch {$patch->url} to {$patch->package}");
+        return false;
     }
 
     /**
@@ -93,10 +93,9 @@ class Patcher
             $patchers = array_merge($patchers, $newPatchers);
         }
 
-        $this->composer->getEventDispatcher()->dispatch(
-            PluginEvents::POST_DISCOVER_PATCHERS,
-            new PluginEvent(PluginEvents::POST_DISCOVER_PATCHERS, $patchers)
-        );
+        $event = new PluginEvent(PluginEvents::POST_DISCOVER_PATCHERS, $patchers);
+        $this->composer->getEventDispatcher()->dispatch(PluginEvents::POST_DISCOVER_PATCHERS, $event);
+        $patchers = $event->getCapabilities();
 
         if (count($patchers) === 0) {
             throw new Exception('No patchers available.');

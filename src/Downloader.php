@@ -60,7 +60,6 @@ class Downloader
     protected function getDownloaders(): array
     {
         static $downloaders;
-
         if (!is_null($downloaders)) {
             return $downloaders;
         }
@@ -84,10 +83,10 @@ class Downloader
             $downloaders = array_merge($downloaders, $newDownloaders);
         }
 
-        $this->composer->getEventDispatcher()->dispatch(
-            PluginEvents::POST_DISCOVER_DOWNLOADERS,
-            new PluginEvent(PluginEvents::POST_DISCOVER_DOWNLOADERS, $downloaders)
-        );
+
+        $event = new PluginEvent(PluginEvents::POST_DISCOVER_DOWNLOADERS, $downloaders);
+        $this->composer->getEventDispatcher()->dispatch(PluginEvents::POST_DISCOVER_DOWNLOADERS, $event);
+        $downloaders = $event->getCapabilities();
 
         return $downloaders;
     }

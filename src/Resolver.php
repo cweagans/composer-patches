@@ -92,10 +92,9 @@ class Resolver
             $resolvers = array_merge($resolvers, $newResolvers);
         }
 
-        $this->composer->getEventDispatcher()->dispatch(
-            PluginEvents::POST_DISCOVER_RESOLVERS,
-            new PluginEvent(PluginEvents::POST_DISCOVER_RESOLVERS, $resolvers)
-        );
+        $event = new PluginEvent(PluginEvents::POST_DISCOVER_RESOLVERS, $resolvers);
+        $this->composer->getEventDispatcher()->dispatch(PluginEvents::POST_DISCOVER_RESOLVERS, $event);
+        $resolvers = $event->getCapabilities();
 
         return $resolvers;
     }
