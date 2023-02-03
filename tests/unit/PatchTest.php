@@ -15,6 +15,7 @@ class PatchTest extends Unit
         $patch->description = "Test description";
         $patch->depth = 0;
         $patch->sha256 = 'asdf';
+        $patch->extra = [];
 
         $json = json_encode($patch);
 

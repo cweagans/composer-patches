@@ -50,6 +50,15 @@ class Patch implements JsonSerializable
     public ?string $localPath;
 
     /**
+     * This is unused in the main plugin, but can be used as a place for other plugins to store data about a patch.
+     *
+     * This should be treated as an associative array and should contain only scalar values.
+     *
+     * @var array
+     */
+    public array $extra;
+
+    /**
      * Create a Patch from a serialized representation.
      *
      * @param $json
@@ -63,7 +72,7 @@ class Patch implements JsonSerializable
         if (!is_object($json)) {
             $json = json_decode($json);
         }
-        $properties = ['package', 'description', 'url', 'sha256', 'depth'];
+        $properties = ['package', 'description', 'url', 'sha256', 'depth', 'extra'];
         $patch = new static();
 
         foreach ($properties as $property) {
@@ -86,6 +95,7 @@ class Patch implements JsonSerializable
             'url' => $this->url,
             'sha256' => $this->sha256 ?? null,
             'depth' => $this->depth ?? null,
+            'extra' => $this->extra ?? [],
         ];
     }
 

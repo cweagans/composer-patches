@@ -59,11 +59,13 @@ class PatchCollectionTest extends Unit
         $patch1->package = 'some/package';
         $patch1->description = 'patch1';
         $patch1->url = 'https://example.com/test.patch';
+        $patch1->extra = [];
 
         $patch2 = new Patch();
         $patch2->package = 'another/package';
         $patch2->description = 'patch2';
         $patch2->url = 'https://example.com/test.patch';
+        $patch2->extra = [];
 
         $collection->addPatch($patch1);
         $collection->addPatch($patch2);
