@@ -2,17 +2,17 @@
 
 /**
  * @file
- * Dispatch events when patches are applied.
+ * Dispatch events when patches are applied or downloaded.
  */
 
-namespace cweagans\Composer;
+namespace cweagans\Composer\Event;
 
 class PatchEvents
 {
     /**
      * The PRE_PATCH_DOWNLOAD event occurs before a patch is downloaded
      *
-     * The event listener method receives a cweagans\Composer\PatchEvent instance.
+     * The event listener method receives a cweagans\Composer\Event\PatchEvent instance.
      *
      * @var string
      */
@@ -21,7 +21,7 @@ class PatchEvents
     /**
      * The POST_PATCH_DOWNLOAD event occurs after a patch is downloaded
      *
-     * The event listener method receives a cweagans\Composer\PatchEvent instance.
+     * The event listener method receives a cweagans\Composer\Event\PatchEvent instance.
      *
      * @var string
      */
@@ -30,7 +30,7 @@ class PatchEvents
     /**
      * The PRE_PATCH_APPLY event occurs before a patch is applied.
      *
-     * The event listener method receives a cweagans\Composer\PatchEvent instance.
+     * The event listener method receives a cweagans\Composer\Event\PatchEvent instance.
      *
      * @var string
      */
@@ -39,7 +39,7 @@ class PatchEvents
     /**
      * The POST_PATCH_APPLY event occurs after a patch is applied.
      *
-     * The event listener method receives a cweagans\Composer\PatchEvent instance.
+     * The event listener method receives a cweagans\Composer\Event\PatchEvent instance.
      *
      * @var string
      */

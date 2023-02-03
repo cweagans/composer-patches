@@ -5,10 +5,11 @@
  * Dispatch events when patches are applied.
  */
 
-namespace cweagans\Composer;
+namespace cweagans\Composer\Event;
 
 use Composer\EventDispatcher\Event;
 use Composer\Package\PackageInterface;
+use cweagans\Composer\Patch;
 
 class PatchEvent extends Event
 {
