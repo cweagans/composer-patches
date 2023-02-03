@@ -11,6 +11,12 @@ class GitPatcher extends PatcherBase
 
     public function apply(Patch $patch, string $path): bool
     {
+        // If the path isn't a git repo, don't even try.
+        // @see https://stackoverflow.com/a/27283285
+        if (!is_dir($path . '/.git')) {
+            return false;
+        }
+
         // Dry run first.
         $status = $this->executeCommand(
             'git -C %s apply --check --verbose -p%s %s',
