@@ -5,7 +5,7 @@
  * Contains cweagans\Composer\Resolvers\PatchesFile.
  */
 
-namespace cweagans\Composer\Resolvers;
+namespace cweagans\Composer\Resolver;
 
 use Composer\Installer\PackageEvent;
 use cweagans\Composer\Patch;
@@ -17,7 +17,7 @@ class PatchesFile extends ResolverBase
     /**
      * {@inheritDoc}
      */
-    public function resolve(PatchCollection $collection, PackageEvent $event): void
+    public function resolve(PatchCollection $collection): void
     {
         $this->io->write('  - <info>Gathering patches from patches file.</info>');
 

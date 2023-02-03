@@ -7,16 +7,16 @@ use Codeception\Util\Stub;
 use Composer\Composer;
 use Composer\IO\NullIO;
 use Composer\Plugin\PluginInterface;
-use cweagans\Composer\Capability\CoreResolverProvider;
-use cweagans\Composer\Resolvers\PatchesFile;
-use cweagans\Composer\Resolvers\RootComposer;
+use cweagans\Composer\Capability\Resolver\CoreResolverProvider;
+use cweagans\Composer\Resolver\PatchesFile;
+use cweagans\Composer\Resolver\RootComposer;
 
 class CoreResolverProviderTest extends Unit
 {
     public function testGetResolvers()
     {
         $resolverProvider = new CoreResolverProvider([
-            'composer' => Stub::make(Composer::class),
+            'composer' => new Composer(),
             'io' => new NullIO(),
             'plugin' => Stub::makeEmpty(PluginInterface::class),
         ]);

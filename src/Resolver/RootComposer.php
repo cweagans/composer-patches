@@ -5,7 +5,7 @@
  * Contains \cweagans\Composer\Resolvers\RootComposer.
  */
 
-namespace cweagans\Composer\Resolvers;
+namespace cweagans\Composer\Resolver;
 
 use Composer\Installer\PackageEvent;
 use cweagans\Composer\Patch;
@@ -16,7 +16,7 @@ class RootComposer extends ResolverBase
     /**
      * {@inheritDoc}
      */
-    public function resolve(PatchCollection $collection, PackageEvent $event): void
+    public function resolve(PatchCollection $collection): void
     {
         $this->io->write('  - <info>Gathering patches from root package</info>');
 

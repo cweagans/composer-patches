@@ -5,7 +5,7 @@
  * Contains \cweagans\Composer\Resolvers\ResolverBase.
  */
 
-namespace cweagans\Composer\Resolvers;
+namespace cweagans\Composer\Resolver;
 
 use Composer\Composer;
 use Composer\Installer\PackageEvent;
@@ -41,7 +41,7 @@ abstract class ResolverBase implements ResolverInterface
     /**
      * {@inheritdoc}
      */
-    abstract public function resolve(PatchCollection $collection, PackageEvent $event): void;
+    abstract public function resolve(PatchCollection $collection): void;
 
     /**
      * Handles the different patch definition formats and returns a list of Patches.

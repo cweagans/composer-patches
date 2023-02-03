@@ -29,11 +29,11 @@ class Patch implements JsonSerializable
     public string $url;
 
     /**
-     * The sha1 hash of the patch file.
+     * The sha256 hash of the patch file.
      *
-     * @var ?string $sha1
+     * @var ?string sha256
      */
-    public ?string $sha1;
+    public ?string $sha256;
 
     /**
      * The patch depth to use when applying the patch (-p flag for `patch`)
@@ -41,6 +41,13 @@ class Patch implements JsonSerializable
      * @var ?int $depth
      */
     public ?int $depth;
+
+    /**
+     * If the patch has been downloaded, the path to where it can be found.
+     *
+     * @var ?string
+     */
+    public ?string $localPath;
 
     /**
      * Create a Patch from a serialized representation.
@@ -56,7 +63,7 @@ class Patch implements JsonSerializable
         if (!is_object($json)) {
             $json = json_decode($json);
         }
-        $properties = ['package', 'description', 'url', 'sha1', 'depth'];
+        $properties = ['package', 'description', 'url', 'sha256', 'depth'];
         $patch = new static();
 
         foreach ($properties as $property) {
@@ -77,7 +84,7 @@ class Patch implements JsonSerializable
             'package' => $this->package,
             'description' => $this->description,
             'url' => $this->url,
-            'sha1' => $this->sha1 ?? null,
+            'sha256' => $this->sha256 ?? null,
             'depth' => $this->depth ?? null,
         ];
     }
