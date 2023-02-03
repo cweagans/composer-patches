@@ -19,5 +19,5 @@ interface ResolverProvider extends Capability
      *
      * @return ResolverBase[]
      */
-    public function getResolvers();
+    public function getResolvers(): array;
 }

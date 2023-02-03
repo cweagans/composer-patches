@@ -20,7 +20,7 @@ class Util
      *
      * @see http://php.net/manual/en/function.array-merge-recursive.php#92195
      */
-    public static function arrayMergeRecursiveDistinct(array $array1, array $array2)
+    public static function arrayMergeRecursiveDistinct(array $array1, array $array2): array
     {
         $merged = $array1;
 

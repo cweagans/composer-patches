@@ -12,27 +12,27 @@ abstract class BaseResolverProvider implements Capability, ResolverProvider
     /**
      * @var Composer
      */
-    protected $composer;
+    protected Composer $composer;
 
     /**
      * @var IOInterface
      */
-    protected $io;
+    protected IOInterface $io;
 
     /**
      * @var PluginInterface
      */
-    protected $plugin;
+    protected PluginInterface $plugin;
 
     /**
      * BaseResolverProvider constructor.
      *
-     * Stores values passed by the plugin manager for later use.
+     * Store values passed by the plugin manager for later use.
      *
      * @param array $args
      *   An array of args passed by the plugin manager.
      */
-    public function __construct($args)
+    public function __construct(array $args)
     {
         $this->composer = $args['composer'];
         $this->io = $args['io'];
@@ -42,5 +42,5 @@ abstract class BaseResolverProvider implements Capability, ResolverProvider
     /**
      * {@inheritDoc}
      */
-    abstract public function getResolvers();
+    abstract public function getResolvers(): array;
 }
