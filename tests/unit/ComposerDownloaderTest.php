@@ -64,4 +64,27 @@ class ComposerDownloaderTest extends Unit
         $this->expectException(HashMismatchException::class);
         $downloader->download($patch);
     }
+
+    /**
+     * Test local file "download".
+     */
+    public function testLocalFile()
+    {
+        $composer = new Composer();
+        $composer->setConfig(new Config());
+        $io = new NullIO();
+
+        $downloader = new ComposerDownloader($composer, $io);
+
+        $patch = new Patch();
+        $patch->package = "placeholder";
+        $patch->description = "test patch";
+        $patch->url = codecept_data_dir('localfile.patch');
+
+        $downloader->download($patch);
+
+        $sha = '0ec56d93aed447775aa70e55b5530f401cb3a59facd8ce20301c1d007461f1bf';
+        $this->assertNotEmpty($patch->localPath);
+        $this->assertEquals($sha, $patch->sha256);
+    }
 }
