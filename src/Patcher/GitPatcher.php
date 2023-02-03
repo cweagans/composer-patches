@@ -9,8 +9,9 @@ class GitPatcher extends PatcherBase
 {
     protected string $tool = 'git';
 
-    public function apply(Patch $patch): void
+    public function apply(Patch $patch): bool
     {
+        return false;
     }
 
     public function canUse(): bool

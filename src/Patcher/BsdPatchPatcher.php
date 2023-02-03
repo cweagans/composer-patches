@@ -9,9 +9,9 @@ class BsdPatchPatcher extends PatcherBase
 {
     protected string $tool = 'patch';
 
-    public function apply(Patch $patch): void
+    public function apply(Patch $patch): bool
     {
-        return;
+        return false;
     }
 
     public function canUse(): bool

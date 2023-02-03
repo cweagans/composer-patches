@@ -25,7 +25,7 @@ interface PatcherInterface
      * @param Patch $patch
      *   The patch to apply.
      */
-    public function apply(Patch $patch): void;
+    public function apply(Patch $patch): bool;
 
     /**
      * Check to see if this patcher is usable.

@@ -63,7 +63,7 @@ abstract class PatcherBase implements PatcherInterface
     /**
      * @inheritDoc
      */
-    abstract public function apply(Patch $patch): void;
+    abstract public function apply(Patch $patch): bool;
 
     /**
      * @inheritDoc

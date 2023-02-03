@@ -9,8 +9,9 @@ class GnuPatchPatcher extends PatcherBase
 {
     protected string $tool = 'patch';
 
-    public function apply(Patch $patch): void
+    public function apply(Patch $patch): bool
     {
+        return false;
     }
 
     public function canUse(): bool
