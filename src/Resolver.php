@@ -5,11 +5,13 @@ namespace cweagans\Composer;
 use Composer\Composer;
 use Composer\IO\IOInterface;
 use cweagans\Composer\Capability\Resolver\ResolverProvider;
+use cweagans\Composer\Event\PluginEvent;
+use cweagans\Composer\Event\PluginEvents;
 use cweagans\Composer\Resolver\ResolverInterface;
 use LogicException;
 use UnexpectedValueException;
 
-class PatchLoader
+class Resolver
 {
     protected Composer $composer;
 
@@ -89,6 +91,11 @@ class PatchLoader
             }
             $resolvers = array_merge($resolvers, $newResolvers);
         }
+
+        $this->composer->getEventDispatcher()->dispatch(
+            PluginEvents::POST_DISCOVER_RESOLVERS,
+            new PluginEvent(PluginEvents::POST_DISCOVER_RESOLVERS, $resolvers)
+        );
 
         return $resolvers;
     }
