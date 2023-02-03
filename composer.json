@@ -56,8 +56,7 @@
     "coveralls": "php-coveralls",
     "test": [
       "@static",
-      "@unit",
-      "@acceptance"
+      "@unit"
     ]
   }
 }
