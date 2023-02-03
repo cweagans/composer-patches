@@ -4,7 +4,9 @@ namespace cweagans\Composer\Patcher;
 
 use Composer\Composer;
 use Composer\IO\IOInterface;
+use Composer\Util\ProcessExecutor;
 use cweagans\Composer\Patch;
+use Symfony\Component\Process\Process;
 
 abstract class PatcherBase implements PatcherInterface
 {
@@ -37,12 +39,20 @@ abstract class PatcherBase implements PatcherInterface
     protected string $tool;
 
     /**
+     * Executes commands.
+     *
+     * @var ProcessExecutor $executor
+     */
+    protected ProcessExecutor $executor;
+
+    /**
      * {@inheritDoc}
      */
     public function __construct(Composer $composer, IOInterface $io)
     {
         $this->composer = $composer;
         $this->io = $io;
+        $this->executor = new ProcessExecutor($io);
     }
 
     /**
@@ -56,14 +66,46 @@ abstract class PatcherBase implements PatcherInterface
             return $this->toolPathOverride;
         }
 
-
         return $this->tool;
+    }
+
+    /**
+     * Executes a shell command with escaping.
+     *
+     * @param string $cmd
+     * @return bool
+     */
+    protected function executeCommand($cmd)
+    {
+        // Shell-escape all arguments except the command.
+        $args = func_get_args();
+        foreach ($args as $index => $arg) {
+            if ($index !== 0 && !is_int($arg)) {
+                $args[$index] = escapeshellarg($arg);
+            }
+        }
+
+        // And replace the arguments.
+        $command = call_user_func_array('sprintf', $args);
+        $output = '';
+        if ($this->io->isVerbose()) {
+            $this->io->write('<comment>' . $command . '</comment>');
+            $io = $this->io;
+            $output = function ($type, $data) use ($io) {
+                if ($type === Process::ERR) {
+                    $io->write('<error>' . $data . '</error>');
+                } else {
+                    $io->write('<comment>' . $data . '</comment>');
+                }
+            };
+        }
+        return ($this->executor->execute($command, $output) === 0);
     }
 
     /**
      * @inheritDoc
      */
-    abstract public function apply(Patch $patch): bool;
+    abstract public function apply(Patch $patch, string $path): bool;
 
     /**
      * @inheritDoc

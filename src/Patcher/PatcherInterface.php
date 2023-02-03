@@ -24,8 +24,10 @@ interface PatcherInterface
      *
      * @param Patch $patch
      *   The patch to apply.
+     * @param string $path
+     *   The path to the package to patch.
      */
-    public function apply(Patch $patch): bool;
+    public function apply(Patch $patch, string $path): bool;
 
     /**
      * Check to see if this patcher is usable.

@@ -32,10 +32,13 @@ class Patcher
      * @param Patch $patch
      *   The patch to apply.
      *
+     * @param string $path
+     *   The path to where the package was installed by Composer.
+     *
      * @return bool
      *   true if the patch was applied successfully.
      */
-    public function applyPatch(Patch $patch): bool
+    public function applyPatch(Patch $patch, string $path): bool
     {
         foreach ($this->getPatchers() as $patcher) {
             if (in_array(get_class($patcher), $this->disabledPatchers, true)) {
@@ -45,7 +48,7 @@ class Patcher
                 continue;
             }
 
-            $result = $patcher->apply($patch);
+            $result = $patcher->apply($patch, $path);
 
             if ($result === true) {
                 return true;

@@ -4,22 +4,33 @@ namespace cweagans\Composer\Patcher;
 
 use Composer\Util\ProcessExecutor;
 use cweagans\Composer\Patch;
+use Composer\IO\IOInterface;
 
 class BsdPatchPatcher extends PatcherBase
 {
     protected string $tool = 'patch';
 
-    public function apply(Patch $patch): bool
+    public function apply(Patch $patch, string $path): bool
     {
-        return false;
+        // TODO: Dry run first?
+
+        return $this->executeCommand(
+            'patch -p%s --posix --batch -d %s < %s',
+            $patch->depth,
+            $path,
+            $patch->localPath
+        );
     }
 
     public function canUse(): bool
     {
-        $executor = new ProcessExecutor($this->io);
         $output = "";
-        $result = $executor->execute($this->patchTool() . ' --version', $output);
+        $result = $this->executor->execute($this->patchTool() . ' --version', $output);
         // TODO: Is it a valid assumption to assume that if GNU is *not* in the version output, that it's BSD patch?
-        return ($result === 0) && (!str_contains($output, 'GNU patch'));
+        $usable = ($result === 0) && (!str_contains($output, 'GNU patch'));
+
+        $this->io->write(self::class . " usable: " . ($usable ? "yes" : "no"), true, IOInterface::DEBUG);
+
+        return $usable;
     }
 }
