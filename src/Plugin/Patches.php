@@ -249,10 +249,9 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                 IOInterface::DEBUG
             );
 
-            $this->composer->getEventDispatcher()->dispatch(
-                PatchEvents::PRE_PATCH_APPLY,
-                new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $package, $patch)
-            );
+            $event = new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $package, $patch);
+            $this->composer->getEventDispatcher()->dispatch(PatchEvents::PRE_PATCH_APPLY, $event);
+            $patch = $event->getPatch();
 
             $depth = $patch->depth ??
                 Util::getDefaultPackagePatchDepth($patch->package) ??
