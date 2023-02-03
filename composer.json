@@ -52,7 +52,7 @@
     "static": "grumphp run",
     "unit": "codecept run unit",
     "acceptance": "codecept run acceptance",
-    "coverage": "codecept run --coverage-xml",
+    "coverage": "codecept run unit --coverage-xml",
     "coveralls": "php-coveralls",
     "test": [
       "@static",
