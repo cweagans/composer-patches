@@ -8,23 +8,32 @@
 namespace cweagans\Composer\Plugin;
 
 use Composer\Composer;
+use Composer\DependencyResolver\Operation\InstallOperation;
+use Composer\DependencyResolver\Operation\OperationInterface;
+use Composer\DependencyResolver\Operation\UpdateOperation;
 use Composer\EventDispatcher\EventDispatcher;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\Installer\PackageEvent;
 use Composer\Installer\PackageEvents;
 use Composer\IO\IOInterface;
+use Composer\Package\PackageInterface;
 use Composer\Plugin\Capable;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\Event as ScriptEvent;
 use Composer\Script\ScriptEvents;
 use Composer\Util\ProcessExecutor;
+use cweagans\Composer\Capability\Downloader\CoreDownloaderProvider;
+use cweagans\Composer\Capability\Downloader\DownloaderProvider;
 use cweagans\Composer\Capability\Patcher\CorePatcherProvider;
 use cweagans\Composer\Capability\Patcher\PatcherProvider;
 use cweagans\Composer\Capability\Resolver\CoreResolverProvider;
 use cweagans\Composer\Capability\Resolver\ResolverProvider;
 use cweagans\Composer\ConfigurablePlugin;
+use cweagans\Composer\Patch;
 use cweagans\Composer\PatchCollection;
+use cweagans\Composer\PatchDownloader;
 use cweagans\Composer\PatchLoader;
+use InvalidArgumentException;
 
 class Patches implements PluginInterface, EventSubscriberInterface, Capable
 {
@@ -111,8 +120,8 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
     public static function getSubscribedEvents(): array
     {
         return array(
-            ScriptEvents::PRE_INSTALL_CMD => ['loadLockedPatches'],
-            ScriptEvents::PRE_UPDATE_CMD => ['loadPatchesFromResolvers'],
+            PackageEvents::PRE_PACKAGE_INSTALL => ['loadLockedPatches'],
+            PackageEvents::PRE_PACKAGE_UPDATE => ['loadPatchesFromResolvers'],
             // The POST_PACKAGE_* events are a higher weight for compatibility with
             // https://github.com/AydinHassan/magento-core-composer-installer and more generally for compatibility with
             // any Composer Plugin which deploys downloaded packages to other locations. In the cast that you want
@@ -136,6 +145,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
     {
         return [
             ResolverProvider::class => CoreResolverProvider::class,
+            DownloaderProvider::class => CoreDownloaderProvider::class,
             PatcherProvider::class => CorePatcherProvider::class,
         ];
     }
@@ -146,8 +156,13 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      * @param ScriptEvent $event
      *   The event provided by Composer.
      */
-    public function loadPatchesFromResolvers(ScriptEvent $event)
+    public function loadPatchesFromResolvers(PackageEvent $event)
     {
+        $this->io->write("loadPatchesFromResolvers called");
+        if (!is_null($this->patchCollection)) {
+            return;
+        }
+
         $patchLoader = new PatchLoader($this->composer, $this->io, $this->getConfig('disable-resolvers'));
         $this->patchCollection = $patchLoader->loadFromResolvers();
     }
@@ -158,16 +173,57 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      * @param ScriptEvent $event
      *   The event provided by Composer.
      */
-    public function loadLockedPatches(ScriptEvent $event)
+    public function loadLockedPatches(PackageEvent $event)
     {
+        $this->io->write("loadLockedPatches called");
+        if (!is_null($this->patchCollection)) {
+            return;
+        }
+
         $patchLoader = new PatchLoader($this->composer, $this->io, $this->getConfig('disable-resolvers'));
-        $this->patchCollection = $patchLoader->loadFromLock();
+//        $this->patchCollection = $patchLoader->loadFromLock();
+        $this->patchCollection = $patchLoader->loadFromResolvers();
     }
 
+    /**
+     * Download and apply patches.
+     *
+     * @param PackageEvent $event
+     *   The event that Composer provided to us.
+     */
     public function patchPackage(PackageEvent $event)
     {
-        // Download patch.
+        $this->io->write("patchPackage called");
+        $package = $this->getPackageFromOperation($event->getOperation());
+        $downloader = new PatchDownloader($this->composer, $this->io);
+
+        // Download all patches for the package.
+        foreach ($this->patchCollection->getPatchesForPackage($package->getName()) as $patch) {
+            /** @var $patch Patch */
+            $this->io->write("Downloading patch " . $patch->url);
+            $downloader->downloadPatch($patch);
+        }
         // Apply patch to package.
+    }
+
+    /**
+     * Get a Package object from an OperationInterface object.
+     *
+     * @param OperationInterface $operation
+     * @return PackageInterface
+     * @throws InvalidArgumentException
+     */
+    protected function getPackageFromOperation(OperationInterface $operation): PackageInterface
+    {
+        if ($operation instanceof InstallOperation) {
+            $package = $operation->getPackage();
+        } elseif ($operation instanceof UpdateOperation) {
+            $package = $operation->getTargetPackage();
+        } else {
+            throw new InvalidArgumentException('Unknown operation: ' . get_class($operation));
+        }
+
+        return $package;
     }
 
     public function deactivate(Composer $composer, IOInterface $io)
