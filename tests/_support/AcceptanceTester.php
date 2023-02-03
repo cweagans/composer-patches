@@ -38,4 +38,9 @@ class AcceptanceTester extends Actor
         $this->runShellCommand($env . 'composer install -vvv');
         $this->seeResultCodeIs(0);
     }
+
+    public function skipThisTest($reason)
+    {
+        $this->scenario->skip($reason);
+    }
 }
