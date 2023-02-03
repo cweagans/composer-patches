@@ -27,4 +27,10 @@ class AcceptanceTester extends Actor
     /**
      * Define custom actions here
      */
+
+    public function runComposerInstall()
+    {
+        $this->runShellCommand('composer install -vvv');
+        $this->seeResultCodeIs(0);
+    }
 }
