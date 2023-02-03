@@ -3,7 +3,10 @@
 namespace cweagans\Composer;
 
 use Composer\Composer;
+use cweagans\Composer\Downloader\DownloaderInterface;
 use Composer\IO\IOInterface;
+use cweagans\Composer\Capability\Downloader\DownloaderProvider;
+use UnexpectedValueException;
 
 class PatchDownloader
 {
@@ -11,17 +14,29 @@ class PatchDownloader
 
     protected IOInterface $io;
 
-    protected PatchCollection $patchCollection;
-
-    public function __construct(Composer $composer, IOInterface $io, PatchCollection $patchCollection)
+    public function __construct(Composer $composer, IOInterface $io)
     {
         $this->composer = $composer;
         $this->io = $io;
-        $this->patchCollection = $patchCollection;
     }
 
-    public function downloadPatches()
+    /**
+     * Download a patch using the available downloaders.
+     *
+     * A downloader will update Patch->localPath if it was able to download the patch.
+     *
+     * @param Patch $patch
+     *   The patch to download.
+     */
+    public function downloadPatch(Patch $patch)
     {
+        foreach ($this->getDownloaders() as $downloader) {
+            $downloader->download($patch);
+
+            if (isset($patch->localPath)) {
+                return;
+            }
+        }
     }
 
     /**
@@ -32,25 +47,31 @@ class PatchDownloader
      */
     protected function getDownloaders(): array
     {
+        static $downloaders;
+
+        if (!is_null($downloaders)) {
+            return $downloaders;
+        }
+
         $downloaders = [];
         $plugin_manager = $this->composer->getPluginManager();
         $capabilities = $plugin_manager->getPluginCapabilities(
-            Downloader,
+            DownloaderProvider::class,
             ['composer' => $this->composer, 'io' => $this->io]
         );
         foreach ($capabilities as $capability) {
-            /** @var ResolverProvider $capability */
-            $newResolvers = $capability->getResolvers();
-            foreach ($newResolvers as $resolver) {
-                if (!$resolver instanceof ResolverBase) {
+            /** @var DownloaderProvider $capability */
+            $newDownloaders = $capability->getDownloaders();
+            foreach ($newDownloaders as $downloader) {
+                if (!$downloader instanceof DownloaderInterface) {
                     throw new UnexpectedValueException(
                         'Plugin capability ' . get_class($capability) . ' returned an invalid value.'
                     );
                 }
             }
-            $resolvers = array_merge($resolvers, $newResolvers);
+            $downloaders = array_merge($downloaders, $newDownloaders);
         }
 
-        return $resolvers;
+        return $downloaders;
     }
 }
