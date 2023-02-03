@@ -6,18 +6,23 @@ use Composer\Composer;
 use cweagans\Composer\Downloader\DownloaderInterface;
 use Composer\IO\IOInterface;
 use cweagans\Composer\Capability\Downloader\DownloaderProvider;
+use cweagans\Composer\Event\PluginEvent;
+use cweagans\Composer\Event\PluginEvents;
 use UnexpectedValueException;
 
-class PatchDownloader
+class Downloader
 {
     protected Composer $composer;
 
     protected IOInterface $io;
 
-    public function __construct(Composer $composer, IOInterface $io)
+    protected array $disabledDownloaders;
+
+    public function __construct(Composer $composer, IOInterface $io, array $disabledDownloaders)
     {
         $this->composer = $composer;
         $this->io = $io;
+        $this->disabledDownloaders = $disabledDownloaders;
     }
 
     /**
@@ -31,6 +36,13 @@ class PatchDownloader
     public function downloadPatch(Patch $patch)
     {
         foreach ($this->getDownloaders() as $downloader) {
+            if (in_array(get_class($downloader), $this->disabledDownloaders, true)) {
+                if ($this->io->isVerbose()) {
+                    $this->io->write('<info>  - Skipping downloader ' . get_class($downloader) . '</info>');
+                }
+                continue;
+            }
+
             $downloader->download($patch);
 
             if (isset($patch->localPath)) {
@@ -71,6 +83,11 @@ class PatchDownloader
             }
             $downloaders = array_merge($downloaders, $newDownloaders);
         }
+
+        $this->composer->getEventDispatcher()->dispatch(
+            PluginEvents::POST_DISCOVER_DOWNLOADERS,
+            new PluginEvent(PluginEvents::POST_DISCOVER_DOWNLOADERS, $downloaders)
+        );
 
         return $downloaders;
     }
