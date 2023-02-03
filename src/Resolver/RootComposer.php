@@ -18,13 +18,12 @@ class RootComposer extends ResolverBase
      */
     public function resolve(PatchCollection $collection): void
     {
-        $this->io->write('  - <info>Gathering patches from root package</info>');
-
         $extra = $this->composer->getPackage()->getExtra();
-
         if (empty($extra['patches'])) {
             return;
         }
+
+        $this->io->write('  - <info>Gathering patches from root package</info>');
 
         foreach ($this->findPatchesInJson($extra['patches']) as $package => $patches) {
             foreach ($patches as $patch) {

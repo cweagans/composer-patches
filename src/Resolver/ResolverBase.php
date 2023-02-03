@@ -59,7 +59,11 @@ abstract class ResolverBase implements ResolverInterface
         // marshall everything into Patch objects.
         foreach ($patches as $package => $patch_defs) {
             if (isset($patch_defs[0]) && is_array($patch_defs[0])) {
-                $this->io->write("<info>Using expanded definition format for package {$package}</info>");
+                $this->io->write(
+                    "    Using expanded definition format for package <info>{$package}</info>",
+                    true,
+                    IOInterface::VERBOSE
+                );
 
                 foreach ($patch_defs as $index => $def) {
                     $patch = new Patch();
@@ -70,7 +74,11 @@ abstract class ResolverBase implements ResolverInterface
                     $patches[$package][$index] = $patch;
                 }
             } else {
-                $this->io->write("<info>Using compact definition format for package {$package}</info>");
+                $this->io->write(
+                    "    Using compact definition format for package <info>{$package}</info>",
+                    true,
+                    IOInterface::VERBOSE
+                );
 
                 $temporary_patch_list = [];
 
