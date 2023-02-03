@@ -20,7 +20,6 @@ use Composer\Package\PackageInterface;
 use Composer\Plugin\Capable;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\Event as ScriptEvent;
-use Composer\Script\ScriptEvents;
 use Composer\Util\ProcessExecutor;
 use cweagans\Composer\Capability\Downloader\CoreDownloaderProvider;
 use cweagans\Composer\Capability\Downloader\DownloaderProvider;
@@ -29,11 +28,16 @@ use cweagans\Composer\Capability\Patcher\PatcherProvider;
 use cweagans\Composer\Capability\Resolver\CoreResolverProvider;
 use cweagans\Composer\Capability\Resolver\ResolverProvider;
 use cweagans\Composer\ConfigurablePlugin;
+use cweagans\Composer\Downloader;
+use cweagans\Composer\Event\PatchEvent;
+use cweagans\Composer\Event\PatchEvents;
 use cweagans\Composer\Patch;
 use cweagans\Composer\PatchCollection;
-use cweagans\Composer\PatchDownloader;
-use cweagans\Composer\PatchLoader;
+use cweagans\Composer\Patcher;
+use cweagans\Composer\Resolver;
+use cweagans\Composer\Util;
 use InvalidArgumentException;
+use Exception;
 
 class Patches implements PluginInterface, EventSubscriberInterface, Capable
 {
@@ -70,9 +74,9 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
     protected array $installedPatches;
 
     /**
-     * @var PatchCollection $patchCollection
+     * @var ?PatchCollection $patchCollection
      */
-    protected PatchCollection $patchCollection;
+    protected ?PatchCollection $patchCollection;
 
     /**
      * Apply plugin modifications to composer
@@ -88,10 +92,6 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         $this->patches = array();
         $this->installedPatches = array();
         $this->configuration = [
-            'exit-on-patch-failure' => [
-                'type' => 'bool',
-                'default' => true,
-            ],
             'disable-patching' => [
                 'type' => 'bool',
                 'default' => false,
@@ -100,9 +100,17 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                 'type' => 'list',
                 'default' => [],
             ],
-            'patch-levels' => [
+            'disable-downloaders' => [
                 'type' => 'list',
-                'default' => ['-p1', '-p0', '-p2', '-p4']
+                'default' => [],
+            ],
+            'disable-patchers' => [
+                'type' => 'list',
+                'default' => [],
+            ],
+            'default-patch-depth' => [
+                'type' => 'int',
+                'default' => 1,
             ],
             'patches-file' => [
                 'type' => 'string',
@@ -158,12 +166,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      */
     public function loadPatchesFromResolvers(PackageEvent $event)
     {
-        $this->io->write("loadPatchesFromResolvers called");
-        if (!is_null($this->patchCollection)) {
-            return;
-        }
-
-        $patchLoader = new PatchLoader($this->composer, $this->io, $this->getConfig('disable-resolvers'));
+        $patchLoader = new Resolver($this->composer, $this->io, $this->getConfig('disable-resolvers'));
         $this->patchCollection = $patchLoader->loadFromResolvers();
     }
 
@@ -175,12 +178,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      */
     public function loadLockedPatches(PackageEvent $event)
     {
-        $this->io->write("loadLockedPatches called");
-        if (!is_null($this->patchCollection)) {
-            return;
-        }
-
-        $patchLoader = new PatchLoader($this->composer, $this->io, $this->getConfig('disable-resolvers'));
+        $patchLoader = new Resolver($this->composer, $this->io, $this->getConfig('disable-resolvers'));
 //        $this->patchCollection = $patchLoader->loadFromLock();
         $this->patchCollection = $patchLoader->loadFromResolvers();
     }
@@ -193,17 +191,98 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      */
     public function patchPackage(PackageEvent $event)
     {
-        $this->io->write("patchPackage called");
+        // Sometimes, patchPackage is called before a patch loading function (for instance, when composer-patches itself
+        // is installed -- the pre-install event can't be invoked before this plugin is installed, but the post-install
+        // event *can* be. Skipping composer-patches and composer-configurable-plugin ensures that this plugin and its
+        // dependency won't cause an error to be thrown when attempting to read from an uninitialized PatchCollection.
+        // This also means that neither composer-patches nor composer-configurable-plugin can have patches applied.
         $package = $this->getPackageFromOperation($event->getOperation());
-        $downloader = new PatchDownloader($this->composer, $this->io);
+        if (in_array($package->getName(), ['cweagans/composer-patches', 'cweagans/composer-configurable-plugin'])) {
+            return;
+        }
 
-        // Download all patches for the package.
+        // If there aren't any patches, there's nothing to do.
+        if (empty($this->patchCollection->getPatchesForPackage($package->getName()))) {
+            $this->io->write(
+                "No patches found for <info>{$package->getName()}</info>",
+                true,
+                IOInterface::DEBUG,
+            );
+            return;
+        }
+
+        $downloader = new Downloader($this->composer, $this->io, $this->getConfig('disable-downloaders'));
+        $patcher = new Patcher($this->composer, $this->io, $this->getConfig('disable-patchers'));
+
+        $install_path = $this->composer->getInstallationManager()
+            ->getInstaller($package->getType())
+            ->getInstallPath($package);
+
+        $this->io->write("  - Patching <info>{$package->getName()}</info>");
+
         foreach ($this->patchCollection->getPatchesForPackage($package->getName()) as $patch) {
             /** @var $patch Patch */
-            $this->io->write("Downloading patch " . $patch->url);
+
+            // Download patch.
+            $this->io->write(
+                "    - Downloading and applying patch <info>{$patch->url}</info> ({$patch->description})",
+                true,
+                IOInterface::VERBOSE
+            );
+
+            $this->io->write("      - Downloading patch <info>{$patch->url}</info>", true, IOInterface::DEBUG);
+
+            $this->composer->getEventDispatcher()->dispatch(
+                PatchEvents::PRE_PATCH_DOWNLOAD,
+                new PatchEvent(PatchEvents::PRE_PATCH_DOWNLOAD, $package, $patch)
+            );
             $downloader->downloadPatch($patch);
+            $this->composer->getEventDispatcher()->dispatch(
+                PatchEvents::POST_PATCH_DOWNLOAD,
+                new PatchEvent(PatchEvents::POST_PATCH_DOWNLOAD, $package, $patch)
+            );
+
+            // Apply patch.
+            $this->io->write(
+                "      - Applying downloaded patch <info>{$patch->localPath}</info>",
+                true,
+                IOInterface::DEBUG
+            );
+
+            $this->composer->getEventDispatcher()->dispatch(
+                PatchEvents::PRE_PATCH_APPLY,
+                new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $package, $patch)
+            );
+
+            $depth = $patch->depth ??
+                Util::getDefaultPackagePatchDepth($patch->package) ??
+                $this->getConfig('default-patch-depth');
+
+            $patch->depth = $depth;
+
+            $this->io->write(
+                "      - Applying patch <info>{$patch->localPath}</info> (depth: {$patch->depth})",
+                true,
+                IOInterface::DEBUG
+            );
+
+            $status = $patcher->applyPatch($patch, $install_path);
+            if ($status === false) {
+                throw new Exception("No available patcher was able to apply patch {$patch->url} to {$patch->package}");
+            }
+
+            $this->composer->getEventDispatcher()->dispatch(
+                PatchEvents::POST_PATCH_APPLY,
+                new PatchEvent(PatchEvents::POST_PATCH_APPLY, $package, $patch)
+            );
         }
-        // Apply patch to package.
+
+        $this->io->write(
+            "  - All patches for <info>{$package->getName()}</info> have been applied.",
+            true,
+            IOInterface::DEBUG
+        );
+        // TODO: Write patch data into lock file.
     }
 
     /**
