@@ -30,7 +30,12 @@ class AcceptanceTester extends Actor
 
     public function runComposerInstall()
     {
-        $this->runShellCommand('composer install -vvv');
+        $env = '';
+        if (getenv('COMPOSER_PATCHES_DEBUG') !== false) {
+            $env = 'COMPOSER_ALLOW_XDEBUG=1 XDEBUG_SESSION=1 XDEBUG_MODE=debug ';
+        }
+
+        $this->runShellCommand($env . 'composer install -vvv');
         $this->seeResultCodeIs(0);
     }
 }
