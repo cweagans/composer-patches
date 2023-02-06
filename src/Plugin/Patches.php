@@ -16,10 +16,12 @@ use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\Installer\PackageEvent;
 use Composer\Installer\PackageEvents;
 use Composer\IO\IOInterface;
+use Composer\Json\JsonFile;
 use Composer\Package\PackageInterface;
 use Composer\Plugin\Capable;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\Event as ScriptEvent;
+use Composer\Script\ScriptEvents;
 use Composer\Util\ProcessExecutor;
 use cweagans\Composer\Capability\Downloader\CoreDownloaderProvider;
 use cweagans\Composer\Capability\Downloader\DownloaderProvider;
@@ -31,6 +33,7 @@ use cweagans\Composer\ConfigurablePlugin;
 use cweagans\Composer\Downloader;
 use cweagans\Composer\Event\PatchEvent;
 use cweagans\Composer\Event\PatchEvents;
+use cweagans\Composer\Locker;
 use cweagans\Composer\Patch;
 use cweagans\Composer\PatchCollection;
 use cweagans\Composer\Patcher;
@@ -78,6 +81,8 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      */
     protected ?PatchCollection $patchCollection;
 
+    protected Locker $locker;
+
     /**
      * Apply plugin modifications to composer
      *
@@ -91,6 +96,14 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         $this->executor = new ProcessExecutor($this->io);
         $this->patches = array();
         $this->installedPatches = array();
+
+        $this->locker = new Locker(
+            new JsonFile(
+                dirname(realpath(\Composer\Factory::getComposerFile())) . '/patches.lock',
+                null,
+                $this->io
+            )
+        );
         $this->configuration = [
             'disable-patching' => [
                 'type' => 'bool',
@@ -137,6 +150,8 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             // @see: https://github.com/cweagans/composer-patches/pull/153
             PackageEvents::POST_PACKAGE_INSTALL => ['patchPackage', 10],
             PackageEvents::POST_PACKAGE_UPDATE => ['patchPackage', 10],
+            ScriptEvents::POST_INSTALL_CMD => ['lockPatches'],
+            ScriptEvents::POST_UPDATE_CMD => ['lockPatches'],
 //            ScriptEvents::PRE_INSTALL_CMD => array('checkPatches'),
 //            ScriptEvents::PRE_UPDATE_CMD => array('checkPatches'),
 //            PackageEvents::POST_PACKAGE_INSTALL => array('postInstall', 10),
@@ -161,26 +176,40 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
     /**
      * Discover patches using all available Resolvers.
      *
-     * @param ScriptEvent $event
+     * @param PackageEvent $event
      *   The event provided by Composer.
      */
     public function loadPatchesFromResolvers(PackageEvent $event)
     {
-        $patchLoader = new Resolver($this->composer, $this->io, $this->getConfig('disable-resolvers'));
-        $this->patchCollection = $patchLoader->loadFromResolvers();
+        $resolver = new Resolver($this->composer, $this->io, $this->getConfig('disable-resolvers'));
+        $this->patchCollection = $resolver->loadFromResolvers();
     }
 
     /**
      * Load previously discovered patches from the Composer lock file.
      *
-     * @param ScriptEvent $event
+     * @param PackageEvent $event
      *   The event provided by Composer.
      */
     public function loadLockedPatches(PackageEvent $event)
     {
-        $patchLoader = new Resolver($this->composer, $this->io, $this->getConfig('disable-resolvers'));
-//        $this->patchCollection = $patchLoader->loadFromLock();
-        $this->patchCollection = $patchLoader->loadFromResolvers();
+        $resolver = new Resolver($this->composer, $this->io, $this->getConfig('disable-resolvers'));
+        $resolver->silenceOutput();
+        $this->patchCollection = $resolver->loadFromResolvers();
+        $resolver->unsilenceOutput();
+
+        $locked = $this->locker->isLocked();
+        if (!$locked) {
+            $this->io->write('<warning>patches.lock does not exist and will be written.</warning>');
+            return;
+        }
+
+        // After resolving patches
+//        if (!$this->locker->isFresh($this->patchCollection)) {
+//            $this->io->write('<warning>patches.lock is not up to date.</warning>');
+//        }
+
+        $this->patchCollection = PatchCollection::fromJson($this->locker->getLockData());
     }
 
     /**
@@ -281,7 +310,21 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             true,
             IOInterface::DEBUG
         );
-        // TODO: Write patch data into lock file.
+    }
+
+    public function lockPatches(ScriptEvent $event)
+    {
+        // In the event that nothing was installed or updated, patchCollection can be null.
+        // Luckily, in the case, we don't need to do anything.
+        if (!isset($this->patchCollection)) {
+            return;
+        }
+
+        if ($this->locker->isLocked() && $this->locker->isFresh($this->patchCollection)) {
+            return;
+        }
+
+        $this->locker->setLockData($this->patchCollection, true);
     }
 
     /**

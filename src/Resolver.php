@@ -4,6 +4,7 @@ namespace cweagans\Composer;
 
 use Composer\Composer;
 use Composer\IO\IOInterface;
+use Composer\IO\NullIO;
 use cweagans\Composer\Capability\Resolver\ResolverProvider;
 use cweagans\Composer\Event\PluginEvent;
 use cweagans\Composer\Event\PluginEvents;
@@ -17,6 +18,8 @@ class Resolver
 
     protected IOInterface $io;
 
+    protected IOInterface $inactive_io;
+
     protected array $disabledResolvers = [];
 
     public function __construct(Composer $composer, IOInterface $io, array $disabledResolvers)
@@ -24,16 +27,6 @@ class Resolver
         $this->composer = $composer;
         $this->io = $io;
         $this->disabledResolvers = $disabledResolvers;
-    }
-
-    public function loadFromLock(): PatchCollection
-    {
-        if (!$this->composer->getLocker()->isLocked()) {
-            throw new LogicException('Cannot load from lock file if project is not locked.');
-        }
-
-        // TODO
-        return new PatchCollection();
     }
 
     /**
@@ -54,7 +47,11 @@ class Resolver
         foreach ($this->getPatchResolvers() as $resolver) {
             if (in_array(get_class($resolver), $this->disabledResolvers, true)) {
                 if ($this->io->isVerbose()) {
-                    $this->io->write('<info>  - Skipping resolver ' . get_class($resolver) . '</info>');
+                    $this->io->write(
+                        '<info>  - Skipping resolver ' . get_class($resolver) . '</info>',
+                        true,
+                        IOInterface::VERBOSE
+                    );
                 }
                 continue;
             }
@@ -63,6 +60,17 @@ class Resolver
         }
 
         return $patchCollection;
+    }
+
+    public function silenceOutput(): void
+    {
+        $this->inactive_io = $this->io;
+        $this->io = new NullIO();
+    }
+
+    public function unsilenceOutput(): void
+    {
+        $this->io = $this->inactive_io;
     }
 
     /**
