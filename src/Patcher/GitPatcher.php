@@ -19,7 +19,8 @@ class GitPatcher extends PatcherBase
 
         // Dry run first.
         $status = $this->executeCommand(
-            'git -C %s apply --check --verbose -p%s %s',
+            '%s -C %s apply --check --verbose -p%s %s',
+            $this->patchTool(),
             $path,
             $patch->depth,
             $patch->localPath
@@ -38,7 +39,8 @@ class GitPatcher extends PatcherBase
 
         // Otherwise, we can try to apply the patch.
         return $this->executeCommand(
-            'git -C %s apply -p%s %s',
+            '%s -C %s apply -p%s %s',
+            $this->patchTool(),
             $path,
             $patch->depth,
             $patch->localPath

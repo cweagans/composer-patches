@@ -14,7 +14,8 @@ class GnuPatchPatcher extends PatcherBase
         // TODO: Dry run first?
 
         return $this->executeCommand(
-            'patch -p%s --no-backup-if-mismatch -d %s < %s',
+            '%s -p%s --no-backup-if-mismatch -d %s < %s',
+            $this->patchTool(),
             $patch->depth,
             $path,
             $patch->localPath
