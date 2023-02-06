@@ -37,6 +37,13 @@ Example composer.json:
 
 ```
 
+It's also useful to add a link to the original issue, to have a quick way for checking new patch versions. You can integrate the link into the patch description like this:
+```json
+      "drupal/core": {
+        "Add startup configuration for PHP server - https://www.drupal.org/project/drupal/issues/1543858": "https://www.drupal.org/files/issues/add_a_startup-1543858-30.patch"
+      }
+```
+
 ## Using an external patch file
 
 Instead of a patches key in your root composer.json, use a patches-file key.
