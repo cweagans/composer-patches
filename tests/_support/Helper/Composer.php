@@ -51,6 +51,8 @@ class Composer extends Module
         $this->status = $application->run($input, $output);
         $this->output = $output->fetch();
 
+        $this->debug($this->output);
+
         if ($failIfNonZero && $this->status !== 0) {
             Assert::fail("'composer {$command}' result code was {$this->status}");
         }
