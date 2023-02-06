@@ -30,14 +30,6 @@ class AcceptanceTester extends Actor
      * Define custom actions here
      */
 
-    public function runComposerInstall()
-    {
-        $input = new ArrayInput(['command' => 'install', '-vvv']);
-        $application = new Application();
-        $application->setAutoExit(false);
-        $status = $application->run($input);
-    }
-
     public function skipThisTest($reason)
     {
         $this->scenario->skip($reason);
