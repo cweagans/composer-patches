@@ -17,6 +17,9 @@ class Acceptance extends Module
         $composerLockFiles = glob($this->_getFixturesDir() . '/*/composer.lock');
         $filesystem->remove($composerLockFiles);
 
+        $patchesLockFiles = glob($this->_getFixturesDir() . '/*/patches.lock');
+        $filesystem->remove($patchesLockFiles);
+
         $composerVendorDirs = glob($this->_getFixturesDir() . '/*/vendor');
         $filesystem->remove($composerVendorDirs);
     }
