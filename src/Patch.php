@@ -62,22 +62,22 @@ class Patch implements JsonSerializable
      * Create a Patch from a serialized representation.
      *
      * @param $json
-     *   A json_encode'd representation of a Patch.
+     *   A JSON representation of a Patch (or an array from JsonFile).
      *
      * @return Patch
      *   A Patch with all serialized properties set.
      */
     public static function fromJson($json): static
     {
-        if (!is_object($json)) {
-            $json = json_decode($json);
+        if (!is_array($json)) {
+            $json = json_decode($json, true);
         }
         $properties = ['package', 'description', 'url', 'sha256', 'depth', 'extra'];
         $patch = new static();
 
         foreach ($properties as $property) {
-            if (isset($json->{$property})) {
-                $patch->{$property} = $json->{$property};
+            if (isset($json[$property])) {
+                $patch->{$property} = $json[$property];
             }
         }
 

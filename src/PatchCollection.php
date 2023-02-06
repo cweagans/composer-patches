@@ -48,19 +48,19 @@ class PatchCollection implements JsonSerializable
      * Create a PatchCollection from a serialized representation.
      *
      * @param $json
-     *   A json_encode'd representation of a PatchCollection.
+     *   A JSON representation of a PatchCollection (or an array from JsonFile).
      *
      * @return PatchCollection
      *   A PatchCollection with all of the serialized patches included.
      */
     public static function fromJson($json): static
     {
-        if (!is_object($json)) {
-            $json = json_decode($json);
+        if (!is_array($json)) {
+            $json = json_decode($json, true);
         }
         $collection = new static();
 
-        foreach ($json->patches as $package => $patches) {
+        foreach ($json['patches'] as $package => $patches) {
             foreach ($patches as $patch_json) {
                 $patch = Patch::fromJson($patch_json);
                 $collection->addPatch($patch);
