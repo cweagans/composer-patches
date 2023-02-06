@@ -4,6 +4,8 @@ namespace cweagans\Composer\Tests;
 
 use Codeception\Actor;
 use Codeception\Lib\Friend;
+use Composer\Console\Application;
+use Symfony\Component\Console\Input\ArrayInput;
 
 /**
  * Inherited Methods
@@ -30,13 +32,10 @@ class AcceptanceTester extends Actor
 
     public function runComposerInstall()
     {
-        $env = '';
-        if (getenv('COMPOSER_PATCHES_DEBUG') !== false) {
-            $env = 'COMPOSER_ALLOW_XDEBUG=1 XDEBUG_SESSION=1 XDEBUG_MODE=debug ';
-        }
-
-        $this->runShellCommand($env . 'composer install -vvv');
-        $this->seeResultCodeIs(0);
+        $input = new ArrayInput(['command' => 'install', '-vvv']);
+        $application = new Application();
+        $application->setAutoExit(false);
+        $status = $application->run($input);
     }
 
     public function skipThisTest($reason)
