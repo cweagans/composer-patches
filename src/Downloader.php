@@ -45,7 +45,7 @@ class Downloader
         if (isset($patch->sha256)) {
             $cachedPatch = $this->cacheDir . '/' . $patch->sha256 . '.patch';
             if (file_exists($cachedPatch)) {
-                $this->io->write("  - Found cached patch at <info>{$cachedPatch}</info>", IOInterface::VERBOSE);
+                $this->io->write("      - Found cached patch at <info>{$cachedPatch}</info>", IOInterface::VERBOSE);
                 $patch->localPath = $cachedPatch;
                 return;
             }
