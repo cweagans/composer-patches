@@ -14,7 +14,7 @@ use Composer\Installer\PackageEvent;
 use Composer\IO\NullIO;
 use Composer\Package\RootPackage;
 use cweagans\Composer\PatchCollection;
-use cweagans\Composer\Resolvers\RootComposer;
+use cweagans\Composer\Resolver\RootComposer;
 use stdClass;
 
 class RootComposerResolverTest extends Unit

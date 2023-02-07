@@ -14,7 +14,8 @@ class PatchTest extends Unit
         $patch->url = 'https://google.com';
         $patch->description = "Test description";
         $patch->depth = 0;
-        $patch->sha1 = sha1('asdf');
+        $patch->sha256 = 'asdf';
+        $patch->extra = [];
 
         $json = json_encode($patch);
 

@@ -9,9 +9,10 @@ namespace cweagans\Composer\Tests\Unit;
 
 use Codeception\Test\Unit;
 use Composer\Package\Package;
-use cweagans\Composer\PatchEvent;
-use cweagans\Composer\PatchEvents;
 use Composer\Package\PackageInterface;
+use cweagans\Composer\Event\PatchEvent;
+use cweagans\Composer\Event\PatchEvents;
+use cweagans\Composer\Patch;
 
 class PatchEventTest extends Unit
 {
@@ -20,22 +21,23 @@ class PatchEventTest extends Unit
      *
      * @dataProvider patchEventDataProvider
      */
-    public function testGetters($event_name, PackageInterface $package, $url, $description)
+    public function testGetters($event_name, $patch)
     {
-        $patch_event = new PatchEvent($event_name, $package, $url, $description);
+        $patch_event = new PatchEvent($event_name, $patch);
         $this->assertEquals($event_name, $patch_event->getName());
-        $this->assertEquals($package, $patch_event->getPackage());
-        $this->assertEquals($url, $patch_event->getUrl());
-        $this->assertEquals($description, $patch_event->getDescription());
+        $this->assertEquals($patch, $patch_event->getPatch());
     }
 
     public function patchEventDataProvider()
     {
-        $package = new Package('drupal/drupal', '1.0.0.0', '1.0.0');
+        $patch = new Patch();
 
         return array(
-            array(PatchEvents::PRE_PATCH_APPLY, $package, 'https://www.drupal.org', 'A test patch'),
-            array(PatchEvents::POST_PATCH_APPLY, $package, 'https://www.drupal.org', 'A test patch'),
+            [PatchEvents::PRE_PATCH_GUESS_DEPTH, $patch],
+            [PatchEvents::PRE_PATCH_APPLY, $patch],
+            [PatchEvents::POST_PATCH_APPLY, $patch],
+            [PatchEvents::PRE_PATCH_DOWNLOAD, $patch],
+            [PatchEvents::POST_PATCH_DOWNLOAD, $patch],
         );
     }
 }

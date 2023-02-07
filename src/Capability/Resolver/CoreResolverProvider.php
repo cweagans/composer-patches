@@ -1,14 +1,14 @@
 <?php
 
-namespace cweagans\Composer\Capability;
+namespace cweagans\Composer\Capability\Resolver;
 
-use cweagans\Composer\Resolvers\PatchesFile;
-use cweagans\Composer\Resolvers\RootComposer;
+use cweagans\Composer\Resolver\PatchesFile;
+use cweagans\Composer\Resolver\RootComposer;
 
 class CoreResolverProvider extends BaseResolverProvider
 {
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function getResolvers(): array
     {

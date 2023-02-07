@@ -4,6 +4,8 @@ namespace cweagans\Composer\Tests;
 
 use Codeception\Actor;
 use Codeception\Lib\Friend;
+use Composer\Console\Application;
+use Symfony\Component\Console\Input\ArrayInput;
 
 /**
  * Inherited Methods
@@ -27,4 +29,9 @@ class AcceptanceTester extends Actor
     /**
      * Define custom actions here
      */
+
+    public function skipThisTest($reason)
+    {
+        $this->scenario->skip($reason);
+    }
 }

@@ -29,11 +29,11 @@ class Patch implements JsonSerializable
     public string $url;
 
     /**
-     * The sha1 hash of the patch file.
+     * The sha256 hash of the patch file.
      *
-     * @var ?string $sha1
+     * @var ?string sha256
      */
-    public ?string $sha1;
+    public ?string $sha256;
 
     /**
      * The patch depth to use when applying the patch (-p flag for `patch`)
@@ -43,25 +43,41 @@ class Patch implements JsonSerializable
     public ?int $depth;
 
     /**
+     * If the patch has been downloaded, the path to where it can be found.
+     *
+     * @var ?string
+     */
+    public ?string $localPath;
+
+    /**
+     * This is unused in the main plugin, but can be used as a place for other plugins to store data about a patch.
+     *
+     * This should be treated as an associative array and should contain only scalar values.
+     *
+     * @var array
+     */
+    public array $extra;
+
+    /**
      * Create a Patch from a serialized representation.
      *
      * @param $json
-     *   A json_encode'd representation of a Patch.
+     *   A JSON representation of a Patch (or an array from JsonFile).
      *
      * @return Patch
      *   A Patch with all serialized properties set.
      */
     public static function fromJson($json): static
     {
-        if (!is_object($json)) {
-            $json = json_decode($json);
+        if (!is_array($json)) {
+            $json = json_decode($json, true);
         }
-        $properties = ['package', 'description', 'url', 'sha1', 'depth'];
+        $properties = ['package', 'description', 'url', 'sha256', 'depth', 'extra'];
         $patch = new static();
 
         foreach ($properties as $property) {
-            if (isset($json->{$property})) {
-                $patch->{$property} = $json->{$property};
+            if (isset($json[$property])) {
+                $patch->{$property} = $json[$property];
             }
         }
 
@@ -77,8 +93,9 @@ class Patch implements JsonSerializable
             'package' => $this->package,
             'description' => $this->description,
             'url' => $this->url,
-            'sha1' => $this->sha1 ?? null,
+            'sha256' => $this->sha256 ?? null,
             'depth' => $this->depth ?? null,
+            'extra' => $this->extra ?? [],
         ];
     }
 

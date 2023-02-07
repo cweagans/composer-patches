@@ -45,22 +45,45 @@ class PatchCollection implements JsonSerializable
     }
 
     /**
+     * Get a list of packages that have patches applied.
+     *
+     * @return array
+     */
+    public function getPatchedPackages(): array
+    {
+        return array_keys($this->patches);
+    }
+
+    /**
+     * Delete all patches for a package.
+     *
+     * @param string $package
+     *   The package name to clear patches from.
+     */
+    public function clearPatchesForPackage(string $package): void
+    {
+        if (isset($this->patches[$package])) {
+            unset($this->patches[$package]);
+        }
+    }
+
+    /**
      * Create a PatchCollection from a serialized representation.
      *
      * @param $json
-     *   A json_encode'd representation of a PatchCollection.
+     *   A JSON representation of a PatchCollection (or an array from JsonFile).
      *
      * @return PatchCollection
      *   A PatchCollection with all of the serialized patches included.
      */
     public static function fromJson($json): static
     {
-        if (!is_object($json)) {
-            $json = json_decode($json);
+        if (!is_array($json)) {
+            $json = json_decode($json, true);
         }
         $collection = new static();
 
-        foreach ($json->patches as $package => $patches) {
+        foreach ($json['patches'] as $package => $patches) {
             foreach ($patches as $patch_json) {
                 $patch = Patch::fromJson($patch_json);
                 $collection->addPatch($patch);

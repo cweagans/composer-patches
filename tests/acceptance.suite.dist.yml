@@ -1,6 +1,7 @@
 actor: AcceptanceTester
 modules:
-    enabled:
-        - \cweagans\Composer\Tests\Helper\Acceptance
-        - Cli
-        - Filesystem
+  enabled:
+    - \cweagans\Composer\Tests\Helper\Acceptance
+    - \cweagans\Composer\Tests\Helper\Composer
+    - Cli
+    - Filesystem

@@ -9,7 +9,7 @@ use Composer\Installer\PackageEvent;
 use Composer\IO\NullIO;
 use Composer\Package\RootPackage;
 use cweagans\Composer\PatchCollection;
-use cweagans\Composer\Resolvers\PatchesFile;
+use cweagans\Composer\Resolver\PatchesFile;
 use InvalidArgumentException;
 
 class PatchesFileResolverTest extends Unit

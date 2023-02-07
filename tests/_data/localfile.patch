@@ -1,0 +1,24 @@
+From 0b286ff0387c83b77bf66fa1d82fe2d839a5155a Mon Sep 17 00:00:00 2001
+From: Cameron Eagans <me@cweagans.net>
+Date: Wed, 1 Feb 2023 16:10:23 -0700
+Subject: [PATCH] Add a file
+
+---
+ src/OneMoreTest.php | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+ create mode 100644 src/OneMoreTest.php
+
+diff --git a/src/OneMoreTest.php b/src/OneMoreTest.php
+new file mode 100644
+index 0000000..0a84dc2
+--- /dev/null
++++ b/src/OneMoreTest.php
+@@ -0,0 +1,8 @@
++<?php
++
++namespace cweagans\ComposerPatchesTest;
++
++class OneMoreTest
++{
++    // This page intentionally left blank.
++}

@@ -5,7 +5,7 @@
  * Contains cweagans\Composer\Resolvers\PatchesFile.
  */
 
-namespace cweagans\Composer\Resolvers;
+namespace cweagans\Composer\Resolver;
 
 use Composer\Installer\PackageEvent;
 use cweagans\Composer\Patch;
@@ -17,10 +17,8 @@ class PatchesFile extends ResolverBase
     /**
      * {@inheritDoc}
      */
-    public function resolve(PatchCollection $collection, PackageEvent $event): void
+    public function resolve(PatchCollection $collection): void
     {
-        $this->io->write('  - <info>Gathering patches from patches file.</info>');
-
         $extra = $this->composer->getPackage()->getExtra();
         $valid_patches_file = array_key_exists('patches-file', $extra) &&
             file_exists(realpath($extra['patches-file'])) &&
@@ -31,6 +29,7 @@ class PatchesFile extends ResolverBase
             return;
         }
 
+        $this->io->write('  - <info>Gathering patches from patches file.</info>');
         $patches_file = $this->readPatchesFile($extra['patches-file']);
 
         foreach ($this->findPatchesInJson($patches_file) as $package => $patches) {

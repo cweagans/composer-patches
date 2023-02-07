@@ -1,6 +1,6 @@
 <?php
 
-namespace cweagans\Composer\Capability;
+namespace cweagans\Composer\Capability\Resolver;
 
 use Composer\Composer;
 use Composer\IO\IOInterface;
@@ -40,7 +40,7 @@ abstract class BaseResolverProvider implements Capability, ResolverProvider
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     abstract public function getResolvers(): array;
 }

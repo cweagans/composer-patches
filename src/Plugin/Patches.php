@@ -9,35 +9,38 @@ namespace cweagans\Composer\Plugin;
 
 use Composer\Composer;
 use Composer\DependencyResolver\Operation\InstallOperation;
-use Composer\DependencyResolver\Operation\UninstallOperation;
-use Composer\DependencyResolver\Operation\UpdateOperation;
 use Composer\DependencyResolver\Operation\OperationInterface;
+use Composer\DependencyResolver\Operation\UpdateOperation;
 use Composer\EventDispatcher\EventDispatcher;
 use Composer\EventDispatcher\EventSubscriberInterface;
+use Composer\Installer\PackageEvent;
+use Composer\Installer\PackageEvents;
 use Composer\IO\IOInterface;
-use Composer\Package\AliasPackage;
+use Composer\Json\JsonFile;
 use Composer\Package\PackageInterface;
+use Composer\Plugin\Capability\CommandProvider as CommandProviderCapability;
 use Composer\Plugin\Capable;
 use Composer\Plugin\PluginInterface;
-use Composer\Installer\PackageEvents;
-use Composer\Script\Event;
-use Composer\Script\ScriptEvents;
-use Composer\Installer\PackageEvent;
 use Composer\Util\ProcessExecutor;
-use Composer\Util\HttpDownloader;
-use cweagans\Composer\Capability\ResolverProvider;
-use cweagans\Composer\PatchCollection;
-use cweagans\Composer\Resolvers\ResolverBase;
-use cweagans\Composer\Resolvers\ResolverInterface;
-use Exception;
-use LogicException;
-use Symfony\Component\Process\Process;
-use cweagans\Composer\Util;
-use cweagans\Composer\PatchEvent;
-use cweagans\Composer\PatchEvents;
+use cweagans\Composer\Capability\CommandProvider;
+use cweagans\Composer\Capability\Downloader\CoreDownloaderProvider;
+use cweagans\Composer\Capability\Downloader\DownloaderProvider;
+use cweagans\Composer\Capability\Patcher\CorePatcherProvider;
+use cweagans\Composer\Capability\Patcher\PatcherProvider;
+use cweagans\Composer\Capability\Resolver\CoreResolverProvider;
+use cweagans\Composer\Capability\Resolver\ResolverProvider;
 use cweagans\Composer\ConfigurablePlugin;
+use cweagans\Composer\Downloader;
+use cweagans\Composer\Event\PatchEvent;
+use cweagans\Composer\Event\PatchEvents;
+use cweagans\Composer\Locker;
 use cweagans\Composer\Patch;
-use UnexpectedValueException;
+use cweagans\Composer\PatchCollection;
+use cweagans\Composer\Patcher;
+use cweagans\Composer\Resolver;
+use cweagans\Composer\Util;
+use InvalidArgumentException;
+use Exception;
 
 class Patches implements PluginInterface, EventSubscriberInterface, Capable
 {
@@ -46,42 +49,41 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
     /**
      * @var Composer $composer
      */
-    protected $composer;
+    protected Composer $composer;
 
     /**
      * @var IOInterface $io
      */
-    protected $io;
+    protected IOInterface $io;
 
     /**
      * @var EventDispatcher $eventDispatcher
      */
-    protected $eventDispatcher;
+    protected EventDispatcher $eventDispatcher;
 
     /**
      * @var ProcessExecutor $executor
      */
-    protected $executor;
+    protected ProcessExecutor $executor;
 
     /**
      * @var array $patches
      */
-    protected $patches;
+    protected array $patches;
 
     /**
      * @var array $installedPatches
      */
-    protected $installedPatches;
+    protected array $installedPatches;
 
     /**
-     * @var bool $patchesResolved
+     * @var ?PatchCollection $patchCollection
      */
-    protected $patchesResolved;
+    protected ?PatchCollection $patchCollection;
 
-    /**
-     * @var PatchCollection $patchCollection
-     */
-    protected $patchCollection;
+    protected Locker $locker;
+
+    protected JsonFile $lockFile;
 
     /**
      * Apply plugin modifications to composer
@@ -96,14 +98,13 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         $this->executor = new ProcessExecutor($this->io);
         $this->patches = array();
         $this->installedPatches = array();
-        $this->patchesResolved = false;
-        $this->patchCollection = new PatchCollection();
-
+        $this->lockFile = new JsonFile(
+            dirname(realpath(\Composer\Factory::getComposerFile())) . '/patches.lock',
+            null,
+            $this->io
+        );
+        $this->locker = new Locker($this->lockFile);
         $this->configuration = [
-            'exit-on-patch-failure' => [
-                'type' => 'bool',
-                'default' => true,
-            ],
             'disable-patching' => [
                 'type' => 'bool',
                 'default' => false,
@@ -112,9 +113,17 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                 'type' => 'list',
                 'default' => [],
             ],
-            'patch-levels' => [
+            'disable-downloaders' => [
                 'type' => 'list',
-                'default' => ['-p1', '-p0', '-p2', '-p4']
+                'default' => [],
+            ],
+            'disable-patchers' => [
+                'type' => 'list',
+                'default' => [],
+            ],
+            'default-patch-depth' => [
+                'type' => 'int',
+                'default' => 1,
             ],
             'patches-file' => [
                 'type' => 'string',
@@ -126,23 +135,21 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
 
     /**
      * Returns an array of event names this subscriber wants to listen to.
+     *
+     * @calls resolvePatches
      */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return array(
-//            ScriptEvents::PRE_INSTALL_CMD => array('checkPatches'),
-//            ScriptEvents::PRE_UPDATE_CMD => array('checkPatches'),
-            PackageEvents::PRE_PACKAGE_INSTALL => array('resolvePatches'),
-            PackageEvents::PRE_PACKAGE_UPDATE => array('resolvePatches'),
-            // The following is a higher weight for compatibility with
-            // https://github.com/AydinHassan/magento-core-composer-installer and
-            // more generally for compatibility with any Composer plugin which
-            // deploys downloaded packages to other locations. In the case that
-            // you want those plugins to deploy patched files, those plugins have
-            // to run *after* this plugin.
+            PackageEvents::PRE_PACKAGE_INSTALL => ['loadLockedPatches'],
+            PackageEvents::PRE_PACKAGE_UPDATE => ['loadLockedPatches'],
+            // The POST_PACKAGE_* events are a higher weight for compatibility with
+            // https://github.com/AydinHassan/magento-core-composer-installer and more generally for compatibility with
+            // any Composer Plugin which deploys downloaded packages to other locations. In the cast that you want
+            // those plugins to deploy patched files, those plugins have to run *after* this plugin.
             // @see: https://github.com/cweagans/composer-patches/pull/153
-            PackageEvents::POST_PACKAGE_INSTALL => array('postInstall', 10),
-            PackageEvents::POST_PACKAGE_UPDATE => array('postInstall', 10),
+            PackageEvents::POST_PACKAGE_INSTALL => ['patchPackage', 10],
+            PackageEvents::POST_PACKAGE_UPDATE => ['patchPackage', 10],
         );
     }
 
@@ -151,214 +158,184 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      *
      * @return array
      */
-    public function getCapabilities()
+    public function getCapabilities(): array
     {
         return [
-            'cweagans\Composer\Capability\ResolverProvider' => 'cweagans\Composer\Capability\CoreResolverProvider',
+            ResolverProvider::class => CoreResolverProvider::class,
+            DownloaderProvider::class => CoreDownloaderProvider::class,
+            PatcherProvider::class => CorePatcherProvider::class,
+            CommandProviderCapability::class => CommandProvider::class,
         ];
     }
 
     /**
-     * Gather a list of all patch resolvers from all enabled Composer plugins.
-     *
-     * @return ResolverBase[]
-     *   A list of PatchResolvers to be run.
+     * Discover patches using all available Resolvers.
      */
-    public function getPatchResolvers()
+    public function resolvePatches()
     {
-        $resolvers = [];
-        $plugin_manager = $this->composer->getPluginManager();
-        foreach (
-            $plugin_manager->getPluginCapabilities(
-                'cweagans\Composer\Capability\ResolverProvider',
-                ['composer' => $this->composer, 'io' => $this->io]
-            ) as $capability
-        ) {
-            /** @var ResolverProvider $capability */
-            $newResolvers = $capability->getResolvers();
-            if (!is_array($newResolvers)) {
-                throw new UnexpectedValueException(
-                    'Plugin capability ' . get_class($capability) . ' failed to return an array from getResolvers().'
-                );
-            }
-            foreach ($newResolvers as $resolver) {
-                if (!$resolver instanceof ResolverBase) {
-                    throw new UnexpectedValueException(
-                        'Plugin capability ' . get_class($capability) . ' returned an invalid value.'
-                    );
-                }
-            }
-            $resolvers = array_merge($resolvers, $newResolvers);
-        }
-
-        return $resolvers;
+        $resolver = new Resolver($this->composer, $this->io, $this->getConfig('disable-resolvers'));
+        return $resolver->loadFromResolvers();
     }
 
     /**
-     * Gather patches that need to be applied to the current set of packages.
-     *
-     * Note that this work is done unconditionally if this plugin is enabled,
-     * even if patching is disabled in any way. The point where patches are applied
-     * is where the work will be skipped. It's done this way to ensure that
-     * patching can be disabled temporarily in a way that doesn't affect the
-     * contents of composer.lock.
+     * Resolve and download patches so that all sha256 sums can be included in the lock file.
+     */
+    public function createNewPatchesLock()
+    {
+        $this->patchCollection = $this->resolvePatches();
+        $downloader = new Downloader($this->composer, $this->io, $this->getConfig('disable-downloaders'));
+        foreach ($this->patchCollection->getPatchedPackages() as $package) {
+            foreach ($this->patchCollection->getPatchesForPackage($package) as $patch) {
+                $this->download($patch);
+                $this->guessDepth($patch);
+            }
+        }
+        $this->locker->setLockData($this->patchCollection);
+    }
+
+    /**
+     * Load previously discovered patches from the Composer lock file.
      *
      * @param PackageEvent $event
-     *   The PackageEvent passed by Composer
+     *   The event provided by Composer.
      */
-    public function resolvePatches(PackageEvent $event)
+    public function loadLockedPatches()
     {
-        // No need to resolve patches more than once.
-        if ($this->patchesResolved) {
+        $locked = $this->locker->isLocked();
+        if (!$locked) {
+            $this->io->write('<warning>patches.lock does not exist. Creating a new patches.lock.</warning>');
+            $this->createNewPatchesLock();
             return;
         }
 
-        // Let each resolver discover patches and add them to the PatchCollection.
-        /** @var ResolverInterface $resolver */
-        foreach ($this->getPatchResolvers() as $resolver) {
-            if (!in_array(get_class($resolver), $this->getConfig('disable-resolvers'), true)) {
-                $resolver->resolve($this->patchCollection, $event);
-            } else {
-                if ($this->io->isVerbose()) {
-                    $this->io->write('<info>  - Skipping resolver ' . get_class($resolver) . '</info>');
-                }
-            }
-        }
-
-        // Make sure we only do this once.
-        $this->patchesResolved = true;
+        $this->patchCollection = PatchCollection::fromJson($this->locker->getLockData());
     }
 
-    /**
-     * Before running composer install,
-     * @param Event $event
-     */
-    public function checkPatches(Event $event)
+    public function download(Patch $patch)
     {
-        if (!$this->isPatchingEnabled()) {
-            return;
+        static $downloader;
+        if (is_null($downloader)) {
+            $downloader = new Downloader($this->composer, $this->io, $this->getConfig('disable-downloaders'));
         }
 
-        try {
-            $repositoryManager = $this->composer->getRepositoryManager();
-            $localRepository = $repositoryManager->getLocalRepository();
-            $installationManager = $this->composer->getInstallationManager();
-            $packages = $localRepository->getPackages();
-
-            $tmp_patches = $this->grabPatches();
-            foreach ($packages as $package) {
-                $extra = $package->getExtra();
-                if (isset($extra['patches'])) {
-                    $this->installedPatches[$package->getName()] = $extra['patches'];
-                }
-                $patches = isset($extra['patches']) ? $extra['patches'] : array();
-                $tmp_patches = Util::arrayMergeRecursiveDistinct($tmp_patches, $patches);
-            }
-
-            if ($tmp_patches === false) {
-                $this->io->write('<info>No patches supplied.</info>');
-                return;
-            }
-
-            // Remove packages for which the patch set has changed.
-            $promises = [];
-            foreach ($packages as $package) {
-                if (!($package instanceof AliasPackage)) {
-                    $package_name = $package->getName();
-                    $extra = $package->getExtra();
-                    $has_patches = isset($tmp_patches[$package_name]);
-                    $has_applied_patches = isset($extra['patches_applied']);
-                    if (
-                        ($has_patches && !$has_applied_patches)
-                        || (!$has_patches && $has_applied_patches)
-                        || (
-                            $has_patches
-                            && $has_applied_patches
-                            && $tmp_patches[$package_name] !== $extra['patches_applied']
-                        )
-                    ) {
-                        $uninstallOperation = new UninstallOperation(
-                            $package,
-                            'Removing package so it can be re-installed and re-patched.'
-                        );
-                        $this->io->write(
-                            '<info>Removing package ' .
-                            $package_name .
-                            ' so that it can be re-installed and re-patched.</info>'
-                        );
-                        $promises[] = $installationManager->uninstall($localRepository, $uninstallOperation);
-                    }
-                }
-            }
-            $promises = array_filter($promises);
-            if ($promises) {
-                $this->composer->getLoop()->wait($promises);
-            }
-        } catch (LogicException $e) {
-            // If the Locker isn't available, then we don't need to do this.
-            // It's the first time packages have been installed.
-            return;
-        }
+        $this->composer->getEventDispatcher()->dispatch(
+            PatchEvents::PRE_PATCH_DOWNLOAD,
+            new PatchEvent(PatchEvents::PRE_PATCH_DOWNLOAD, $patch)
+        );
+        $downloader->downloadPatch($patch);
+        $this->composer->getEventDispatcher()->dispatch(
+            PatchEvents::POST_PATCH_DOWNLOAD,
+            new PatchEvent(PatchEvents::POST_PATCH_DOWNLOAD, $patch)
+        );
     }
 
+    public function guessDepth(Patch $patch)
+    {
+        $event = new PatchEvent(PatchEvents::PRE_PATCH_GUESS_DEPTH, $patch);
+        $this->composer->getEventDispatcher()->dispatch(PatchEvents::PRE_PATCH_GUESS_DEPTH, $event);
+        $patch = $event->getPatch();
+
+        $depth = $patch->depth ??
+            Util::getDefaultPackagePatchDepth($patch->package) ??
+            $this->getConfig('default-patch-depth');
+        $patch->depth = $depth;
+    }
+
+    public function apply(Patch $patch, string $install_path)
+    {
+        static $patcher;
+        if (is_null($patcher)) {
+            $patcher = new Patcher($this->composer, $this->io, $this->getConfig('disable-patchers'));
+        }
+
+        $this->guessDepth($patch);
+
+        $event = new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $patch);
+        $this->composer->getEventDispatcher()->dispatch(PatchEvents::PRE_PATCH_APPLY, $event);
+        $patch = $event->getPatch();
+
+        $this->io->write(
+            "      - Applying patch <info>{$patch->localPath}</info> (depth: {$patch->depth})",
+            true,
+            IOInterface::DEBUG
+        );
+
+        $status = $patcher->applyPatch($patch, $install_path);
+        if ($status === false) {
+            throw new Exception("No available patcher was able to apply patch {$patch->url} to {$patch->package}");
+        }
+
+        $this->composer->getEventDispatcher()->dispatch(
+            PatchEvents::POST_PATCH_APPLY,
+            new PatchEvent(PatchEvents::POST_PATCH_APPLY, $patch)
+        );
+    }
+
+
     /**
+     * Download and apply patches.
+     *
      * @param PackageEvent $event
-     * @throws Exception
+     *   The event that Composer provided to us.
      */
-    public function postInstall(PackageEvent $event)
+    public function patchPackage(PackageEvent $event)
     {
-        // Get the package object for the current operation.
-        $operation = $event->getOperation();
-        /** @var PackageInterface $package */
-        $package = $this->getPackageFromOperation($operation);
-        $package_name = $package->getName();
-
-        if (empty($this->patchCollection->getPatchesForPackage($package_name))) {
-            if ($this->io->isVerbose()) {
-                $this->io->write('<info>No patches found for ' . $package_name . '.</info>');
-            }
+        // Sometimes, patchPackage is called before a patch loading function (for instance, when composer-patches itself
+        // is installed -- the pre-install event can't be invoked before this plugin is installed, but the post-install
+        // event *can* be. Skipping composer-patches and composer-configurable-plugin ensures that this plugin and its
+        // dependency won't cause an error to be thrown when attempting to read from an uninitialized PatchCollection.
+        // This also means that neither composer-patches nor composer-configurable-plugin can have patches applied.
+        $package = $this->getPackageFromOperation($event->getOperation());
+        if (in_array($package->getName(), ['cweagans/composer-patches', 'cweagans/composer-configurable-plugin'])) {
             return;
         }
-        $this->io->write('  - Applying patches for <info>' . $package_name . '</info>');
-        // Get the installation path from the package object.
-        $manager = $event->getComposer()->getInstallationManager();
-        $install_path = $manager->getInstaller($package->getType())->getInstallPath($package);
 
-        // Set up a downloader.
-        $downloader = new HttpDownloader($this->io, $this->composer->getConfig());
-
-        // Track applied patches in the package info in installed.json
-        $localRepository = $this->composer->getRepositoryManager()->getLocalRepository();
-        $localPackage = $localRepository->findPackage($package_name, $package->getVersion());
-        $extra = $localPackage->getExtra();
-        $extra['patches_applied'] = array();
-
-        foreach ($this->patchCollection->getPatchesForPackage($package_name) as $patch) {
-            /** @var Patch $patch */
-            $this->io->write('    <info>' . $patch->url . '</info> (<comment>' . $patch->description . '</comment>)');
-            try {
-                $this->composer->getEventDispatcher()->dispatch(
-                    null,
-                    new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $package, $patch->url, $patch->description)
-                );
-                $this->getAndApplyPatch($downloader, $install_path, $patch->url);
-                $this->composer->getEventDispatcher()->dispatch(
-                    null,
-                    new PatchEvent(PatchEvents::POST_PATCH_APPLY, $package, $patch->url, $patch->description)
-                );
-                $extra['patches_applied'][$patch->description] = $patch->url;
-            } catch (Exception $e) {
-                $this->io->write(
-                    '   <error>Could not apply patch! Skipping. The error was: ' .
-                    $e->getMessage() .
-                    '</error>'
-                );
-                if ($this->getConfig('exit-on-patch-failure')) {
-                    throw new Exception("Cannot apply patch $patch->description ($patch->url)!");
-                }
-            }
+        // If there aren't any patches, there's nothing to do.
+        if (empty($this->patchCollection->getPatchesForPackage($package->getName()))) {
+            $this->io->write(
+                "No patches found for <info>{$package->getName()}</info>",
+                true,
+                IOInterface::DEBUG,
+            );
+            return;
         }
-//        $localPackage->setExtra($extra);
+
+        $install_path = $this->composer->getInstallationManager()
+            ->getInstaller($package->getType())
+            ->getInstallPath($package);
+
+        $this->io->write("  - Patching <info>{$package->getName()}</info>");
+
+        foreach ($this->patchCollection->getPatchesForPackage($package->getName()) as $patch) {
+            /** @var $patch Patch */
+
+            // Download patch.
+            $this->io->write(
+                "    - Downloading and applying patch <info>{$patch->url}</info> ({$patch->description})",
+                true,
+                IOInterface::VERBOSE
+            );
+
+            $this->io->write("      - Downloading patch <info>{$patch->url}</info>", true, IOInterface::DEBUG);
+
+            $this->download($patch);
+            $this->guessDepth($patch);
+
+            // Apply patch.
+            $this->io->write(
+                "      - Applying downloaded patch <info>{$patch->localPath}</info>",
+                true,
+                IOInterface::DEBUG
+            );
+
+            $this->apply($patch, $install_path);
+        }
+
+        $this->io->write(
+            "  - All patches for <info>{$package->getName()}</info> have been applied.",
+            true,
+            IOInterface::DEBUG
+        );
     }
 
     /**
@@ -366,185 +343,40 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      *
      * @param OperationInterface $operation
      * @return PackageInterface
-     * @throws Exception
+     * @throws InvalidArgumentException
      */
-    protected function getPackageFromOperation(OperationInterface $operation)
+    protected function getPackageFromOperation(OperationInterface $operation): PackageInterface
     {
         if ($operation instanceof InstallOperation) {
             $package = $operation->getPackage();
         } elseif ($operation instanceof UpdateOperation) {
             $package = $operation->getTargetPackage();
         } else {
-            throw new Exception('Unknown operation: ' . get_class($operation));
+            throw new InvalidArgumentException('Unknown operation: ' . get_class($operation));
         }
 
         return $package;
     }
 
-    /**
-     * Apply a patch on code in the specified directory.
-     *
-     * @param HttpDownloader $downloader
-     * @param $install_path
-     * @param $patch_url
-     * @throws Exception
-     */
-    protected function getAndApplyPatch(HttpDownloader $downloader, $install_path, $patch_url)
+    public function getLocker(): Locker
     {
-        // Local patch file.
-        if (file_exists($patch_url)) {
-            $filename = realpath($patch_url);
-        } else {
-            // Generate random (but not cryptographically so) filename.
-            $filename = uniqid(sys_get_temp_dir() . '/') . ".patch";
-
-            try {
-                $downloader->copy($patch_url, $filename, []);
-            } catch (\Exception $e) {
-                // In case of an exception, retry once as the download might
-                // have failed due to intermittent network issues.
-                $downloader->copy($patch_url, $filename, []);
-            }
-        }
-
-        // Modified from drush6:make.project.inc
-        $patched = false;
-        // The order here is intentional. p1 is most likely to apply with git apply.
-        // p0 is next likely. p2 is extremely unlikely, but for some special cases,
-        // it might be useful. p4 is useful for Magento 2 patches
-        $patch_levels = $this->getConfig('patch-levels');
-        foreach ($patch_levels as $patch_level) {
-            if ($this->io->isVerbose()) {
-                $comment = 'Testing ability to patch with git apply.';
-                $comment .= ' This command may produce errors that can be safely ignored.';
-                $this->io->write('<comment>' . $comment . '</comment>');
-            }
-            $checked = $this->executeCommand(
-                'git -C %s apply --check -v %s %s',
-                $install_path,
-                $patch_level,
-                $filename
-            );
-            $output = $this->executor->getErrorOutput();
-            if (substr($output, 0, 7) === 'Skipped') {
-                // Git will indicate success but silently skip patches in some scenarios.
-                //
-                // @see https://github.com/cweagans/composer-patches/pull/165
-                $checked = false;
-            }
-            if ($checked) {
-                // Apply the first successful style.
-                $patched = $this->executeCommand(
-                    'git -C %s apply %s %s',
-                    $install_path,
-                    $patch_level,
-                    $filename
-                );
-                break;
-            }
-        }
-
-        // In some rare cases, git will fail to apply a patch, fallback to using
-        // the 'patch' command.
-        if (!$patched) {
-            // This is a workaround for the outdated patch version on BSD
-            // systems which doesn't support this option -> use posix then.
-            // --no-backup-if-mismatch here is a hack that fixes some
-            // differences between how patch works on windows and unix.
-            $patch_options = '--no-backup-if-mismatch';
-            if (PHP_OS_FAMILY == 'BSD') {
-                $patch_options = '--posix --batch';
-            }
-            foreach ($patch_levels as $patch_level) {
-                if (
-                    $patched = $this->executeCommand(
-                        "patch %s %s -d %s < %s",
-                        $patch_level,
-                        $patch_options,
-                        $install_path,
-                        $filename
-                    )
-                ) {
-                    break;
-                }
-            }
-        }
-
-        // Clean up the temporary patch file.
-        if (isset($hostname)) {
-            unlink($filename);
-        }
-        // If the patch *still* isn't applied, then give up and throw an Exception.
-        // Otherwise, let the user know it worked.
-        if (!$patched) {
-            throw new Exception("Cannot apply patch $patch_url");
-        }
+        return $this->locker;
     }
 
-    /**
-     * Checks if the root package enables patching.
-     *
-     * @return bool
-     *   Whether patching is enabled. Defaults to true.
-     */
-    protected function isPatchingEnabled()
+    public function getLockFile(): JsonFile
     {
-        $enabled = true;
-
-        $has_no_patches = empty($extra['patches']);
-        $has_no_patches_file = ($this->getConfig('patches-file') === '');
-        $patching_disabled = $this->getConfig('disable-patching');
-
-        if ($patching_disabled || !($has_no_patches && $has_no_patches_file)) {
-            $enabled = false;
-        }
-
-        return $enabled;
+        return $this->lockFile;
     }
 
-    /**
-     * Executes a shell command with escaping.
-     *
-     * @param string $cmd
-     * @return bool
-     */
-    protected function executeCommand($cmd)
+    public function getPatchCollection(): ?PatchCollection
     {
-        // Shell-escape all arguments except the command.
-        $args = func_get_args();
-        foreach ($args as $index => $arg) {
-            if ($index !== 0) {
-                $args[$index] = escapeshellarg($arg);
-            }
-        }
-
-        // And replace the arguments.
-        $command = call_user_func_array('sprintf', $args);
-        $output = '';
-        if ($this->io->isVerbose()) {
-            $this->io->write('<comment>' . $command . '</comment>');
-            $io = $this->io;
-            $output = function ($type, $data) use ($io) {
-                if ($type === Process::ERR) {
-                    $io->write('<error>' . $data . '</error>');
-                } else {
-                    $io->write('<comment>' . $data . '</comment>');
-                }
-            };
-        }
-        return ($this->executor->execute($command, $output) === 0);
+        return $this->patchCollection;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function deactivate(Composer $composer, IOInterface $io)
     {
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function uninstall(Composer $composer, IOInterface $io)
     {
     }

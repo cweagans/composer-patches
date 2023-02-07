@@ -1,6 +1,7 @@
 /codeception.yml
 /tests/_data/fixtures/**/vendor/
 /tests/_data/fixtures/**/composer.lock
+/tests/_data/fixtures/**/patches.lock
 /tests/_output/
 /tests/_support/_generated/
 /tests/*.suite.yml
