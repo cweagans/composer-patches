@@ -41,7 +41,7 @@ class Composer extends Module
      * $I->runComposerCommand('install', [], false);
      * ```
      */
-    public function runComposerCommand(string $command, array $args, bool $failIfNonZero = true): void
+    public function runComposerCommand(string $command, array $args = [], bool $failIfNonZero = true): void
     {
         $input = new ArrayInput(['command' => $command, ...$args]);
         $output = new BufferedOutput();
