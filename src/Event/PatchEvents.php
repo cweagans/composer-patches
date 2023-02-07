@@ -10,6 +10,15 @@ namespace cweagans\Composer\Event;
 class PatchEvents
 {
     /**
+     * The PRE_GUESS_DEPTH event occurs before a depth is guessed for a patch.
+     *
+     * The event listener method receives a cweagans\Composer\Event\PatchEvent instance.
+     *
+     * @var string
+     */
+    public const PRE_PATCH_GUESS_DEPTH = 'pre-patch-guess-depth';
+
+    /**
      * The PRE_PATCH_DOWNLOAD event occurs before a patch is downloaded
      *
      * The event listener method receives a cweagans\Composer\Event\PatchEvent instance.
