@@ -45,6 +45,19 @@ class PatchCollection implements JsonSerializable
     }
 
     /**
+     * Delete all patches for a package.
+     *
+     * @param string $package
+     *   The package name to clear patches from.
+     */
+    public function clearPatchesForPackage(string $package): void
+    {
+        if (isset($this->patches[$package])) {
+            unset($this->patches[$package]);
+        }
+    }
+
+    /**
      * Create a PatchCollection from a serialized representation.
      *
      * @param $json

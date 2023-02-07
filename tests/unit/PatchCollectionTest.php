@@ -49,6 +49,9 @@ class PatchCollectionTest extends Unit
                 $this->assertEquals($package_name, $patch->package);
             }
         }
+
+        $collection->clearPatchesForPackage('other/package');
+        $this->assertCount(0, $collection->getPatchesForPackage('other/package'));
     }
 
     public function testSerializeDeserialize()
