@@ -45,6 +45,16 @@ class PatchCollection implements JsonSerializable
     }
 
     /**
+     * Get a list of packages that have patches applied.
+     *
+     * @return array
+     */
+    public function getPatchedPackages(): array
+    {
+        return array_keys($this->patches);
+    }
+
+    /**
      * Delete all patches for a package.
      *
      * @param string $package

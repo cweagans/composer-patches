@@ -50,8 +50,18 @@ class PatchCollectionTest extends Unit
             }
         }
 
+        $packages = $collection->getPatchedPackages();
+        $this->assertCount(2, $packages);
+        $this->assertContains('other/package', $packages);
+        $this->assertContains('some/package', $packages);
+
         $collection->clearPatchesForPackage('other/package');
         $this->assertCount(0, $collection->getPatchesForPackage('other/package'));
+
+        $packages = $collection->getPatchedPackages();
+        $this->assertCount(1, $packages);
+        $this->assertNotContains('other/package', $packages);
+        $this->assertContains('some/package', $packages);
     }
 
     public function testSerializeDeserialize()
