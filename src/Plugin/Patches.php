@@ -18,11 +18,11 @@ use Composer\Installer\PackageEvents;
 use Composer\IO\IOInterface;
 use Composer\Json\JsonFile;
 use Composer\Package\PackageInterface;
+use Composer\Plugin\Capability\CommandProvider as CommandProviderCapability;
 use Composer\Plugin\Capable;
 use Composer\Plugin\PluginInterface;
-use Composer\Script\Event as ScriptEvent;
-use Composer\Script\ScriptEvents;
 use Composer\Util\ProcessExecutor;
+use cweagans\Composer\Capability\CommandProvider;
 use cweagans\Composer\Capability\Downloader\CoreDownloaderProvider;
 use cweagans\Composer\Capability\Downloader\DownloaderProvider;
 use cweagans\Composer\Capability\Patcher\CorePatcherProvider;
@@ -83,6 +83,8 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
 
     protected Locker $locker;
 
+    protected JsonFile $lockFile;
+
     /**
      * Apply plugin modifications to composer
      *
@@ -96,14 +98,12 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         $this->executor = new ProcessExecutor($this->io);
         $this->patches = array();
         $this->installedPatches = array();
-
-        $this->locker = new Locker(
-            new JsonFile(
-                dirname(realpath(\Composer\Factory::getComposerFile())) . '/patches.lock',
-                null,
-                $this->io
-            )
+        $this->lockFile = new JsonFile(
+            dirname(realpath(\Composer\Factory::getComposerFile())) . '/patches.lock',
+            null,
+            $this->io
         );
+        $this->locker = new Locker($this->lockFile);
         $this->configuration = [
             'disable-patching' => [
                 'type' => 'bool',
@@ -142,7 +142,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
     {
         return array(
             PackageEvents::PRE_PACKAGE_INSTALL => ['loadLockedPatches'],
-            PackageEvents::PRE_PACKAGE_UPDATE => ['loadPatchesFromResolvers'],
+            PackageEvents::PRE_PACKAGE_UPDATE => ['loadLockedPatches'],
             // The POST_PACKAGE_* events are a higher weight for compatibility with
             // https://github.com/AydinHassan/magento-core-composer-installer and more generally for compatibility with
             // any Composer Plugin which deploys downloaded packages to other locations. In the cast that you want
@@ -150,12 +150,6 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             // @see: https://github.com/cweagans/composer-patches/pull/153
             PackageEvents::POST_PACKAGE_INSTALL => ['patchPackage', 10],
             PackageEvents::POST_PACKAGE_UPDATE => ['patchPackage', 10],
-            ScriptEvents::POST_INSTALL_CMD => ['lockPatches'],
-            ScriptEvents::POST_UPDATE_CMD => ['lockPatches'],
-//            ScriptEvents::PRE_INSTALL_CMD => array('checkPatches'),
-//            ScriptEvents::PRE_UPDATE_CMD => array('checkPatches'),
-//            PackageEvents::POST_PACKAGE_INSTALL => array('postInstall', 10),
-//            PackageEvents::POST_PACKAGE_UPDATE => array('postInstall', 10),
         );
     }
 
@@ -170,19 +164,33 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             ResolverProvider::class => CoreResolverProvider::class,
             DownloaderProvider::class => CoreDownloaderProvider::class,
             PatcherProvider::class => CorePatcherProvider::class,
+            CommandProviderCapability::class => CommandProvider::class,
         ];
     }
 
     /**
      * Discover patches using all available Resolvers.
-     *
-     * @param PackageEvent $event
-     *   The event provided by Composer.
      */
-    public function loadPatchesFromResolvers(PackageEvent $event)
+    public function resolvePatches()
     {
         $resolver = new Resolver($this->composer, $this->io, $this->getConfig('disable-resolvers'));
-        $this->patchCollection = $resolver->loadFromResolvers();
+        return $resolver->loadFromResolvers();
+    }
+
+    /**
+     * Resolve and download patches so that all sha256 sums can be included in the lock file.
+     */
+    public function createNewPatchesLock()
+    {
+        $this->patchCollection = $this->resolvePatches();
+        $downloader = new Downloader($this->composer, $this->io, $this->getConfig('disable-downloaders'));
+        foreach ($this->patchCollection->getPatchedPackages() as $package) {
+            foreach ($this->patchCollection->getPatchesForPackage($package) as $patch) {
+                $this->download($patch);
+                $this->guessDepth($patch);
+            }
+        }
+        $this->locker->setLockData($this->patchCollection);
     }
 
     /**
@@ -191,26 +199,78 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
      * @param PackageEvent $event
      *   The event provided by Composer.
      */
-    public function loadLockedPatches(PackageEvent $event)
+    public function loadLockedPatches()
     {
-        $resolver = new Resolver($this->composer, $this->io, $this->getConfig('disable-resolvers'));
-        $resolver->silenceOutput();
-        $this->patchCollection = $resolver->loadFromResolvers();
-        $resolver->unsilenceOutput();
-
         $locked = $this->locker->isLocked();
         if (!$locked) {
-            $this->io->write('<warning>patches.lock does not exist and will be written.</warning>');
+            $this->io->write('<warning>patches.lock does not exist. Creating a new patches.lock.</warning>');
+            $this->createNewPatchesLock();
             return;
         }
 
-        // After resolving patches
-//        if (!$this->locker->isFresh($this->patchCollection)) {
-//            $this->io->write('<warning>patches.lock is not up to date.</warning>');
-//        }
-
         $this->patchCollection = PatchCollection::fromJson($this->locker->getLockData());
     }
+
+    public function download(Patch $patch)
+    {
+        static $downloader;
+        if (is_null($downloader)) {
+            $downloader = new Downloader($this->composer, $this->io, $this->getConfig('disable-downloaders'));
+        }
+
+        $this->composer->getEventDispatcher()->dispatch(
+            PatchEvents::PRE_PATCH_DOWNLOAD,
+            new PatchEvent(PatchEvents::PRE_PATCH_DOWNLOAD, $patch)
+        );
+        $downloader->downloadPatch($patch);
+        $this->composer->getEventDispatcher()->dispatch(
+            PatchEvents::POST_PATCH_DOWNLOAD,
+            new PatchEvent(PatchEvents::POST_PATCH_DOWNLOAD, $patch)
+        );
+    }
+
+    public function guessDepth(Patch $patch)
+    {
+        $event = new PatchEvent(PatchEvents::PRE_PATCH_GUESS_DEPTH, $patch);
+        $this->composer->getEventDispatcher()->dispatch(PatchEvents::PRE_PATCH_GUESS_DEPTH, $event);
+        $patch = $event->getPatch();
+
+        $depth = $patch->depth ??
+            Util::getDefaultPackagePatchDepth($patch->package) ??
+            $this->getConfig('default-patch-depth');
+        $patch->depth = $depth;
+    }
+
+    public function apply(Patch $patch, string $install_path)
+    {
+        static $patcher;
+        if (is_null($patcher)) {
+            $patcher = new Patcher($this->composer, $this->io, $this->getConfig('disable-patchers'));
+        }
+
+        $this->guessDepth($patch);
+
+        $event = new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $patch);
+        $this->composer->getEventDispatcher()->dispatch(PatchEvents::PRE_PATCH_APPLY, $event);
+        $patch = $event->getPatch();
+
+        $this->io->write(
+            "      - Applying patch <info>{$patch->localPath}</info> (depth: {$patch->depth})",
+            true,
+            IOInterface::DEBUG
+        );
+
+        $status = $patcher->applyPatch($patch, $install_path);
+        if ($status === false) {
+            throw new Exception("No available patcher was able to apply patch {$patch->url} to {$patch->package}");
+        }
+
+        $this->composer->getEventDispatcher()->dispatch(
+            PatchEvents::POST_PATCH_APPLY,
+            new PatchEvent(PatchEvents::POST_PATCH_APPLY, $patch)
+        );
+    }
+
 
     /**
      * Download and apply patches.
@@ -240,9 +300,6 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             return;
         }
 
-        $downloader = new Downloader($this->composer, $this->io, $this->getConfig('disable-downloaders'));
-        $patcher = new Patcher($this->composer, $this->io, $this->getConfig('disable-patchers'));
-
         $install_path = $this->composer->getInstallationManager()
             ->getInstaller($package->getType())
             ->getInstallPath($package);
@@ -261,15 +318,8 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
 
             $this->io->write("      - Downloading patch <info>{$patch->url}</info>", true, IOInterface::DEBUG);
 
-            $this->composer->getEventDispatcher()->dispatch(
-                PatchEvents::PRE_PATCH_DOWNLOAD,
-                new PatchEvent(PatchEvents::PRE_PATCH_DOWNLOAD, $package, $patch)
-            );
-            $downloader->downloadPatch($patch);
-            $this->composer->getEventDispatcher()->dispatch(
-                PatchEvents::POST_PATCH_DOWNLOAD,
-                new PatchEvent(PatchEvents::POST_PATCH_DOWNLOAD, $package, $patch)
-            );
+            $this->download($patch);
+            $this->guessDepth($patch);
 
             // Apply patch.
             $this->io->write(
@@ -278,31 +328,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                 IOInterface::DEBUG
             );
 
-            $event = new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $package, $patch);
-            $this->composer->getEventDispatcher()->dispatch(PatchEvents::PRE_PATCH_APPLY, $event);
-            $patch = $event->getPatch();
-
-            $depth = $patch->depth ??
-                Util::getDefaultPackagePatchDepth($patch->package) ??
-                $this->getConfig('default-patch-depth');
-
-            $patch->depth = $depth;
-
-            $this->io->write(
-                "      - Applying patch <info>{$patch->localPath}</info> (depth: {$patch->depth})",
-                true,
-                IOInterface::DEBUG
-            );
-
-            $status = $patcher->applyPatch($patch, $install_path);
-            if ($status === false) {
-                throw new Exception("No available patcher was able to apply patch {$patch->url} to {$patch->package}");
-            }
-
-            $this->composer->getEventDispatcher()->dispatch(
-                PatchEvents::POST_PATCH_APPLY,
-                new PatchEvent(PatchEvents::POST_PATCH_APPLY, $package, $patch)
-            );
+            $this->apply($patch, $install_path);
         }
 
         $this->io->write(
@@ -310,21 +336,6 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             true,
             IOInterface::DEBUG
         );
-    }
-
-    public function lockPatches(ScriptEvent $event)
-    {
-        // In the event that nothing was installed or updated, patchCollection can be null.
-        // Luckily, in the case, we don't need to do anything.
-        if (!isset($this->patchCollection)) {
-            return;
-        }
-
-        if ($this->locker->isLocked() && $this->locker->isFresh($this->patchCollection)) {
-            return;
-        }
-
-        $this->locker->setLockData($this->patchCollection, true);
     }
 
     /**
@@ -345,6 +356,21 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         }
 
         return $package;
+    }
+
+    public function getLocker(): Locker
+    {
+        return $this->locker;
+    }
+
+    public function getLockFile(): JsonFile
+    {
+        return $this->lockFile;
+    }
+
+    public function getPatchCollection(): ?PatchCollection
+    {
+        return $this->patchCollection;
     }
 
     public function deactivate(Composer $composer, IOInterface $io)
