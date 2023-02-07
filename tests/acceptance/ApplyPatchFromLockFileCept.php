@@ -19,8 +19,6 @@ $I->runShellCommand('rm -r vendor');
 $I->runShellCommand('mv composer.json composer_old.json');
 $I->runShellCommand('cp composer2.json composer.json');
 $I->runComposerCommand('install', ['-vvv']);
-
-// TODO: These assertions fail because it's applying the wrong patch.
 $I->canSeeFileFound('./vendor/cweagans/composer-patches-testrepo/src/OneMoreTest.php');
 $I->cantSeeFileFound('./vendor/cweagans/composer-patches-testrepo/src/YetAnotherTest.php');
 
