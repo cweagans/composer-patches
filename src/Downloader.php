@@ -18,11 +18,18 @@ class Downloader
 
     protected array $disabledDownloaders;
 
+    protected string $cacheDir;
+
     public function __construct(Composer $composer, IOInterface $io, array $disabledDownloaders)
     {
         $this->composer = $composer;
         $this->io = $io;
         $this->disabledDownloaders = $disabledDownloaders;
+
+        $this->cacheDir = $composer->getConfig()->get('cache-dir') . '/patches';
+        if (!is_dir($this->cacheDir)) {
+            mkdir($this->cacheDir);
+        }
     }
 
     /**
@@ -35,6 +42,15 @@ class Downloader
      */
     public function downloadPatch(Patch $patch)
     {
+        if (isset($patch->sha256)) {
+            $cachedPatch = $this->cacheDir . '/' . $patch->sha256 . '.patch';
+            if (file_exists($cachedPatch)) {
+                $this->io->write("  - Found cached patch at <info>{$cachedPatch}</info>", IOInterface::VERBOSE);
+                $patch->localPath = $cachedPatch;
+                return;
+            }
+        }
+
         foreach ($this->getDownloaders() as $downloader) {
             if (in_array(get_class($downloader), $this->disabledDownloaders, true)) {
                 if ($this->io->isVerbose()) {
@@ -46,6 +62,10 @@ class Downloader
             $downloader->download($patch);
 
             if (isset($patch->localPath)) {
+                $cachedPatch = $this->cacheDir . '/' . $patch->sha256 . '.patch';
+                if (rename($patch->localPath, $cachedPatch)) {
+                    $patch->localPath = $cachedPatch;
+                }
                 return;
             }
         }
