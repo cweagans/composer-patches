@@ -39,7 +39,7 @@ class GitPatcher extends PatcherBase
 
         // Otherwise, we can try to apply the patch.
         return $this->executeCommand(
-            '%s -C %s apply -p%s %s',
+            '%s -C %s apply -p%s --verbose %s',
             $this->patchTool(),
             $path,
             $patch->depth,

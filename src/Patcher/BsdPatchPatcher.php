@@ -15,7 +15,7 @@ class BsdPatchPatcher extends PatcherBase
         // TODO: Dry run first?
 
         return $this->executeCommand(
-            '%s -p%s --posix --batch -d %s -i %s',
+            '%s -p%s --verbose --posix --batch -d %s -i %s',
             $this->patchTool(),
             $patch->depth,
             $path,
