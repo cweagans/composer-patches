@@ -12,7 +12,16 @@ class BsdPatchPatcher extends PatcherBase
 
     public function apply(Patch $patch, string $path): bool
     {
-        // TODO: Dry run first?
+        $status = $this->executeCommand(
+            '%s -p%s --posix --batch --dry-run -d %s -i %s',
+            $this->patchTool(),
+            $patch->depth,
+            $path,
+            $patch->localPath
+        );
+        if (!$status) {
+            return false;
+        }
 
         return $this->executeCommand(
             '%s -p%s --verbose --posix --batch -d %s -i %s',
