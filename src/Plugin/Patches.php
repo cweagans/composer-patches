@@ -125,6 +125,10 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                 'type' => 'int',
                 'default' => 1,
             ],
+            'package-depths' => [
+                'type' => 'list',
+                'default' => [],
+            ],
             'patches-file' => [
                 'type' => 'string',
                 'default' => '',
@@ -236,6 +240,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         $patch = $event->getPatch();
 
         $depth = $patch->depth ??
+            $this->getConfig('package-depths')[$patch->package] ??
             Util::getDefaultPackagePatchDepth($patch->package) ??
             $this->getConfig('default-patch-depth');
         $patch->depth = $depth;
