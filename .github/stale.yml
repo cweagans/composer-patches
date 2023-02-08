@@ -1,8 +1,9 @@
-daysUntilStale: 60
+daysUntilStale: 30
 daysUntilClose: 7
 exemptLabels:
   - pinned
-  - security
+  - help-wanted
+  - no-stale
 staleLabel: stale
 markComment: >
   This issue has been automatically marked as stale because it has not had
