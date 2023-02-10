@@ -14,7 +14,6 @@ body:
     attributes:
       label: "Which file do you have feedback about? (leave blank if not applicable)"
       description: "If this is feedback or a request about a specific file, enter the path here."
-      render: shell
   - type: textarea
     attributes:
       label: Feedback
