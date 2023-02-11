@@ -43,6 +43,12 @@ body:
   - type: textarea
     attributes:
       render: shell
+      label: "Full output of `composer patches-doctor`"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      render: shell
       label: "Full output of relevant Composer command with the `-vvv` flag added"
     validations:
       required: true
