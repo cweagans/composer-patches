@@ -89,7 +89,11 @@ class Patcher
                 }
 
                 $usable = $patcher->canUse();
-                $this->io->write(self::class . " usable: " . ($usable ? "yes" : "no"), true, IOInterface::DEBUG);
+                $this->io->write(
+                    get_class($patcher) . " usable: " . ($usable ? "yes" : "no"),
+                    true,
+                    IOInterface::DEBUG
+                );
 
                 if (!$usable) {
                     unset($newPatchers[$i]);
