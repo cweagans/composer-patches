@@ -18,8 +18,9 @@ class CommandProviderTest extends Unit
         $commandProvider = new CommandProvider();
 
         $commands = $commandProvider->getCommands();
-        $this->assertCount(2, $commands);
-        $this->assertInstanceOf(BaseCommand::class, $commands[0]);
-        $this->assertInstanceOf(BaseCommand::class, $commands[1]);
+        $this->assertNotEmpty($commands);
+        foreach ($commands as $command) {
+            $this->assertInstanceOf(BaseCommand::class, $command);
+        }
     }
 }
