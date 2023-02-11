@@ -5,11 +5,7 @@ weight: 10
 
 {{< lead text="The plugin ships with reasonable defaults that should work on most environments, but many behaviors are configurable." >}}
 
-
-
 ## Configuration provided by Composer Patches
-
-
 
 ### `patches-file`
 
