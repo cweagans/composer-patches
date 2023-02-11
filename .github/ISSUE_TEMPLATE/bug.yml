@@ -15,9 +15,8 @@ body:
           required: true
         - label: I have searched existing issues _and_ discussions for my problem.
           required: true
-          # TODO: Write troubleshooting guide.
-  #        - label: My problem is _not_ addressed in the troubleshooting guide
-  #          required: true
+        - label: My problem is _not_ addressed in the [troubleshooting guide](https://docs.cweagans.net/composer-patches/troubleshooting/guide).
+          required: true
   - type: textarea
     attributes:
       label: "What were you trying to do (and why)?"
