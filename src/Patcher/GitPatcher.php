@@ -51,10 +51,6 @@ class GitPatcher extends PatcherBase
     {
         $output = "";
         $result = $this->executor->execute($this->patchTool() . ' --version', $output);
-        $usable = ($result === 0);
-
-        $this->io->write(self::class . " usable: " . ($usable ? "yes" : "no"), true, IOInterface::DEBUG);
-
-        return $usable;
+        return ($result === 0);
     }
 }

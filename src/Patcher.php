@@ -88,7 +88,10 @@ class Patcher
                     );
                 }
 
-                if (!$patcher->canUse()) {
+                $usable = $patcher->canUse();
+                $this->io->write(self::class . " usable: " . ($usable ? "yes" : "no"), true, IOInterface::DEBUG);
+
+                if (!$usable) {
                     unset($newPatchers[$i]);
                 }
             }

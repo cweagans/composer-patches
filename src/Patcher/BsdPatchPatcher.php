@@ -37,10 +37,6 @@ class BsdPatchPatcher extends PatcherBase
         $output = "";
         $result = $this->executor->execute($this->patchTool() . ' --version', $output);
         // TODO: Is it a valid assumption to assume that if GNU is *not* in the version output, that it's BSD patch?
-        $usable = ($result === 0) && (!str_contains($output, 'GNU patch'));
-
-        $this->io->write(self::class . " usable: " . ($usable ? "yes" : "no"), true, IOInterface::DEBUG);
-
-        return $usable;
+        return ($result === 0) && (!str_contains($output, 'GNU patch'));
     }
 }
