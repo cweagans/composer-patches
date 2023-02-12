@@ -28,6 +28,8 @@ class PluginEventTest extends Unit
         $plugin_event = new PluginEvent($event_name, $capabilities, $composer, $io);
         $this->assertEquals($event_name, $plugin_event->getName());
         $this->assertEquals($capabilities, $plugin_event->getCapabilities());
+        $this->assertEquals($composer, $plugin_event->getComposer());
+        $this->assertEquals($io, $plugin_event->getIO());
 
         $plugin_event->setCapabilities(['something']);
         $this->assertEquals(['something'], $plugin_event->getCapabilities());
