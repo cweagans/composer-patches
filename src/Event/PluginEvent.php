@@ -2,7 +2,9 @@
 
 namespace cweagans\Composer\Event;
 
+use Composer\Composer;
 use Composer\EventDispatcher\Event;
+use Composer\IO\IOInterface;
 
 class PluginEvent extends Event
 {
@@ -12,15 +14,27 @@ class PluginEvent extends Event
     protected array $capabilities;
 
     /**
+     * @var Composer $composer
+     */
+    protected Composer $composer;
+
+    /**
+     * @var IOInterface $io
+     */
+    protected IOInterface $io;
+
+    /**
      * Constructs a PluginEvent object.
      *
      * @param string $eventName
      * @param array $capabilities
      */
-    public function __construct(string $eventName, array $capabilities)
+    public function __construct(string $eventName, array $capabilities, Composer $composer, IOInterface $io)
     {
         parent::__construct($eventName);
         $this->capabilities = $capabilities;
+        $this->composer = $composer;
+        $this->io = $io;
     }
 
     /**
@@ -45,5 +59,25 @@ class PluginEvent extends Event
     public function setCapabilities(array $capabilities): void
     {
         $this->capabilities = $capabilities;
+    }
+
+    /**
+     * Returns the Composer object.
+     *
+     * @return Composer
+     */
+    public function getComposer(): Composer
+    {
+        return $this->composer;
+    }
+
+    /**
+     * Returns the IOInterface.
+     *
+     * @return IOInterface
+     */
+    public function getIO(): IOInterface
+    {
+        return $this->io;
     }
 }

@@ -224,18 +224,18 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
 
         $this->composer->getEventDispatcher()->dispatch(
             PatchEvents::PRE_PATCH_DOWNLOAD,
-            new PatchEvent(PatchEvents::PRE_PATCH_DOWNLOAD, $patch)
+            new PatchEvent(PatchEvents::PRE_PATCH_DOWNLOAD, $patch, $this->composer, $this->io)
         );
         $downloader->downloadPatch($patch);
         $this->composer->getEventDispatcher()->dispatch(
             PatchEvents::POST_PATCH_DOWNLOAD,
-            new PatchEvent(PatchEvents::POST_PATCH_DOWNLOAD, $patch)
+            new PatchEvent(PatchEvents::POST_PATCH_DOWNLOAD, $patch, $this->composer, $this->io)
         );
     }
 
     public function guessDepth(Patch $patch)
     {
-        $event = new PatchEvent(PatchEvents::PRE_PATCH_GUESS_DEPTH, $patch);
+        $event = new PatchEvent(PatchEvents::PRE_PATCH_GUESS_DEPTH, $patch, $this->composer, $this->io);
         $this->composer->getEventDispatcher()->dispatch(PatchEvents::PRE_PATCH_GUESS_DEPTH, $event);
         $patch = $event->getPatch();
 
@@ -255,7 +255,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
 
         $this->guessDepth($patch);
 
-        $event = new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $patch);
+        $event = new PatchEvent(PatchEvents::PRE_PATCH_APPLY, $patch, $this->composer, $this->io);
         $this->composer->getEventDispatcher()->dispatch(PatchEvents::PRE_PATCH_APPLY, $event);
         $patch = $event->getPatch();
 
@@ -267,12 +267,19 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
 
         $status = $patcher->applyPatch($patch, $install_path);
         if ($status === false) {
-            throw new Exception("No available patcher was able to apply patch {$patch->url} to {$patch->package}");
+            $e = new Exception("No available patcher was able to apply patch {$patch->url} to {$patch->package}");
+
+            $this->composer->getEventDispatcher()->dispatch(
+                PatchEvents::POST_PATCH_APPLY_ERROR,
+                new PatchEvent(PatchEvents::POST_PATCH_APPLY_ERROR, $patch, $this->composer, $this->io, $e)
+            );
+
+            throw $e;
         }
 
         $this->composer->getEventDispatcher()->dispatch(
             PatchEvents::POST_PATCH_APPLY,
-            new PatchEvent(PatchEvents::POST_PATCH_APPLY, $patch)
+            new PatchEvent(PatchEvents::POST_PATCH_APPLY, $patch, $this->composer, $this->io)
         );
     }
 

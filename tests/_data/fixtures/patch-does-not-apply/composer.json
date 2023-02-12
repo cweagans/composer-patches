@@ -1,0 +1,29 @@
+{
+  "name": "cweagans/composer-patches-test-project",
+  "description": "Project for use in cweagans/composer-patches acceptance tests.",
+  "type": "project",
+  "license": "BSD-3-Clause",
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../../../../"
+    }
+  ],
+  "require": {
+    "cweagans/composer-patches": "*@dev",
+    "cweagans/composer-patches-testrepo": "~1.0"
+  },
+  "extra": {
+    "patches": {
+      "cweagans/composer-patches-testrepo": {
+        "Patch from a totally different project": "https://patch-diff.githubusercontent.com/raw/cweagans/awesome-diy-software/pull/4.patch"
+      }
+    }
+  },
+  "config": {
+    "preferred-install": "source",
+    "allow-plugins": {
+      "cweagans/composer-patches": true
+    }
+  }
+}
