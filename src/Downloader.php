@@ -104,7 +104,7 @@ class Downloader
         }
 
 
-        $event = new PluginEvent(PluginEvents::POST_DISCOVER_DOWNLOADERS, $downloaders);
+        $event = new PluginEvent(PluginEvents::POST_DISCOVER_DOWNLOADERS, $downloaders, $this->composer, $this->io);
         $this->composer->getEventDispatcher()->dispatch(PluginEvents::POST_DISCOVER_DOWNLOADERS, $event);
         $downloaders = $event->getCapabilities();
 

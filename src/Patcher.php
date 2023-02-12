@@ -103,7 +103,7 @@ class Patcher
             $patchers = array_merge($patchers, $newPatchers);
         }
 
-        $event = new PluginEvent(PluginEvents::POST_DISCOVER_PATCHERS, $patchers);
+        $event = new PluginEvent(PluginEvents::POST_DISCOVER_PATCHERS, $patchers, $this->composer, $this->io);
         $this->composer->getEventDispatcher()->dispatch(PluginEvents::POST_DISCOVER_PATCHERS, $event);
         $patchers = $event->getCapabilities();
 
