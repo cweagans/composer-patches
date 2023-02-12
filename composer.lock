@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8ec072dd516bd6724f1e8eb82bcfc7b2",
+    "content-hash": "af11a135cf815e0a7c3ac9dd44c8d24a",
     "packages": [
         {
             "name": "cweagans/composer-configurable-plugin",
-            "version": "2.0.0-beta1",
+            "version": "2.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/cweagans/composer-configurable-plugin.git",
-                "reference": "db518870452e7ac872f8b961bb20b900190e880a"
+                "reference": "15433906511a108a1806710e988629fd24b89974"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/cweagans/composer-configurable-plugin/zipball/db518870452e7ac872f8b961bb20b900190e880a",
-                "reference": "db518870452e7ac872f8b961bb20b900190e880a",
+                "url": "https://api.github.com/repos/cweagans/composer-configurable-plugin/zipball/15433906511a108a1806710e988629fd24b89974",
+                "reference": "15433906511a108a1806710e988629fd24b89974",
                 "shasum": ""
             },
             "require": {
@@ -52,7 +52,7 @@
             "description": "Provides a lightweight configuration system for Composer plugins.",
             "support": {
                 "issues": "https://github.com/cweagans/composer-configurable-plugin/issues",
-                "source": "https://github.com/cweagans/composer-configurable-plugin/tree/2.0.0-beta1"
+                "source": "https://github.com/cweagans/composer-configurable-plugin/tree/2.0.0"
             },
             "funding": [
                 {
@@ -60,7 +60,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2023-02-12T04:53:08+00:00"
+            "time": "2023-02-12T04:58:58+00:00"
         }
     ],
     "packages-dev": [
@@ -7011,9 +7011,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "cweagans/composer-configurable-plugin": 10
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
