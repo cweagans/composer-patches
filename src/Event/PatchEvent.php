@@ -11,6 +11,7 @@ use Composer\Composer;
 use Composer\EventDispatcher\Event;
 use Composer\IO\IOInterface;
 use cweagans\Composer\Patch;
+use Exception;
 
 class PatchEvent extends Event
 {
@@ -30,17 +31,28 @@ class PatchEvent extends Event
     protected IOInterface $io;
 
     /**
+     * @var Exception $error
+     */
+    protected ?Exception $error;
+
+    /**
      * Constructs a PatchEvent object.
      *
      * @param string $eventName
      * @param Patch $patch
      */
-    public function __construct(string $eventName, Patch $patch, Composer $composer, IOInterface $io)
-    {
+    public function __construct(
+        string $eventName,
+        Patch $patch,
+        Composer $composer,
+        IOInterface $io,
+        ?Exception $error = null
+    ) {
         parent::__construct($eventName);
         $this->patch = $patch;
         $this->composer = $composer;
         $this->io = $io;
+        $this->error = $error;
     }
 
     /**
@@ -71,5 +83,15 @@ class PatchEvent extends Event
     public function getIO(): IOInterface
     {
         return $this->io;
+    }
+
+    /**
+     * Returns the exception about to be thrown when a patch cannot be applied.
+     *
+     * @return Exception
+     */
+    public function getError(): Exception
+    {
+        return $this->error;
     }
 }
