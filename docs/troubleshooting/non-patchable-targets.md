@@ -22,6 +22,10 @@ that particular problem for a Drupal 8 -> Drupal 9 upgrade:
 
 [James Williams](https://github.com/anotherjames) wrote an article about how to work around this problem for a Drupal 8 -> Drupal 9 upgrade: [Apply Drupal 9 compatibility patches with Composer](https://www.computerminds.co.uk/articles/apply-drupal-9-compatibility-patches-composer) ([archive](https://web.archive.org/web/20210124171010/https://www.computerminds.co.uk/articles/apply-drupal-9-compatibility-patches-composer)). Although it is specific to Drupal, you may be able to use the information to do something more specific to your project/ecosystem.
 
+## Metapackages
+
+Composer has the concept of a "metapackage", which is an empty package that contains requirements and will trigger their installation, but contains no files and will not write anything to the filesystem. Because there is no filesystem path available at all, this plugin is not capable of applying a patch to metapackages.
+
 ## Specific dependencies
 
 Some dependencies cannot be patched by this plugin.
