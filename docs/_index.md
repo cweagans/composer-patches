@@ -18,10 +18,10 @@ quicklinks:
   icon: installation
   description: "Get up-and-running with Composer Patches in your project"
   href: /composer-patches/getting-started/installation
-- title: "Workflow"
+- title: "Recommended workflows"
   icon: plugins
   description: "Learn how to use Composer Patches with a group of engineers."
-  href: /composer-patches/usage/workflow
+  href: /composer-patches/usage/recommended-workflows
 - title: "Troubleshooting"
   icon: architecture
   description: "Figure out how to solve any problems that you run into."

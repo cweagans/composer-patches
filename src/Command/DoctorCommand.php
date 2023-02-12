@@ -54,17 +54,18 @@ class DoctorCommand extends PatchesCommandBase
 
         if (!str_starts_with($this->getApplication()->getVersion(), "2")) {
             $system_issues = true;
-            $suggestions[] = "Upgrade Composer to 2.x (ideally to the latest release)";
         }
 
         $io->write(str_pad("PHP version: ", 72) . "<info>" . str_pad(PHP_VERSION, 8, " ", STR_PAD_LEFT) . "</info>");
         if (PHP_VERSION_ID < 80000) {
             $system_issues = true;
-            $suggestions[] = "Upgrade PHP to a more modern version";
         }
 
         if ($system_issues) {
-            $suggestions[] = "See https://docs.cweagans.net/composer-patches/system-requirements for more information";
+            $suggestions[] = [
+                "message" => "Upgrade Composer and/or PHP to a more modern/supported version",
+                "link" => "https://docs.cweagans.net/composer-patches/troubleshooting/guide#upgrade-system-software"
+            ];
         }
 
         $io->write("");
@@ -98,7 +99,10 @@ class DoctorCommand extends PatchesCommandBase
         );
 
         if (!$has_usable_patcher) {
-            $suggestions[] = "Install tools for applying patches";
+            $suggestions[] = [
+                "message" => "Install software dependencies for applying patches",
+                "link" => "https://docs.cweagans.net/composer-patches/troubleshooting/guide#install-patching-software"
+            ];
         }
 
 
@@ -157,8 +161,12 @@ class DoctorCommand extends PatchesCommandBase
         }
 
         if ($preferred_install_issues) {
-            $suggestions[] = "Setting 'preferred-install' to 'source' either globally or for each patched dependency " .
-                "is highly recommended";
+            $suggestions[] = [
+                "message" => "Setting 'preferred-install' to 'source' either globally or for each patched dependency " .
+                    "is highly recommended for consistent results",
+                "link" =>
+                    "https://docs.cweagans.net/composer-patches/troubleshooting/guide#set-preferred-install-to-source"
+            ];
         }
 
         $has_http_urls = false;
@@ -181,7 +189,11 @@ class DoctorCommand extends PatchesCommandBase
             );
 
             if ($sh) {
-                $suggestions[] = "Patches must either be downloaded securely or 'secure-http' must be disabled";
+                $suggestions[] = [
+                    "message" => "Patches must either be downloaded securely or 'secure-http' must be disabled",
+                    "link" =>
+                        "https://docs.cweagans.net/composer-patches/troubleshooting/guide#download-patches-securely"
+                ];
             }
         }
 
@@ -190,7 +202,8 @@ class DoctorCommand extends PatchesCommandBase
             $io->write("<info>Suggestions</info>");
             $io->write("================================================================================");
             foreach ($suggestions as $suggestion) {
-                $io->write(" - $suggestion");
+                $io->write(" - " . $suggestion['message']);
+                $io->write("   More information: " . $suggestion['link']);
             }
         }
 
