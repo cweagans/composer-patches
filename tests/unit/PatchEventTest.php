@@ -8,6 +8,8 @@
 namespace cweagans\Composer\Tests\Unit;
 
 use Codeception\Test\Unit;
+use Composer\Composer;
+use Composer\IO\NullIO;
 use Composer\Package\Package;
 use Composer\Package\PackageInterface;
 use cweagans\Composer\Event\PatchEvent;
@@ -23,7 +25,10 @@ class PatchEventTest extends Unit
      */
     public function testGetters($event_name, $patch)
     {
-        $patch_event = new PatchEvent($event_name, $patch);
+        $composer = new Composer();
+        $io = new NullIO();
+
+        $patch_event = new PatchEvent($event_name, $patch, $composer, $io);
         $this->assertEquals($event_name, $patch_event->getName());
         $this->assertEquals($patch, $patch_event->getPatch());
     }
