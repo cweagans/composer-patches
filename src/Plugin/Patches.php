@@ -273,6 +273,8 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                 PatchEvents::POST_PATCH_APPLY_ERROR,
                 new PatchEvent(PatchEvents::POST_PATCH_APPLY_ERROR, $patch, $this->composer, $this->io, $e)
             );
+
+            throw $e;
         }
 
         $this->composer->getEventDispatcher()->dispatch(
