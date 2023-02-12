@@ -14,6 +14,7 @@ class GitPatcher extends PatcherBase
         // If the path isn't a git repo, don't even try.
         // @see https://stackoverflow.com/a/27283285
         if (!is_dir($path . '/.git')) {
+            $this->io->write("$path is not a git repo. Skipping Git patcher.", true, IOInterface::VERBOSE);
             return false;
         }
 
