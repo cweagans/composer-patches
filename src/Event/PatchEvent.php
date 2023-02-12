@@ -31,7 +31,7 @@ class PatchEvent extends Event
     protected IOInterface $io;
 
     /**
-     * @var Exception $error
+     * @var ?Exception $error
      */
     protected ?Exception $error;
 
@@ -90,7 +90,7 @@ class PatchEvent extends Event
      *
      * @return Exception
      */
-    public function getError(): Exception
+    public function getError(): ?Exception
     {
         return $this->error;
     }
