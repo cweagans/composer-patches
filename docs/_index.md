@@ -38,8 +38,3 @@ quicklinks:
 {{< warning title="Nothing here applies to 1.x" >}}
 All documentation for the current, produciton-ready version of the plugin is in the README.md in the project repository.
 {{< /warning >}}
-
-{{< warning title="This guide is still under construction" >}}
-All of the documentation for 1.x versions of the plugin was in the readme. For 2.x, I want a more developed set of
-documentation that gives people as much information as they need. I'm still writing here, so expect some rough edges.
-{{< /warning >}}
