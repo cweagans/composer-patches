@@ -1,6 +1,7 @@
 {
   "name": "cweagans/composer-patches-test-project",
   "description": "Project for use in cweagans/composer-patches acceptance tests.",
+  "minimum-stability": "beta",
   "type": "project",
   "license": "BSD-3-Clause",
   "repositories": [
