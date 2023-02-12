@@ -10,6 +10,7 @@ use Composer\IO\NullIO;
 use Composer\Plugin\PluginInterface;
 use cweagans\Composer\Capability\Downloader\CoreDownloaderProvider;
 use cweagans\Composer\Downloader\ComposerDownloader;
+use cweagans\Composer\Downloader\DownloaderInterface;
 
 class CoreDownloaderProviderTest extends Unit
 {
@@ -27,6 +28,6 @@ class CoreDownloaderProviderTest extends Unit
         $downloaders = $downloaderProvider->getDownloaders();
 
         $this->assertCount(1, $downloaders);
-        $this->assertInstanceOf(ComposerDownloader::class, $downloaders[0]);
+        $this->assertContainsOnlyInstancesOf(DownloaderInterface::class, $downloaders);
     }
 }

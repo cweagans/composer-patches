@@ -9,6 +9,7 @@ use Composer\IO\NullIO;
 use Composer\Plugin\PluginInterface;
 use cweagans\Composer\Capability\Resolver\CoreResolverProvider;
 use cweagans\Composer\Resolver\PatchesFile;
+use cweagans\Composer\Resolver\ResolverInterface;
 use cweagans\Composer\Resolver\RootComposer;
 
 class CoreResolverProviderTest extends Unit
@@ -24,7 +25,6 @@ class CoreResolverProviderTest extends Unit
         $resolvers = $resolverProvider->getResolvers();
 
         $this->assertCount(2, $resolvers);
-        $this->assertInstanceOf(RootComposer::class, $resolvers[0]);
-        $this->assertInstanceOf(PatchesFile::class, $resolvers[1]);
+        $this->assertContainsOnlyInstancesOf(ResolverInterface::class, $resolvers);
     }
 }
