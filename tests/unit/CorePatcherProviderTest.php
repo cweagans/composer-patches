@@ -10,6 +10,7 @@ use Composer\Plugin\PluginInterface;
 use cweagans\Composer\Capability\Patcher\CorePatcherProvider;
 use cweagans\Composer\Patcher\BsdPatchPatcher;
 use cweagans\Composer\Patcher\GitPatcher;
+use cweagans\Composer\Patcher\GitInitPatcher;
 use cweagans\Composer\Patcher\GnuGPatchPatcher;
 use cweagans\Composer\Patcher\GnuPatchPatcher;
 
@@ -25,10 +26,11 @@ class CorePatcherProviderTest extends Unit
 
         $patchers = $patcherProvider->getPatchers();
 
-        $this->assertCount(4, $patchers);
+        $this->assertCount(5, $patchers);
         $this->assertInstanceOf(GitPatcher::class, $patchers[0]);
-        $this->assertInstanceOf(GnuPatchPatcher::class, $patchers[1]);
-        $this->assertInstanceOf(GnuGPatchPatcher::class, $patchers[2]);
-        $this->assertInstanceOf(BsdPatchPatcher::class, $patchers[3]);
+        $this->assertInstanceOf(GitInitPatcher::class, $patchers[1]);
+        $this->assertInstanceOf(GnuPatchPatcher::class, $patchers[2]);
+        $this->assertInstanceOf(GnuGPatchPatcher::class, $patchers[3]);
+        $this->assertInstanceOf(BsdPatchPatcher::class, $patchers[4]);
     }
 }
