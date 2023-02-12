@@ -1,5 +1,5 @@
 ---
-title: Patches.lock
+title: patches.lock
 weight: 40
 ---
 
