@@ -20,4 +20,5 @@ coverage:
       - src/*
     exclude:
       - tests/*
+      - src/Command/*
 
