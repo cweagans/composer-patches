@@ -127,7 +127,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             ],
             'patches-file' => [
                 'type' => 'string',
-                'default' => '',
+                'default' => 'patches.json',
             ]
         ];
         $this->configure($this->composer->getPackage()->getExtra(), 'composer-patches');
