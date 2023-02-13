@@ -53,9 +53,11 @@ class Downloader
 
         foreach ($this->getDownloaders() as $downloader) {
             if (in_array(get_class($downloader), $this->disabledDownloaders, true)) {
-                if ($this->io->isVerbose()) {
-                    $this->io->write('<info>  - Skipping downloader ' . get_class($downloader) . '</info>');
-                }
+                $this->io->write(
+                    '<info>  - Skipping downloader ' . get_class($downloader) . '</info>',
+                    true,
+                    IOInterface::VERBOSE
+                );
                 continue;
             }
 

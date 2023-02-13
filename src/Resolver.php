@@ -46,13 +46,11 @@ class Resolver
         /** @var ResolverInterface $resolver */
         foreach ($this->getPatchResolvers() as $resolver) {
             if (in_array(get_class($resolver), $this->disabledResolvers, true)) {
-                if ($this->io->isVerbose()) {
-                    $this->io->write(
-                        '<info>  - Skipping resolver ' . get_class($resolver) . '</info>',
-                        true,
-                        IOInterface::VERBOSE
-                    );
-                }
+                $this->io->write(
+                    '<info>  - Skipping resolver ' . get_class($resolver) . '</info>',
+                    true,
+                    IOInterface::VERBOSE
+                );
                 continue;
             }
 

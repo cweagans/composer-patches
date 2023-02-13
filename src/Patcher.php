@@ -42,9 +42,11 @@ class Patcher
     {
         foreach ($this->getPatchers() as $patcher) {
             if (in_array(get_class($patcher), $this->disabledPatchers, true)) {
-                if ($this->io->isVerbose()) {
-                    $this->io->write('<info>  - Skipping patcher ' . get_class($patcher) . '</info>');
-                }
+                $this->io->write(
+                    '<info>  - Skipping patcher ' . get_class($patcher) . '</info>',
+                    true,
+                    IOInterface::VERBOSE
+                );
                 continue;
             }
 
