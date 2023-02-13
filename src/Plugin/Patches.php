@@ -105,10 +105,6 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         );
         $this->locker = new Locker($this->lockFile);
         $this->configuration = [
-            'disable-patching' => [
-                'type' => 'bool',
-                'default' => false,
-            ],
             'disable-resolvers' => [
                 'type' => 'list',
                 'default' => [],
