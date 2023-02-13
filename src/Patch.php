@@ -98,18 +98,4 @@ class Patch implements JsonSerializable
             'extra' => $this->extra ?? [],
         ];
     }
-
-    /**
-     * Indicates if a package has been patched.
-     *
-     * @param PackageInterface $package
-     *   The package to check.
-     *
-     * @return bool
-     *   TRUE if the package has been patched.
-     */
-    public static function isPackagePatched(PackageInterface $package): bool
-    {
-        return array_key_exists('patches_applied', $package->getExtra());
-    }
 }
