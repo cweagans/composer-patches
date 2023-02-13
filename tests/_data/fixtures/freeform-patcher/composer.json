@@ -1,0 +1,38 @@
+{
+  "name": "cweagans/composer-patches-test-project",
+  "description": "Project for use in cweagans/composer-patches acceptance tests.",
+  "type": "project",
+  "license": "BSD-3-Clause",
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../../../../"
+    }
+  ],
+  "require": {
+    "cweagans/composer-patches": "*@dev",
+    "cweagans/composer-patches-testrepo": "~1.0"
+  },
+  "extra": {
+    "patches": {
+      "cweagans/composer-patches-testrepo": [
+        {
+          "description": "a new file",
+          "url": "https://raw.githubusercontent.com/cweagans/composer-patches-testrepo/main/src/OneMoreTest.php",
+          "depth": 123,
+          "extra": {
+            "freeform": {
+              "executable": "./kind-of-a-patcher.sh",
+              "args": "%s %s %s"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "cweagans/composer-patches": true
+    }
+  }
+}

@@ -1,6 +1,6 @@
 ---
 title: Recommended Workflows
-weight: 30
+weight: 40
 ---
 
 {{< lead text="Common workflows for working with Composer Patches on a team." >}}

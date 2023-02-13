@@ -70,6 +70,9 @@ abstract class ResolverBase implements ResolverInterface
                     $patch->package = $package;
                     $patch->url = $def['url'];
                     $patch->description = $def['description'];
+                    $patch->sha256 = $def['sha256'] ?? null;
+                    $patch->depth = $def['depth'] ?? null;
+                    $patch->extra = $def['extra'] ?? null;
 
                     $patches[$package][$index] = $patch;
                 }

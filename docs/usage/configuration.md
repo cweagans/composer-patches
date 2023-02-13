@@ -131,11 +131,9 @@ You probably don't need to change this value unless you're building a plugin tha
     "extra": {
         "composer-patches": {
             "disable-patchers": [
-                "\\cweagans\\Composer\\Patcher\\BsdPatchPatcher",
+                "\\cweagans\\Composer\\Patcher\\FreeformPatcher",
                 "\\cweagans\\Composer\\Patcher\\GitPatcher",
-                "\\cweagans\\Composer\\Patcher\\GitInitPatcher",
-                "\\cweagans\\Composer\\Patcher\\GnuGPatchPatcher",
-                "\\cweagans\\Composer\\Patcher\\GnuPatchPatcher"
+                "\\cweagans\\Composer\\Patcher\\GitInitPatcher"
             ]
         }
     }

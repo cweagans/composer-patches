@@ -56,7 +56,7 @@ class Patch implements JsonSerializable
      *
      * @var array
      */
-    public array $extra;
+    public array $extra = [];
 
     /**
      * Create a Patch from a serialized representation.
