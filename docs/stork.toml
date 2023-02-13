@@ -1,6 +1,6 @@
 [input]
 base_directory = ""
-url_prefix = "https://docs.cweagans.net/composer-patches"
+url_prefix = "/composer-patches"
 frontmatter_handling = "Omit"
 files = [
     { path = "_index.md", url = "/", title = "Composer Patches" },
