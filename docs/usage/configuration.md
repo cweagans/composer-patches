@@ -20,7 +20,7 @@ weight: 10
 }
 ```
 
-**Default value**: empty
+**Default value**: `patches.json`
 
 Patch definitions can additionally be loaded from a JSON file. This value should usually be the name of a file located alongside your `composer.json`.
 

@@ -105,10 +105,6 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         );
         $this->locker = new Locker($this->lockFile);
         $this->configuration = [
-            'disable-patching' => [
-                'type' => 'bool',
-                'default' => false,
-            ],
             'disable-resolvers' => [
                 'type' => 'list',
                 'default' => [],
@@ -131,7 +127,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             ],
             'patches-file' => [
                 'type' => 'string',
-                'default' => '',
+                'default' => 'patches.json',
             ]
         ];
         $this->configure($this->composer->getPackage()->getExtra(), 'composer-patches');
