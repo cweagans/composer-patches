@@ -1,0 +1,22 @@
+[input]
+base_directory = ""
+url_prefix = "https://docs.cweagans.net/composer-patches"
+frontmatter_handling = "Omit"
+files = [
+    { path = "_index.md", url = "/", title = "Composer Patches" },
+    { path = "api/capabilities.md", url = "/api/capabilities/", title = "Capabilities" },
+    { path = "api/events.md", url = "/api/events/", title = "Events" },
+    { path = "api/overview.md", url = "/api/overview/", title = "Overview" },
+    { path = "api/patches-lock.md", url = "/api/patches-lock/", title = "patches.lock" },
+    { path = "getting-started/installation.md", url = "/getting-started/installation/", title = "Installation" },
+    { path = "getting-started/system-requirements.md", url = "/getting-started/system-requirements/", title = "System Requirements" },
+    { path = "getting-started/terminology.md", url = "/getting-started/terminology/", title = "Terminology" },
+    { path = "project/code-of-conduct.md", url = "/project/code-of-conduct/", title = "Code of Conduct" },
+    { path = "project/contributing.md", url = "/project/contributing/", title = "Contributing" },
+    { path = "project/security.md", url = "/project/security/", title = "Security" },
+    { path = "usage/commands.md", url = "/usage/commands/", title = "Commands" },
+    { path = "usage/configuration.md", url = "/usage/configuration/", title = "Configuration" },
+    { path = "usage/defining-patches.md", url = "/usage/defining-patches/", title = "Defining Patches" },
+    { path = "usage/freeform-patcher.md", url = "/usage/freeform-patcher/", title = "Freeform Patcher" },
+    { path = "usage/recommended-workflows.md", url = "/usage/recommended-workflows/", title = "Recommended Workflows" },
+]
