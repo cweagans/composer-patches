@@ -131,10 +131,9 @@ You probably don't need to change this value unless you're building a plugin tha
     "extra": {
         "composer-patches": {
             "disable-patchers": [
-                "\\cweagans\\Composer\\Patcher\\BsdPatchPatcher",
+                "\\cweagans\\Composer\\Patcher\\FreeformPatcher",
                 "\\cweagans\\Composer\\Patcher\\GitPatcher",
-                "\\cweagans\\Composer\\Patcher\\GnuGPatchPatcher",
-                "\\cweagans\\Composer\\Patcher\\GnuPatchPatcher"
+                "\\cweagans\\Composer\\Patcher\\GitInitPatcher"
             ]
         }
     }
@@ -147,29 +146,12 @@ You probably don't need to change this value unless you're building a plugin tha
  
 For completeness, all of the patchers that ship with the plugin are listed above, but you should _not_ list all of them. If no patchers are available, the plugin will throw an exception during `composer install`.
 
+`GitPatcher` and `GitInitPatcher` should be enabled and disabled together -- don't disable one without the other.
+
 After changing this value, you should re-lock and re-apply patches to your project.
 
 
 ## Relevant configuration provided by Composer
-
-### `preferred-install`
-
-```json
-{
-    [...],
-    "config": {
-        "preferred-install": "source"
-    }
-}
-```
-
-**Default value**: `"dist"`
-
-The relevant Composer documentation for this parameter can be found [here](https://getcomposer.org/doc/06-config.md#preferred-install).
-
-If you're applying patches that were generated with `git`, setting `preferred-install` to `"source"` is **highly recommended** (either by changing the setting for all packages or by setting that value on a per-package basis as shown in the Composer documentation. This will allow the `GitPatcher` to apply patches as often as possible (the `GitPatcher` won't even _attempt_ to apply a patch if the target directory isn't managed by `git`). Git is the most reliable patcher available to Composer Patches. _Not_ changing this setting will result in other patchers attempting to apply patches. Historically, these patchers have had varying degrees of success depending on a number of factors, so it's better to use the `GitPatcher` when you're able to do so.
-
----
 
 ### `secure-http`
 

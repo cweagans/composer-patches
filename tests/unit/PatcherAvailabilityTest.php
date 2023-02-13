@@ -28,30 +28,6 @@ class PatcherAvailabilityTest extends Unit
 
     public function missingOrBrokenToolBehaviorsDataProvider()
     {
-        $patcher = new BsdPatchPatcher(new Composer(), new NullIO());
-        $patcher->toolPathOverride = codecept_data_dir('testtools/intentionally-missing-executable');
-        yield 'missing bsd patch' => [$patcher, false];
-
-        $patcher = new BsdPatchPatcher(new Composer(), new NullIO());
-        $patcher->toolPathOverride = codecept_data_dir('testtools/broken-bsd-patch.sh');
-        yield 'broken bsd patch' => [$patcher, false];
-
-        $patcher = new BsdPatchPatcher(new Composer(), new NullIO());
-        $patcher->toolPathOverride = codecept_data_dir('testtools/patch.sh');
-        yield 'working bsd patch' => [$patcher, true];
-
-        $patcher = new GnuPatchPatcher(new Composer(), new NullIO());
-        $patcher->toolPathOverride = codecept_data_dir('testtools/intentionally-missing-executable');
-        yield 'missing gnu patch' => [$patcher, false];
-
-        $patcher = new GnuPatchPatcher(new Composer(), new NullIO());
-        $patcher->toolPathOverride = codecept_data_dir('testtools/broken-gnu-patch.sh');
-        yield 'broken gnu patch' => [$patcher, false];
-
-        $patcher = new GnuPatchPatcher(new Composer(), new NullIO());
-        $patcher->toolPathOverride = codecept_data_dir('testtools/gnu-patch.sh');
-        yield 'working gnu patch' => [$patcher, true];
-
         $patcher = new GitPatcher(new Composer(), new NullIO());
         $patcher->toolPathOverride = codecept_data_dir('testtools/intentionally-missing-executable');
         yield 'missing git' => [$patcher, false];

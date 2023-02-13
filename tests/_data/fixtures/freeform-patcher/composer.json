@@ -14,19 +14,20 @@
     "cweagans/composer-patches-testrepo": "~1.0"
   },
   "extra": {
-    "composer-patches": {
-      "disable-patchers": [
-        "cweagans\\Composer\\Patcher\\BsdPatchPatcher",
-        "cweagans\\Composer\\Patcher\\GitPatcher",
-        "cweagans\\Composer\\Patcher\\GitInitPatcher",
-        "cweagans\\Composer\\Patcher\\GnuGPatchPatcher",
-        "cweagans\\Composer\\Patcher\\GnuPatchPatcher"
-      ]
-    },
     "patches": {
-      "cweagans/composer-patches-testrepo": {
-        "Add a file": "https://patch-diff.githubusercontent.com/raw/cweagans/composer-patches-testrepo/pull/1.patch"
-      }
+      "cweagans/composer-patches-testrepo": [
+        {
+          "description": "a new file",
+          "url": "https://raw.githubusercontent.com/cweagans/composer-patches-testrepo/main/src/OneMoreTest.php",
+          "depth": 123,
+          "extra": {
+            "freeform": {
+              "executable": "./kind-of-a-patcher.sh",
+              "args": "%s %s %s"
+            }
+          }
+        }
+      ]
     }
   },
   "config": {

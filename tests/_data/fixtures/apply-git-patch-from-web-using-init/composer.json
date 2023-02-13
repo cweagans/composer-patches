@@ -14,15 +14,6 @@
     "cweagans/composer-patches-testrepo": "~1.0"
   },
   "extra": {
-    "composer-patches": {
-      "disable-patchers": [
-        "cweagans\\Composer\\Patcher\\BsdPatchPatcher",
-        "cweagans\\Composer\\Patcher\\GitPatcher",
-        "cweagans\\Composer\\Patcher\\GitInitPatcher",
-        "cweagans\\Composer\\Patcher\\GnuGPatchPatcher",
-        "cweagans\\Composer\\Patcher\\GnuPatchPatcher"
-      ]
-    },
     "patches": {
       "cweagans/composer-patches-testrepo": {
         "Add a file": "https://patch-diff.githubusercontent.com/raw/cweagans/composer-patches-testrepo/pull/1.patch"
@@ -30,6 +21,14 @@
     }
   },
   "config": {
+    "preferred-install": "dist",
+    "composer-patches": {
+      "disable-patchers": [
+        "\\cweagans\\Composer\\Patcher\\BsdPatchPatcher",
+        "\\cweagans\\Composer\\Patcher\\GnuGPatchPatcher",
+        "\\cweagans\\Composer\\Patcher\\GnuPatchPatcher"
+      ]
+    },
     "allow-plugins": {
       "cweagans/composer-patches": true
     }

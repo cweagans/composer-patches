@@ -85,7 +85,7 @@ Internally, the plugin uses the expanded format for _all_ patches. Similar to th
 2. Any package-specific depth override set globally in the plugin (see `cweagans\Composer\Util::getDefaultPackagePatchDepth()` for details.)
 3. The global [`default-patch-depth`]({{< relref "configuration.md#default-patch-depth" >}})
 
-`extra` is primarily a place for developers to store extra data related to a patch, but if you just need a place to put some extra data about a patch, `extra` is a good place for it. No validation is performed on the contents of `extra` and no functionality other than the reading/writing of `patches.lock` uses the data.
+`extra` is primarily a place for developers to store extra data related to a patch, but if you just need a place to put some extra data about a patch, `extra` is a good place for it. No validation is performed on the contents of `extra`. The [Freeform patcher]({{< relref "freeform-patcher.md" >}}) stores data here.
 
 
 ## Locations

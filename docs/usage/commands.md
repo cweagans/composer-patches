@@ -1,6 +1,6 @@
 ---
 title: Commands
-weight: 40
+weight: 50
 ---
 
 ## `composer patches-relock`

@@ -109,66 +109,6 @@ class DoctorCommand extends PatchesCommandBase
         $io->write("");
         $io->write("<info>Common configuration issues</info>");
         $io->write("================================================================================");
-        $preferred_install_issues = false;
-        $pi = $composer->getConfig()->get('preferred-install');
-        $io->write(
-            str_pad("preferred-install is set:", 77) . (is_null($pi) ? " <warning>no</warning>" : "<info>yes</info>")
-        );
-
-        if (is_null($pi)) {
-            $preferred_install_issues = true;
-        }
-
-        if (is_string($pi)) {
-            $io->write(
-                str_pad("preferred-install set to 'source' for all/some packages:", 77) .
-                ($pi === "source" ? "<info>yes</info>" : " <warning>no</warning>")
-            );
-        }
-
-        if (is_string($pi) && $pi !== "source") {
-            $preferred_install_issues = true;
-        }
-
-        if (is_array($pi)) {
-            $patched_packages = $plugin->getPatchCollection()->getPatchedPackages();
-            foreach ($patched_packages as $package) {
-                if (in_array($package, array_values($pi))) {
-                    $io->write(
-                        str_pad("preferred-install set to 'source' for $package:", 77) . "<info>yes</info>"
-                    );
-                    continue;
-                }
-
-                foreach ($pi as $pattern => $value) {
-                    $pattern = strtr($pattern, ['*' => '.*', '/' => '\/']);
-                    if (preg_match("/$pattern/", $package)) {
-                        $io->write(
-                            str_pad("preferred-install set to 'source' for $package:", 77) .
-                            ($value === "source" ? "<info>yes</info>" : " <warning>no</warning>")
-                        );
-
-                        if ($value !== "source") {
-                            $preferred_install_issues = true;
-                        }
-
-                        break 2;
-                    }
-                }
-
-                $preferred_install_issues = true;
-            }
-        }
-
-        if ($preferred_install_issues) {
-            $suggestions[] = [
-                "message" => "Setting 'preferred-install' to 'source' either globally or for each patched dependency " .
-                    "is highly recommended for consistent results",
-                "link" =>
-                    "https://docs.cweagans.net/composer-patches/troubleshooting/guide#set-preferred-install-to-source"
-            ];
-        }
-
         $has_http_urls = false;
         foreach ($plugin->getPatchCollection()->getPatchedPackages() as $package) {
             foreach ($plugin->getPatchCollection()->getPatchesForPackage($package) as $patch) {
