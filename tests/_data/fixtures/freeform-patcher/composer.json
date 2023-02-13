@@ -23,7 +23,8 @@
           "extra": {
             "freeform": {
               "executable": "./kind-of-a-patcher.sh",
-              "args": "%s %s %s"
+              "args": "%s %s %s",
+              "dry_run_args": "%s %s %s --dry-run"
             }
           }
         }
