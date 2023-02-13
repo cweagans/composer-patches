@@ -21,7 +21,6 @@
     }
   },
   "config": {
-    "preferred-install": "source",
     "allow-plugins": {
       "cweagans/composer-patches": true
     }
