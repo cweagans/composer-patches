@@ -36,5 +36,5 @@ quicklinks:
 {{< quicklinks >}}
 
 {{< warning title="Nothing here applies to 1.x" >}}
-All documentation for the current, produciton-ready version of the plugin is in the README.md in the project repository.
+All documentation for the current, production-ready version of the plugin is in the README.md in the project repository.
 {{< /warning >}}
