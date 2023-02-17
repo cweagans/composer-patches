@@ -34,13 +34,13 @@ This is the format that you may be familiar with from previous versions of Compo
         "patches": {
             "the/project": [
                 {
-                  "description": "This is the description of the patch",
-                  "url": "https://www.example.com/path/to/file.patch"
+                    "description": "This is the description of the patch",
+                    "url": "https://www.example.com/path/to/file.patch"
                 },
                 {
-                  "description": "This is another patch",
-                  "url": "https://www.example.com/different/path/to/file.patch"
-                },
+                    "description": "This is another patch",
+                    "url": "https://www.example.com/different/path/to/file.patch"
+                }
             ]
         }
     }
@@ -56,21 +56,21 @@ Internally, the plugin uses the expanded format for _all_ patches. Similar to th
         "patches": {
             "the/project": [
                 {
-                  "description": "This is the description of the patch",
-                  "url": "https://www.example.com/path/to/file.patch",
-                  "sha256": "6f024c51ca5d0b6568919e134353aaf1398ff090c92f6173f5ce0315fa266b93",
-                  "depth": 2,
-                  "extra": {},
+                    "description": "This is the description of the patch",
+                    "url": "https://www.example.com/path/to/file.patch",
+                    "sha256": "6f024c51ca5d0b6568919e134353aaf1398ff090c92f6173f5ce0315fa266b93",
+                    "depth": 2,
+                    "extra": {},
                 },
                 {
-                  "description": "This is another patch",
-                  "url": "https://www.example.com/different/path/to/file.patch"
-                  "sha256": "795a84197ee01b9d50b40889bc5689e930a8839db3d43010e887ddeee643ccdc",
-                  "depth": 3,
-                  "extra": {
-                    "issue-tracker-url": "https://jira.ecorp.com/issues/SM-519"
-                  },
-                },
+                    "description": "This is another patch",
+                    "url": "https://www.example.com/different/path/to/file.patch",
+                    "sha256": "795a84197ee01b9d50b40889bc5689e930a8839db3d43010e887ddeee643ccdc",
+                    "depth": 3,
+                    "extra": {
+                        "issue-tracker-url": "https://jira.ecorp.com/issues/SM-519"
+                    }
+                }
             ]
         }
     }
