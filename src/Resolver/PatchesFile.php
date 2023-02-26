@@ -7,7 +7,6 @@
 
 namespace cweagans\Composer\Resolver;
 
-use Composer\Installer\PackageEvent;
 use cweagans\Composer\Patch;
 use cweagans\Composer\PatchCollection;
 use InvalidArgumentException;
@@ -29,7 +28,7 @@ class PatchesFile extends ResolverBase
             return;
         }
 
-        $this->io->write('  - <info>Gathering patches from patches file.</info>');
+        $this->io->write('  - <info>Resolving patches from patches file.</info>');
         $patches_file = $this->readPatchesFile($extra['patches-file']);
 
         foreach ($this->findPatchesInJson($patches_file) as $package => $patches) {

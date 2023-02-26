@@ -8,7 +8,6 @@
 namespace cweagans\Composer\Resolver;
 
 use Composer\Composer;
-use Composer\Installer\PackageEvent;
 use Composer\IO\IOInterface;
 use cweagans\Composer\Patch;
 use cweagans\Composer\PatchCollection;
