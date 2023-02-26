@@ -77,7 +77,7 @@ Internally, the plugin uses the expanded format for _all_ patches. Similar to th
 }
 ```
 
-`sha256` can either be specified in your patch definition as above or the sha256 of a patch file will be calculated and written to your `patches.lock.json` file as part of installation.
+`sha256` can either be specified in your patch definition as above or the sha256 of a patch file will be calculated and written to your `composer.patches-lock.json` file as part of installation.
 
 `depth` can be specified on a per-patch basis. If specified, this value overrides any other defaults. If not specified, the first available depth out of the following will be used:
 
@@ -106,7 +106,7 @@ As in previous versions of Composer Patches, you can store patch definitions in 
     }
 }
 ```
-This approach works for many teams, but you should consider moving your patch definitions to a separate `patches.json`. Doing so will mean that you don't have to update `composer.lock` every time you change a patch. Because patch data is locked in `patches.lock.json`, moving the data out of `composer.json` has little downside and can improve your workflow substantially.
+This approach works for many teams, but you should consider moving your patch definitions to a separate `patches.json`. Doing so will mean that you don't have to update `composer.lock` every time you change a patch. Because patch data is locked in `composer.patches-lock.json`, moving the data out of `composer.json` has little downside and can improve your workflow substantially.
 
 ### Patches file
 
@@ -120,8 +120,8 @@ If you're defining patches in `patches.json` (or some other separate patches fil
 }
 ```
 
-## `patches.lock.json`
+## `composer.patches-lock.json`
 
-If `patches.lock.json` does not exist the first time you run `composer install` with this plugin enabled, one will be created for you. Generally, you shouldn't need to do anything with this file: commit it to your project repository alongside your `composer.json` and `composer.lock`, and commit any changes when you change your patch definitions.
+If `composer.patches-lock.json` does not exist the first time you run `composer install` with this plugin enabled, one will be created for you. Generally, you shouldn't need to do anything with this file: commit it to your project repository alongside your `composer.json` and `composer.lock`, and commit any changes when you change your patch definitions.
 
-This file is similar to `composer.lock` in that it includes a `_hash` and the expanded definition for all patches in your project. When `patches.lock.json` exists, patches will be installed from the locked definitions in this file (_instead_ of using the definitions in `composer.json` or elsewhere).
+This file is similar to `composer.lock` in that it includes a `_hash` and the expanded definition for all patches in your project. When `composer.patches-lock.json` exists, patches will be installed from the locked definitions in this file (_instead_ of using the definitions in `composer.json` or elsewhere).

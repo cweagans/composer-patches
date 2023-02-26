@@ -13,6 +13,7 @@ use Composer\DependencyResolver\Operation\OperationInterface;
 use Composer\DependencyResolver\Operation\UpdateOperation;
 use Composer\EventDispatcher\EventDispatcher;
 use Composer\EventDispatcher\EventSubscriberInterface;
+use Composer\Factory as ComposerFactory;
 use Composer\Installer\PackageEvent;
 use Composer\Installer\PackageEvents;
 use Composer\IO\IOInterface;
@@ -85,6 +86,19 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
 
     protected JsonFile $lockFile;
 
+    public static function getPatchesLockFilePath(): string
+    {
+        $composer_file = ComposerFactory::getComposerFile();
+        // @todo I think no need for \realpath(),
+        // because the CWD is always set to the project root.
+        // It just creates problems if symlink is used.
+        // @see \Composer\Factory::createComposer().
+        $dir = dirname(realpath($composer_file));
+        $base = pathinfo($composer_file, \PATHINFO_FILENAME);
+
+        return "$dir/$base.patches-lock.json";
+    }
+
     /**
      * Apply plugin modifications to composer
      *
@@ -99,7 +113,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         $this->patches = array();
         $this->installedPatches = array();
         $this->lockFile = new JsonFile(
-            dirname(realpath(\Composer\Factory::getComposerFile())) . '/patches.lock.json',
+            static::getPatchesLockFilePath(),
             null,
             $this->io
         );
@@ -203,7 +217,9 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
     {
         $locked = $this->locker->isLocked();
         if (!$locked) {
-            $this->io->write('<warning>patches.lock.json does not exist. Creating a new patches.lock.json.</warning>');
+            $file_name = pathinfo($this->getLockFile()->getPath(), \PATHINFO_BASENAME);
+
+            $this->io->write("<warning>$file_name does not exist. Creating a new $file_name.</warning>");
             $this->createNewPatchesLock();
             return;
         }
