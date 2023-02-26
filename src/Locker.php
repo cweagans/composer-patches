@@ -24,7 +24,7 @@ class Locker
     }
 
     /**
-     * Returns the sha256 hash of the sorted content of the patches.lock file.
+     * Returns the sha256 hash of the sorted content of the patches.lock.json file.
      *
      * @param PatchCollection $patchCollection
      *   The resolved patches for the project.

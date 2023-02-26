@@ -6,7 +6,7 @@ weight: 50
 ## `composer patches-relock`
 **Alias**: `composer prl`
 
-`patches-relock` causes the plugin to re-discover all available patches and then write them to the `patches.lock` file for your project. This command should be used when changing the list of patches in your project. See the [recommended workflows]({{< relref "recommended-workflows.md" >}}) page for details.
+`patches-relock` causes the plugin to re-discover all available patches and then write them to the `patches.lock.json` file for your project. This command should be used when changing the list of patches in your project. See the [recommended workflows]({{< relref "recommended-workflows.md" >}}) page for details.
 
 ---
 
