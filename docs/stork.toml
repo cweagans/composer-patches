@@ -7,7 +7,7 @@ files = [
     { path = "api/capabilities.md", url = "/api/capabilities/", title = "Capabilities" },
     { path = "api/events.md", url = "/api/events/", title = "Events" },
     { path = "api/overview.md", url = "/api/overview/", title = "Overview" },
-    { path = "api/patches-lock.md", url = "/api/patches-lock/", title = "patches.lock" },
+    { path = "api/patches-lock-json.md", url = "/api/patches-lock-json/", title = "patches.lock.json" },
     { path = "getting-started/installation.md", url = "/getting-started/installation/", title = "Installation" },
     { path = "getting-started/system-requirements.md", url = "/getting-started/system-requirements/", title = "System Requirements" },
     { path = "getting-started/terminology.md", url = "/getting-started/terminology/", title = "Terminology" },

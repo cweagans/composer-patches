@@ -1,12 +1,12 @@
 ---
-title: patches.lock
+title: patches.lock.json
 weight: 40
 ---
 
-`patches.lock` is the mechanism that Composer Patches now uses to maintain a known-good list of patches to apply to the project. For external projects, the structure of `patches.lock` may also be treated as an API. If you're considering `patches.lock` as a data source for your project, there are a few things that you should keep in mind:
+`patches.lock.json` is the mechanism that Composer Patches now uses to maintain a known-good list of patches to apply to the project. For external projects, the structure of `patches.lock.json` may also be treated as an API. If you're considering `patches.lock.json` as a data source for your project, there are a few things that you should keep in mind:
 
-* `patches.lock` should be considered **read-only** for external uses.
-* The general structure of `patches.lock` will not change. You can rely on a JSON file structured like so:
+* `patches.lock.json` should be considered **read-only** for external uses.
+* The general structure of `patches.lock.json` will not change. You can rely on a JSON file structured like so:
 ```json
 {
     "_hash": "[the hash]",
