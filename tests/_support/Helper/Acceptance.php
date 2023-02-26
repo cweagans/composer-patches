@@ -14,10 +14,10 @@ class Acceptance extends Module
     {
         $filesystem = new Filesystem();
 
-        $composerLockFiles = glob($this->_getFixturesDir() . '/*/composer.lock');
+        $composerLockFiles = glob($this->_getFixturesDir() . '/*/*.lock');
         $filesystem->remove($composerLockFiles);
 
-        $patchesLockFiles = glob($this->_getFixturesDir() . '/*/patches.lock.json');
+        $patchesLockFiles = glob($this->_getFixturesDir() . '/*/*patches.lock.json');
         $filesystem->remove($patchesLockFiles);
 
         $composerVendorDirs = glob($this->_getFixturesDir() . '/*/vendor');

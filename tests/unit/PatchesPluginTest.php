@@ -36,6 +36,21 @@ class PatchesPluginTest extends Unit
     }
 
     /**
+     * Test that overridding composer.json also overrides the patches.lock.json filename.
+     */
+    public function testGetPatchesLockFilePath()
+    {
+        $path = Patches::getPatchesLockFilePath();
+        $filename = pathinfo($path, \PATHINFO_BASENAME);
+        $this->assertEquals('patches.lock.json', $filename);
+
+        putenv('COMPOSER=mycomposer.json');
+        $path = Patches::getPatchesLockFilePath();
+        $filename = pathinfo($path, \PATHINFO_BASENAME);
+        $this->assertEquals('mycomposer-patches.lock.json', $filename);
+    }
+
+    /**
      * Test the patch depth settings.
      *
      * @dataProvider guessDepthDataProvider

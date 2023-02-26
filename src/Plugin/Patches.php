@@ -86,6 +86,23 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
     protected JsonFile $lockFile;
 
     /**
+     * Get the path to the current patches lock file.
+     */
+    public static function getPatchesLockFilePath(): string
+    {
+        $composer_file = \Composer\Factory::getComposerFile();
+
+        $dir = dirname(realpath($composer_file));
+        $base = pathinfo($composer_file, \PATHINFO_FILENAME);
+
+        if ($base === 'composer') {
+            return "$dir/patches.lock.json";
+        }
+
+        return "$dir/$base-patches.lock.json";
+    }
+
+    /**
      * Apply plugin modifications to composer
      *
      * @param Composer $composer
@@ -99,7 +116,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         $this->patches = array();
         $this->installedPatches = array();
         $this->lockFile = new JsonFile(
-            dirname(realpath(\Composer\Factory::getComposerFile())) . '/patches.lock.json',
+            static::getPatchesLockFilePath(),
             null,
             $this->io
         );
@@ -203,7 +220,8 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
     {
         $locked = $this->locker->isLocked();
         if (!$locked) {
-            $this->io->write('<warning>patches.lock.json does not exist. Creating a new patches.lock.json.</warning>');
+            $filename = pathinfo($this->getLockFile()->getPath(), \PATHINFO_BASENAME);
+            $this->io->write("<warning>$filename does not exist. Creating a new $filename.</warning>");
             $this->createNewPatchesLock();
             return;
         }

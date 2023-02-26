@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace cweagans\Composer\Command;
 
+use cweagans\Composer\Plugin\Patches;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -12,7 +13,8 @@ class RelockCommand extends PatchesCommandBase
     protected function configure(): void
     {
         $this->setName('patches-relock');
-        $this->setDescription('Find all patches defined in the project and re-write patches.lock.json.');
+        $filename = pathinfo(Patches::getPatchesLockFilePath(), \PATHINFO_BASENAME);
+        $this->setDescription("Find all patches defined in the project and re-write $filename.");
         $this->setAliases(['prl']);
     }
 
