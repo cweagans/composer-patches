@@ -8,10 +8,10 @@
 namespace cweagans\Composer\Tests\Unit;
 
 use Codeception\Test\Unit;
+use Codeception\Util\Stub;
 use Composer\Composer;
 use Composer\IO\NullIO;
-use cweagans\Composer\Patcher\BsdPatchPatcher;
-use cweagans\Composer\Patcher\GnuPatchPatcher;
+use Composer\Plugin\PluginInterface;
 use cweagans\Composer\Patcher\GitPatcher;
 
 class PatcherAvailabilityTest extends Unit
@@ -28,19 +28,21 @@ class PatcherAvailabilityTest extends Unit
 
     public function missingOrBrokenToolBehaviorsDataProvider()
     {
-        $patcher = new GitPatcher(new Composer(), new NullIO());
+        $plugin = Stub::makeEmpty(PluginInterface::class);
+
+        $patcher = new GitPatcher(new Composer(), new NullIO(), $plugin);
         $patcher->toolPathOverride = codecept_data_dir('testtools/intentionally-missing-executable');
         yield 'missing git' => [$patcher, false];
 
-        $patcher = new GitPatcher(new Composer(), new NullIO());
+        $patcher = new GitPatcher(new Composer(), new NullIO(), $plugin);
         $patcher->toolPathOverride = codecept_data_dir('testtools/broken-git.sh');
         yield 'broken git' => [$patcher, false];
 
-        $patcher = new GitPatcher(new Composer(), new NullIO());
+        $patcher = new GitPatcher(new Composer(), new NullIO(), $plugin);
         $patcher->toolPathOverride = codecept_data_dir('testtools/git.sh');
         yield 'working git' => [$patcher, true];
 
-        $patcher = new GitPatcher(new Composer(), new NullIO());
+        $patcher = new GitPatcher(new Composer(), new NullIO(), $plugin);
         yield 'working (real) git' => [$patcher, true];
     }
 }

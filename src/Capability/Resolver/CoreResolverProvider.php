@@ -2,6 +2,7 @@
 
 namespace cweagans\Composer\Capability\Resolver;
 
+use cweagans\Composer\Resolver\Dependencies;
 use cweagans\Composer\Resolver\PatchesFile;
 use cweagans\Composer\Resolver\RootComposer;
 
@@ -13,8 +14,8 @@ class CoreResolverProvider extends BaseResolverProvider
     public function getResolvers(): array
     {
         return [
-            new RootComposer($this->composer, $this->io),
-            new PatchesFile($this->composer, $this->io),
+            new RootComposer($this->composer, $this->io, $this->plugin),
+            new PatchesFile($this->composer, $this->io, $this->plugin),
         ];
     }
 }

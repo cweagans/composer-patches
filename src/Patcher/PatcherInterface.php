@@ -4,6 +4,7 @@ namespace cweagans\Composer\Patcher;
 
 use Composer\Composer;
 use Composer\IO\IOInterface;
+use Composer\Plugin\PluginInterface;
 use cweagans\Composer\Patch;
 
 interface PatcherInterface
@@ -16,8 +17,10 @@ interface PatcherInterface
      *   package metadata and configuration.
      * @param IOInterface $io
      *   IO object to use for resolver input/output.
+     * @param PluginInterface $plugin
+     *   The main plugin class.
      */
-    public function __construct(Composer $composer, IOInterface $io);
+    public function __construct(Composer $composer, IOInterface $io, PluginInterface $plugin);
 
     /**
      * Apply a patch.

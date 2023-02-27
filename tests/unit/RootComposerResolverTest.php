@@ -13,6 +13,7 @@ use Composer\Composer;
 use Composer\Installer\PackageEvent;
 use Composer\IO\NullIO;
 use Composer\Package\RootPackage;
+use Composer\Plugin\PluginInterface;
 use cweagans\Composer\PatchCollection;
 use cweagans\Composer\Resolver\RootComposer;
 use stdClass;
@@ -28,9 +29,10 @@ class RootComposerResolverTest extends Unit
         $composer->setPackage($root_package);
         $io = new NullIO();
         $event = Stub::make(PackageEvent::class, []);
+        $plugin = Stub::makeEmpty(PluginInterface::class);
 
         // Empty patch list.
-        $resolver = new RootComposer($composer, $io);
+        $resolver = new RootComposer($composer, $io, $plugin);
         $resolver->resolve($patch_collection, $event);
         $this->assertCount(0, $patch_collection->getPatchesForPackage('test/package'));
 
@@ -47,7 +49,7 @@ class RootComposerResolverTest extends Unit
         ]);
 
         $composer->setPackage($root_package);
-        $resolver = new RootComposer($composer, $io);
+        $resolver = new RootComposer($composer, $io, $plugin);
         $resolver->resolve($patch_collection, $event);
         $this->assertCount(1, $patch_collection->getPatchesForPackage('test/package'));
 
@@ -63,7 +65,7 @@ class RootComposerResolverTest extends Unit
         ]);
 
         $composer->setPackage($root_package);
-        $resolver = new RootComposer($composer, $io);
+        $resolver = new RootComposer($composer, $io, $plugin);
         $resolver->resolve($patch_collection, $event);
         $this->assertCount(1, $patch_collection->getPatchesForPackage('test/package'));
     }

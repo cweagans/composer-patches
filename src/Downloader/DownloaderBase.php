@@ -4,6 +4,7 @@ namespace cweagans\Composer\Downloader;
 
 use Composer\Composer;
 use Composer\IO\IOInterface;
+use Composer\Plugin\PluginInterface;
 use cweagans\Composer\Downloader\Exception\HashMismatchException;
 use cweagans\Composer\Patch;
 
@@ -24,12 +25,20 @@ abstract class DownloaderBase implements DownloaderInterface
     protected IOInterface $io;
 
     /**
+     * An instance of the main plugin class.
+     *
+     * @var PluginInterface
+     */
+    protected PluginInterface $plugin;
+
+    /**
      * @inheritDoc
      */
-    public function __construct(Composer $composer, IOInterface $io)
+    public function __construct(Composer $composer, IOInterface $io, PluginInterface $plugin)
     {
         $this->composer = $composer;
         $this->io = $io;
+        $this->plugin = $plugin;
     }
 
     /**

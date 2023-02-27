@@ -4,6 +4,7 @@ namespace cweagans\Composer\Patcher;
 
 use Composer\Composer;
 use Composer\IO\IOInterface;
+use Composer\Plugin\PluginInterface;
 use Composer\Util\ProcessExecutor;
 use cweagans\Composer\Patch;
 use Symfony\Component\Process\Process;
@@ -23,6 +24,13 @@ abstract class PatcherBase implements PatcherInterface
      * @var IOInterface
      */
     protected IOInterface $io;
+
+    /**
+     * An instance of the main plugin class.
+     *
+     * @var PluginInterface
+     */
+    protected PluginInterface $plugin;
 
     /**
      * If set, the Patcher object will use this path instead of a $PATH lookup to execute the appropriate tool.
@@ -48,10 +56,11 @@ abstract class PatcherBase implements PatcherInterface
     /**
      * {@inheritDoc}
      */
-    public function __construct(Composer $composer, IOInterface $io)
+    public function __construct(Composer $composer, IOInterface $io, PluginInterface $plugin)
     {
         $this->composer = $composer;
         $this->io = $io;
+        $this->plugin = $plugin;
         $this->executor = new ProcessExecutor($io);
     }
 

@@ -14,9 +14,9 @@ class CorePatcherProvider extends BasePatcherProvider
     public function getPatchers(): array
     {
         return [
-            new GitPatcher($this->composer, $this->io),
-            new GitInitPatcher($this->composer, $this->io),
-            new FreeformPatcher($this->composer, $this->io)
+            new GitPatcher($this->composer, $this->io, $this->plugin),
+            new GitInitPatcher($this->composer, $this->io, $this->plugin),
+            new FreeformPatcher($this->composer, $this->io, $this->plugin)
         ];
     }
 }

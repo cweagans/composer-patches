@@ -3,12 +3,15 @@
 namespace cweagans\Composer\Tests\Unit;
 
 use Codeception\Test\Unit;
+use Codeception\Util\Stub;
 use Composer\Composer;
 use Composer\Config;
 use Composer\IO\NullIO;
+use Composer\Plugin\PluginInterface;
 use cweagans\Composer\Downloader\ComposerDownloader;
 use cweagans\Composer\Downloader\Exception\HashMismatchException;
 use cweagans\Composer\Patch;
+use cweagans\Composer\Plugin\Patches;
 
 class ComposerDownloaderTest extends Unit
 {
@@ -34,8 +37,9 @@ class ComposerDownloaderTest extends Unit
         $composer = new Composer();
         $composer->setConfig(new Config());
         $io = new NullIO();
+        $plugin = Stub::makeEmpty(PluginInterface::class);
 
-        $downloader = new ComposerDownloader($composer, $io);
+        $downloader = new ComposerDownloader($composer, $io, $plugin);
 
         $patch = new Patch();
         $patch->package = "placeholder";
@@ -73,8 +77,9 @@ class ComposerDownloaderTest extends Unit
         $composer = new Composer();
         $composer->setConfig(new Config());
         $io = new NullIO();
+        $plugin = Stub::makeEmpty(PluginInterface::class);
 
-        $downloader = new ComposerDownloader($composer, $io);
+        $downloader = new ComposerDownloader($composer, $io, $plugin);
 
         $patch = new Patch();
         $patch->package = "placeholder";
