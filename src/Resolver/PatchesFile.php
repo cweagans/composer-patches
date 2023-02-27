@@ -56,6 +56,10 @@ class PatchesFile extends ResolverBase
      */
     protected function readPatchesFile($patches_file): array
     {
+        if ($patches_file === '') {
+            return [];
+        }
+
         $patches = file_get_contents($patches_file);
         $patches = json_decode($patches, true);
 

@@ -25,7 +25,7 @@ class PatchesFileResolverTest extends Unit
         $this->event = Stub::make(PackageEvent::class, []);
         $this->collection = new PatchCollection();
         $plugin_stub = Stub::make(Patches::class, [
-            'getConfig' => 'patches.json',
+            'getConfig' => '',
         ]);
         $this->resolver = new PatchesFile($this->composer, $this->io, $plugin_stub);
     }
