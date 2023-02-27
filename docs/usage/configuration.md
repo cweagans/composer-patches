@@ -181,3 +181,15 @@ HTTP_PROXY=http://myproxy:1234 composer install
 The relevant Composer documentation for this parameter can be found [here](https://getcomposer.org/doc/03-cli.md#http-proxy-or-http-proxy).
 
 If you are using Composer behind an HTTP proxy (common in corporate network environments), setting this value will cause Composer to properly use the specified proxy. If you're using the default `ComposerDownloader` for downloading patches, this setting will be respected and patches will be downloaded through the proxy as well.
+
+---
+
+### `COMPOSER`
+
+```shell
+COMPOSER=composer-123.json composer install
+```
+
+The relevant Composer documentation for this parameter can be found [here](https://getcomposer.org/doc/03-cli.md#composer).
+
+Some projects require the use of multiple `composer.json` files (along with their respective `composer.lock` and `patches.lock.json`). Composer Patches will create a different `patches.lock.json` file in the event that this environment variable is set. In the example above, `composer-123-patches.lock.json` would be the lock file that is used for patches.
