@@ -22,21 +22,25 @@ class PatchCollectionTest extends Unit
         $patch1 = new Patch();
         $patch1->package = 'some/package';
         $patch1->description = 'patch1';
+        $patch1->url = '1';
         $collection->addPatch($patch1);
 
         $patch2 = new Patch();
         $patch2->package = 'some/package';
         $patch2->description = 'patch2';
+        $patch2->url = '2';
         $collection->addPatch($patch2);
 
         $patch3 = new Patch();
         $patch3->package = 'other/package';
         $patch3->description = 'patch3';
+        $patch3->url = '3';
         $collection->addPatch($patch3);
 
         $patch4 = new Patch();
         $patch4->package = 'other/package';
         $patch4->description = 'patch4';
+        $patch4->url = '4';
         $collection->addPatch($patch4);
 
         foreach (['some/package', 'other/package'] as $package_name) {
@@ -77,7 +81,7 @@ class PatchCollectionTest extends Unit
         $patch2 = new Patch();
         $patch2->package = 'another/package';
         $patch2->description = 'patch2';
-        $patch2->url = 'https://example.com/test.patch';
+        $patch2->url = 'https://example.com/test2.patch';
         $patch2->extra = [];
 
         $collection->addPatch($patch1);

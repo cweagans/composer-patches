@@ -6,17 +6,17 @@
                 "description": "Test patch"
             },
             {
-                "url": "https://drupal.org",
+                "url": "https://drupal.org/foo",
                 "description": "Test patch"
             }
         ],
         "test/package2": [
             {
-                "url": "https://drupal.org",
+                "url": "https://drupal.org/bar",
                 "description": "Test patch"
             },
             {
-                "url": "https://drupal.org",
+                "url": "https://drupal.org/baz",
                 "description": "Test patch"
             }
         ]
