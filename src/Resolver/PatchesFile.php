@@ -8,7 +8,6 @@
 namespace cweagans\Composer\Resolver;
 
 use cweagans\Composer\Patch;
-use cweagans\Composer\Plugin\Patches;
 use cweagans\Composer\PatchCollection;
 use InvalidArgumentException;
 
@@ -20,14 +19,7 @@ class PatchesFile extends ResolverBase
     public function resolve(PatchCollection $collection): void
     {
         $patches_file = $this->plugin->getConfig('patches-file');
-
         $valid_patches_file = file_exists(realpath($patches_file)) && is_readable(realpath($patches_file));
-
-        // $extra = $this->composer->getPackage()->getExtra();
-        // $valid_patches_file = array_key_exists('composer-patches', $extra) &&
-        //     array_key_exists('patches-file', $extra['composer-patches']) &&
-        //     file_exists(realpath($extra['composer-patches']['patches-file'])) &&
-        //     is_readable(realpath($extra['composer-patches']['patches-file']));
 
         // If we don't have a valid patches file, exit early.
         if (!$valid_patches_file) {
