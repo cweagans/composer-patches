@@ -12,7 +12,7 @@ class CoreDownloaderProvider extends BaseDownloaderProvider
     public function getDownloaders(): array
     {
         return [
-            new ComposerDownloader($this->composer, $this->io),
+            new ComposerDownloader($this->composer, $this->io, $this->plugin),
         ];
     }
 }

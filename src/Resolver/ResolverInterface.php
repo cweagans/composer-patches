@@ -9,6 +9,7 @@ namespace cweagans\Composer\Resolver;
 
 use Composer\Composer;
 use Composer\IO\IOInterface;
+use Composer\Plugin\PluginInterface;
 use cweagans\Composer\PatchCollection;
 
 interface ResolverInterface
@@ -21,8 +22,10 @@ interface ResolverInterface
      *   package metadata and configuration.
      * @param IOInterface $io
      *   IO object to use for resolver input/output.
+     * @param PluginInterface $plugin
+     *   The main plugin class.
      */
-    public function __construct(Composer $composer, IOInterface $io);
+    public function __construct(Composer $composer, IOInterface $io, PluginInterface $plugin);
 
     /**
      * Find and add patches to the supplied PatchCollection.

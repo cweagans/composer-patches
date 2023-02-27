@@ -8,8 +8,8 @@
 namespace cweagans\Composer\Resolver;
 
 use Composer\Composer;
-use Composer\Installer\PackageEvent;
 use Composer\IO\IOInterface;
+use Composer\Plugin\PluginInterface;
 use cweagans\Composer\Patch;
 use cweagans\Composer\PatchCollection;
 
@@ -30,12 +30,20 @@ abstract class ResolverBase implements ResolverInterface
     protected IOInterface $io;
 
     /**
+     * An instance of the main plugin class.
+     *
+     * @var PluginInterface
+     */
+    protected PluginInterface $plugin;
+
+    /**
      * {@inheritDoc}
      */
-    public function __construct(Composer $composer, IOInterface $io)
+    public function __construct(Composer $composer, IOInterface $io, PluginInterface $plugin)
     {
         $this->composer = $composer;
         $this->io = $io;
+        $this->plugin = $plugin;
     }
 
     /**

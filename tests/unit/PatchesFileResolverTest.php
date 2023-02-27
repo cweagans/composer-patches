@@ -8,7 +8,9 @@ use Composer\Composer;
 use Composer\Installer\PackageEvent;
 use Composer\IO\NullIO;
 use Composer\Package\RootPackage;
+use Composer\Plugin\PluginInterface;
 use cweagans\Composer\PatchCollection;
+use cweagans\Composer\Plugin\Patches;
 use cweagans\Composer\Resolver\PatchesFile;
 use InvalidArgumentException;
 
@@ -22,14 +24,18 @@ class PatchesFileResolverTest extends Unit
         $this->io = new NullIO();
         $this->event = Stub::make(PackageEvent::class, []);
         $this->collection = new PatchCollection();
-        $this->resolver = new PatchesFile($this->composer, $this->io);
+        $plugin_stub = Stub::make(Patches::class, [
+            'getConfig' => '',
+        ]);
+        $this->resolver = new PatchesFile($this->composer, $this->io, $plugin_stub);
     }
 
     public function testHappyPath()
     {
-        $this->package->setExtra([
-            'patches-file' => __DIR__ . '/../_data/dummyPatches.json',
+        $plugin_stub = Stub::make(Patches::class, [
+            'getConfig' => codecept_data_dir('dummyPatches.json'),
         ]);
+        $this->resolver = new PatchesFile($this->composer, $this->io, $plugin_stub);
 
         $this->resolver->resolve($this->collection, $this->event);
         $this->assertCount(2, $this->collection->getPatchesForPackage('test/package'));
@@ -38,9 +44,10 @@ class PatchesFileResolverTest extends Unit
 
     public function testEmptyPatches()
     {
-        $this->package->setExtra([
-            'patches-file' => __DIR__ . '/../_data/dummyPatchesEmpty.json',
+        $plugin_stub = Stub::make(Patches::class, [
+            'getConfig' => codecept_data_dir('dummyPatchesEmpty.json'),
         ]);
+        $this->resolver = new PatchesFile($this->composer, $this->io, $plugin_stub);
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('No patches found.');
@@ -50,9 +57,10 @@ class PatchesFileResolverTest extends Unit
 
     public function testInvalidJSON()
     {
-        $this->package->setExtra([
-            'patches-file' => __DIR__ . '/../_data/dummyPatchesInvalid.json',
+        $plugin_stub = Stub::make(Patches::class, [
+            'getConfig' => codecept_data_dir('dummyPatchesInvalid.json'),
         ]);
+        $this->resolver = new PatchesFile($this->composer, $this->io, $plugin_stub);
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Syntax error');
@@ -62,11 +70,12 @@ class PatchesFileResolverTest extends Unit
 
     public function testPatchesFileNotFound()
     {
-        $this->package->setExtra([
-            'patches-file' => __DIR__ . '/../_data/noSuchFile.json',
+        $plugin_stub = Stub::make(Patches::class, [
+            'getConfig' => codecept_data_dir('noSuchFile.json'),
         ]);
+        $this->resolver = new PatchesFile($this->composer, $this->io, $plugin_stub);
 
-        // Check that the collection is emtpy to start with
+        // Check that the collection is empty to start with
         $this->assertSame(['patches' => []], $this->collection->jsonSerialize());
 
         // This error is handled silently.
@@ -77,7 +86,7 @@ class PatchesFileResolverTest extends Unit
 
     public function testNoPatchesFile()
     {
-        // Check that the collection is emtpy to start with
+        // Check that the collection is empty to start with
         $this->assertSame(['patches' => []], $this->collection->jsonSerialize());
 
         // This is not an error. No changes should be made to the collection.

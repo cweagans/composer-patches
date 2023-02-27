@@ -7,8 +7,8 @@
 
 namespace cweagans\Composer\Resolver;
 
-use Composer\Installer\PackageEvent;
 use cweagans\Composer\Patch;
+use cweagans\Composer\Plugin\Patches;
 use cweagans\Composer\PatchCollection;
 use InvalidArgumentException;
 
@@ -19,18 +19,23 @@ class PatchesFile extends ResolverBase
      */
     public function resolve(PatchCollection $collection): void
     {
-        $extra = $this->composer->getPackage()->getExtra();
-        $valid_patches_file = array_key_exists('patches-file', $extra) &&
-            file_exists(realpath($extra['patches-file'])) &&
-            is_readable(realpath($extra['patches-file']));
+        $patches_file = $this->plugin->getConfig('patches-file');
+
+        $valid_patches_file = file_exists(realpath($patches_file)) && is_readable(realpath($patches_file));
+
+        // $extra = $this->composer->getPackage()->getExtra();
+        // $valid_patches_file = array_key_exists('composer-patches', $extra) &&
+        //     array_key_exists('patches-file', $extra['composer-patches']) &&
+        //     file_exists(realpath($extra['composer-patches']['patches-file'])) &&
+        //     is_readable(realpath($extra['composer-patches']['patches-file']));
 
         // If we don't have a valid patches file, exit early.
         if (!$valid_patches_file) {
             return;
         }
 
-        $this->io->write('  - <info>Gathering patches from patches file.</info>');
-        $patches_file = $this->readPatchesFile($extra['patches-file']);
+        $this->io->write('  - <info>Resolving patches from patches file.</info>');
+        $patches_file = $this->readPatchesFile($patches_file);
 
         foreach ($this->findPatchesInJson($patches_file) as $package => $patches) {
             foreach ($patches as $patch) {
@@ -51,6 +56,10 @@ class PatchesFile extends ResolverBase
      */
     protected function readPatchesFile($patches_file): array
     {
+        if ($patches_file === '') {
+            return [];
+        }
+
         $patches = file_get_contents($patches_file);
         $patches = json_decode($patches, true);
 
