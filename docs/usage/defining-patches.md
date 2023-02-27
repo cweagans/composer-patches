@@ -120,6 +120,13 @@ If you're defining patches in `patches.json` (or some other separate patches fil
 }
 ```
 
+## Duplicate patches
+
+If the same patch is defined in multiple places, the first one added to the patch collection "wins". Subsequent definitions of the same patch will be ignored without emitting an error. The criteria used for determining whether two patches are the same are:
+
+* They have the same URL
+* They have the same sha256 hash
+
 ## `patches.lock.json`
 
 If `patches.lock.json` does not exist the first time you run `composer install` with this plugin enabled, one will be created for you. Generally, you shouldn't need to do anything with this file: commit it to your project repository alongside your `composer.json` and `composer.lock`, and commit any changes when you change your patch definitions.

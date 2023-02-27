@@ -23,6 +23,22 @@ class PatchCollection implements JsonSerializable
      */
     public function addPatch(Patch $patch)
     {
+        if (array_key_exists($patch->package, $this->patches)) {
+            foreach ($this->patches[$patch->package] as $existing_patch) {
+                $has_same_url = ($patch->url === $existing_patch->url);
+                $has_same_sha = (
+                    isset($patch->sha256) &&
+                    isset($existing_patch->sha256) &&
+                    ($patch->sha256 === $existing_patch->sha256)
+                );
+
+                if ($has_same_url || $has_same_sha) {
+                    // If we already have the patch, don't try to add it again.
+                    return;
+                }
+            }
+        }
+
         $this->patches[$patch->package][] = $patch;
     }
 
