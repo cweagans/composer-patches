@@ -16,6 +16,8 @@ use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
 use Composer\Package\AliasPackage;
 use Composer\Package\PackageInterface;
+use Composer\Plugin\CommandEvent;
+use Composer\Plugin\PluginEvents;
 use Composer\Plugin\PluginInterface;
 use Composer\Installer\PackageEvents;
 use Composer\Script\Event;
@@ -73,8 +75,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    */
   public static function getSubscribedEvents() {
     return array(
-      ScriptEvents::PRE_INSTALL_CMD => array('checkPatches'),
-      ScriptEvents::PRE_UPDATE_CMD => array('checkPatches'),
+      PluginEvents::COMMAND => array('checkPatches'),
       PackageEvents::PRE_PACKAGE_INSTALL => array('gatherPatches'),
       PackageEvents::PRE_PACKAGE_UPDATE => array('gatherPatches'),
       // The following is a higher weight for compatibility with
@@ -92,7 +93,11 @@ class Patches implements PluginInterface, EventSubscriberInterface {
    * Before running composer install,
    * @param Event $event
    */
-  public function checkPatches(Event $event) {
+  public function checkPatches(CommandEvent $event) {
+    if (!in_array($event->getCommandName(), ['update', 'require', 'install'])) {
+      return;
+    }
+
     if (!$this->isPatchingEnabled()) {
       return;
     }
@@ -128,26 +133,28 @@ class Patches implements PluginInterface, EventSubscriberInterface {
         return;
       }
 
-      // Remove packages for which the patch set has changed.
-      $promises = array();
-      foreach ($packages as $package) {
-        if (!($package instanceof AliasPackage)) {
-          $package_name = $package->getName();
-          $extra = $package->getExtra();
-          $has_patches = isset($tmp_patches[$package_name]);
-          $has_applied_patches = isset($extra['patches_applied']) && count($extra['patches_applied']) > 0;
-          if (($has_patches && !$has_applied_patches)
-            || (!$has_patches && $has_applied_patches)
-            || ($has_patches && $has_applied_patches && $tmp_patches[$package_name] !== $extra['patches_applied'])) {
-            $uninstallOperation = new UninstallOperation($package, 'Removing package so it can be re-installed and re-patched.');
-            $this->io->write('<info>Removing package ' . $package_name . ' so that it can be re-installed and re-patched.</info>');
-            $promises[] = $installationManager->uninstall($localRepository, $uninstallOperation);
+      if (!$event->getInput()->getOption('no-install')) {
+        // Remove packages for which the patch set has changed.
+        $promises = [];
+        foreach ($packages as $package) {
+          if (!($package instanceof AliasPackage)) {
+            $package_name = $package->getName();
+            $extra = $package->getExtra();
+            $has_patches = isset($tmp_patches[$package_name]);
+            $has_applied_patches = isset($extra['patches_applied']) && count($extra['patches_applied']) > 0;
+            if (($has_patches && !$has_applied_patches)
+              || (!$has_patches && $has_applied_patches)
+              || ($has_patches && $has_applied_patches && $tmp_patches[$package_name] !== $extra['patches_applied'])) {
+              $uninstallOperation = new UninstallOperation($package, 'Removing package so it can be re-installed and re-patched.');
+              $this->io->write('<info>Removing package ' . $package_name . ' so that it can be re-installed and re-patched.</info>');
+              $promises[] = $installationManager->uninstall($localRepository, $uninstallOperation);
+            }
           }
         }
-      }
-      $promises = array_filter($promises);
-      if ($promises) {
-        $this->composer->getLoop()->wait($promises);
+        $promises = array_filter($promises);
+        if ($promises) {
+          $this->composer->getLoop()->wait($promises);
+        }
       }
     }
     // If the Locker isn't available, then we don't need to do this.
