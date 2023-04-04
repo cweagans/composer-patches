@@ -80,8 +80,8 @@ You probably don't need to change this value. Instead, consider setting a packag
     "extra": {
         "composer-patches": {
             "disable-resolvers": [
-                "\\cweagans\\Composer\\Resovler\\RootComposer",
-                "\\cweagans\\Composer\\Resovler\\PatchesFile"
+                "\\cweagans\\Composer\\Resolver\\RootComposer",
+                "\\cweagans\\Composer\\Resolver\\PatchesFile"
             ]
         }
     }
