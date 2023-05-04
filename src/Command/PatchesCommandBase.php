@@ -16,7 +16,7 @@ abstract class PatchesCommandBase extends BaseCommand
      */
     protected function getPatchesPluginInstance(): ?Patches
     {
-        foreach ($this->requireComposer()->getPluginManager()->getPlugins() as $plugin) {
+        foreach ($this->getComposer()->getPluginManager()->getPlugins() as $plugin) {
             if ($plugin instanceof Patches) {
                 return $plugin;
             }

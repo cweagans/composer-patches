@@ -28,7 +28,7 @@ class DoctorCommand extends PatchesCommandBase
         }
         $plugin->loadLockedPatches();
 
-        $composer = $this->requireComposer();
+        $composer = $this->getComposer();
         $io = $this->getIO();
         $plugin_manager = $composer->getPluginManager();
         $capabilities = $plugin_manager->getPluginCapabilities(

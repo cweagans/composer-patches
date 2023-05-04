@@ -31,7 +31,7 @@ class RepatchCommand extends PatchesCommandBase
             return 1;
         }
 
-        $localRepository = $this->requireComposer()
+        $localRepository = $this->getComposer()
             ->getRepositoryManager()
             ->getLocalRepository();
 
@@ -44,14 +44,14 @@ class RepatchCommand extends PatchesCommandBase
         $promises = [];
         foreach ($packages as $package) {
             $uninstallOperation = new UninstallOperation($package);
-            $promises[] = $this->requireComposer()
+            $promises[] = $this->getComposer()
                 ->getInstallationManager()
                 ->uninstall($localRepository, $uninstallOperation);
         }
         // Wait for uninstalls to finish.
         $promises = array_filter($promises);
         if (!empty($promises)) {
-            $this->requireComposer()->getLoop()->wait($promises);
+            $this->getComposer()->getLoop()->wait($promises);
         }
 
         $input = new ArrayInput(['command' => 'install']);
