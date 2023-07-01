@@ -12,9 +12,11 @@ Be aware that it is possible to create your own plugin to enhance the functional
 ## Dependencies with patches
 
 When installing a dependency with composer that has its own patch for a dependency this patch will not be applied.
+For more information in-depth information see [bug report](https://github.com/cweagans/composer-patches/issues/505).
 
 ```txt
 Root project
+
 |_ dep 1 (containing patch for dep 2)
   |_ dep 2
 ```
@@ -37,10 +39,11 @@ When dependencies have configured patches in the `composer.json` configuration u
 
 ```txt
 Root project
-patches/patch-dep2.patch (symlink -> dep/patches.patch-dep2.patch)
-|_ dep
-  |_ patches/patch-dep2.patch
-|_ dep2
+
+| /patches/patch-dep2.patch (symlink -> /dep/patches.patch-dep2.patch)
+| /dep
+|   /patches/patch-dep2.patch
+| /dep2
 ```
 
 Alternatively if symlinking is not an option you could choose to copy a patch into your own project and configure your project to apply the patch.
