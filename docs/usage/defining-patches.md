@@ -7,6 +7,10 @@ weight: 20
 
 You can describe patches to the plugin in one of two ways: the compact format or the expanded format.
 
+{{< callout title="Local files are supported too!" >}}
+In any of the following examples, you can specify a path relative to the root of your project instead of a web address.
+{{< /callout >}}
+
 ### Compact format
 
 ```json
