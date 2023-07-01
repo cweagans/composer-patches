@@ -40,7 +40,7 @@ When dependencies have configured patches in the `composer.json` configuration u
 ```txt
 Root project
 
-| /patches/patch-dep2.patch (symlink -> /dep/patches.patch-dep2.patch)
+| /patches/patch-dep2.patch (symlink -> /dep/patches/patch-dep2.patch)
 | /dep
 |   /patches/patch-dep2.patch
 | /dep2
