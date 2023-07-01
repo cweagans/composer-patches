@@ -17,10 +17,10 @@ See the [system requirements]({{< relref "../getting-started/system-requirements
 
 ## Install patching software
 
-Composer Patches requires at least _some_ mechanism for applying patches. If you don't have any installed, you'll see a fair number of errors. You should install some combination of GNU `patch`, BSD `patch`, `git`, or other applicable software. macOS users commonly need to `brew install gpatch` to get a modern version of `patch` on their system.
+Composer Patches requires `git` to be installed in order to apply patches. Previous versions of the plugin relied on
+various versions of `patch`, but that is no longer the case. Make sure you have `git` installed and you should be all set.
 
 
 ## Download patches securely
 
 If you've been referred here, you're trying to download patches over HTTP without explicitly telling Composer that you want to do that. See the [`secure-http`]({{< relref "../usage/configuration.md#secure-http" >}}) documentation for more information.
-

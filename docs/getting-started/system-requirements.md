@@ -19,11 +19,9 @@ ask you to try a recent version of Composer before proceeding with troubleshooti
 
 ## Patchers
 
-Most of the patchers that are supported don't change much, but there are a couple version-related items to keep in mind:
+The core plugin used to use multiple tools to try to apply a patch. Unfortunately, that led to a lot of unpredictable
+behavior across various environments. Now, the core plugin _only_ relies on Git. As long as you have a relatively recent
+version of Git, things should work.
 
-* **General**: If you're using a particular program for applying patches, it would be great if it was a version that was
-  released in the last few years. As a rule of thumb, if the version of whatever software is older than what is
-  distributed with the current Debian "stable" release, we probably won't be able to do much with it.
-* **GNU Patch**: Version 2.7 added support for most features of the `diff --git` format and is required for any patches
-  that rename/copy files, change permissions, or include symlinks. Future versions of Composer Patches may consider
-  lesser versions to be unusable.
+If your Git is older than what is distributed with the current Debian "stable" release, we probably won't be able to do
+much with it.

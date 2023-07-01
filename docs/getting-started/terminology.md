@@ -23,6 +23,4 @@ A _downloader_ is (intuitively) a component that downloads a patch. The `Compose
 
 ## Patcher
 
-A _patcher_ is a mechanism by which a downloaded patch can be applied to a package. The plugin ships with a handful of patchers in an effort to ensure that a particular system is able to apply a patch _somehow_. Generally, for each system program that is capable of applying a patch (`patch`, `git` (via `git apply`), etc), a `Patcher` can be defined that uses it.
-
-
+A _patcher_ is a mechanism by which a downloaded patch can be applied to a package. The plugin ships with a handful of patchers in an effort to ensure that a particular system is able to apply a patch _somehow_. Generally, for each system program that is capable of applying a patch (in the core plugin, this is `git` (via `git apply`)), a `Patcher` can be defined that uses it.
