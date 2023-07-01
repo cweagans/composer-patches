@@ -3,6 +3,7 @@
 namespace cweagans\Composer\Patcher;
 
 use Composer\IO\IOInterface;
+use Composer\Util\Filesystem;
 use cweagans\Composer\Patch;
 
 class GitInitPatcher extends GitPatcher
@@ -14,28 +15,25 @@ class GitInitPatcher extends GitPatcher
             return false;
         }
 
-        $this->io->write("Creating temporary fake git repo in $path to apply patch", true, IOInterface::VERBOSE);
+        $this->io->write("Creating temporary git repo in $path to apply patch", true, IOInterface::VERBOSE);
 
-        // Create a fake Git repo -- just enough to make Git think it's looking at a real repo.
-        $dirs = [
-            $path . '/.git',
-            $path . '/.git/objects',
-            $path . '/.git/refs',
-        ];
-        foreach ($dirs as $dir) {
-            mkdir($dir);
+        // Create a temporary git repository.
+        $status = $this->executeCommand(
+            '%s -C %s init',
+            $this->patchTool(),
+            $path
+        );
+
+        // If we couldn't create the Git repo, bail out.
+        if (!$status) {
+            return false;
         }
-        file_put_contents($path . '/.git/HEAD', "ref: refs/heads/main");
-
 
         // Use the git patcher to apply the patch.
         $status = parent::apply($patch, $path);
 
-        // Clean up the fake git repo.
-        unlink($path . '/.git/HEAD');
-        foreach (array_reverse($dirs) as $dir) {
-            rmdir($dir);
-        }
+        // Clean up the git repo.
+        (new Filesystem($this->executor))->removeDirectory($path . '/.git');
 
         return $status;
     }
