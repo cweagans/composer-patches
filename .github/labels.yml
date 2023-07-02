@@ -12,20 +12,9 @@
   color: 1d76db
   description: "New features, options, or other additions."
 
-
-- name: "in-progress"
-  color: fbca04
-  description: "Issue is currently being worked on by a developer."
-- name: "stale"
+- name: "release-blocker"
   color: fef2c0
-  description: "No activity for quite some time."
-- name: "no-stale"
-  color: fef2c0
-  description: "This is exempt from the stale bot."
-
-- name: "invalid"
-  color: fef2c0
-  description: "Missing information, off-topic, spam, or otherwise doesn't apply to this project."
+  description: "Until this issue is resolved, a stable release should not be tagged."
 
 - name: "beginner-friendly"
   color: 0e8a16
