@@ -134,7 +134,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
         if (!($package instanceof AliasPackage)) {
           $package_name = $package->getName();
           $extra = $package->getExtra();
-          $has_patches = isset($tmp_patches[$package_name]);
+          $has_patches = isset($tmp_patches[$package_name]) && count($tmp_patches[$package_name]) > 0;
           $has_applied_patches = isset($extra['patches_applied']) && count($extra['patches_applied']) > 0;
           if (($has_patches && !$has_applied_patches)
             || (!$has_patches && $has_applied_patches)
