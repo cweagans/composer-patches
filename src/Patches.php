@@ -123,11 +123,6 @@ class Patches implements PluginInterface, EventSubscriberInterface {
         $tmp_patches = $this->arrayMergeRecursiveDistinct($tmp_patches, $patches);
       }
 
-      if ($tmp_patches == FALSE) {
-        $this->io->write('<info>No patches supplied.</info>');
-        return;
-      }
-
       // Remove packages for which the patch set has changed.
       $promises = array();
       foreach ($packages as $package) {
