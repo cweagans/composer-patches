@@ -7,6 +7,8 @@
 
 namespace cweagans\Composer\Resolver;
 
+use Composer\Composer\InstalledVersions;
+use Composer\Package\Version\VersionParser;
 use cweagans\Composer\Patch;
 use cweagans\Composer\PatchCollection;
 use InvalidArgumentException;
@@ -19,20 +21,36 @@ class PatchesFile extends ResolverBase
     public function resolve(PatchCollection $collection): void
     {
         $patches_file = $this->plugin->getConfig('patches-file');
-        $valid_patches_file = file_exists(realpath($patches_file)) && is_readable(realpath($patches_file));
-
-        // If we don't have a valid patches file, exit early.
-        if (!$valid_patches_file) {
-            return;
+        $host = parse_url($patches_file, PHP_URL_HOST);
+        if ($host === NULL) {
+          $valid_patches_file = file_exists(realpath($patches_file)) && is_readable(realpath($patches_file));
+          // If we don't have a valid patches file, exit early.
+          if (!$valid_patches_file) {
+              return;
+          }
+        }
+        else {
+          if (filter_var($patches_file, FILTER_VALIDATE_URL)) {
+            $array = get_headers($patches_file);
+            // If we don't have a valid patches file URL, exit early.
+            if(!strpos($array[0], "200")) {
+              return;
+            }
+          }
         }
 
         $this->io->write('  - <info>Resolving patches from patches file.</info>');
         $patches_file = $this->readPatchesFile($patches_file);
 
         foreach ($this->findPatchesInJson($patches_file) as $package => $patches) {
+            // Get package version.
+            $package_version = \Composer\InstalledVersions::getPrettyVersion($package);
             foreach ($patches as $patch) {
-                /** @var Patch $patch */
-                $collection->addPatch($patch);
+                if (!isset($patch->version) ||
+                (version_compare($package_version, $patch->version) == 0)) {
+                  /** @var Patch $patch */
+                  $collection->addPatch($patch);
+                }
             }
         }
     }

@@ -29,6 +29,13 @@ class Patch implements JsonSerializable
     public string $url;
 
     /**
+     * The version of package.
+     *
+     * @var string $version
+     */
+    public string $version;
+
+    /**
      * The sha256 hash of the patch file.
      *
      * @var ?string sha256

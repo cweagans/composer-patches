@@ -94,18 +94,47 @@ abstract class ResolverBase implements ResolverInterface
                 $temporary_patch_list = [];
 
                 foreach ($patch_defs as $description => $url) {
-                    $patch = new Patch();
-                    $patch->package = $package;
-                    $patch->url = $url;
-                    $patch->description = $description;
-
-                    $temporary_patch_list[] = $patch;
+                    if (is_array($url)) {
+                      foreach ($url as $patchdescription => $patchurl) {
+                        $temporary_patch_list[] = $this->getPatches($package, $patchdescription, $patchurl, $description);
+                      }
+                    }
+                    else {
+                      $temporary_patch_list[] = $this->getPatches($package, $description, $url);
+                    }
                 }
-
                 $patches[$package] = $temporary_patch_list;
             }
         }
 
         return $patches;
+    }
+
+    /**
+     * Helper function to create patch object.
+     *
+     * @param array $package
+     *   The package name.
+     * @param array $description
+     *   The patch description.
+     * @param string $url
+     *   The patch url.
+     * @param string $version
+     *   The version of package.
+     *
+     * @return Patch $patches
+     *   An array of Patch objects.
+     */
+    public function getPatches(string $package, string $description, string $url, string $version = ''): Patch
+    {
+        $patch = new Patch();
+        $patch->package = $package;
+        $patch->url = $url;
+        $patch->description = $description;
+        if (!empty($version)) {
+            $patch->version = $version;
+        }
+
+        return $patch;
     }
 }
