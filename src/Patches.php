@@ -287,8 +287,8 @@ class Patches implements PluginInterface, EventSubscriberInterface {
 
     // Check if we should exit in failure.
     $extra = $this->composer->getPackage()->getExtra();
-    $exitOnFailure = getenv('COMPOSER_EXIT_ON_PATCH_FAILURE') || !empty($extra['composer-exit-on-patch-failure']);
-    $skipReporting = getenv('COMPOSER_PATCHES_SKIP_REPORTING') || !empty($extra['composer-patches-skip-reporting']);
+    $exitOnFailure = getenv('COMPOSER_EXIT_ON_PATCH_FAILURE') !== false ? getenv('COMPOSER_EXIT_ON_PATCH_FAILURE') : $extra['composer-exit-on-patch-failure'] ?? false;
+    $skipReporting = getenv('COMPOSER_PATCHES_SKIP_REPORTING') !== false ? getenv('COMPOSER_PATCHES_SKIP_REPORTING') : $extra['composer-patches-skip-reporting'] ?? false;
 
     // Get the package object for the current operation.
     $operation = $event->getOperation();
