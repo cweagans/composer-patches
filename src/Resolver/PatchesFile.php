@@ -32,6 +32,7 @@ class PatchesFile extends ResolverBase
         foreach ($this->findPatchesInJson($patches_file) as $package => $patches) {
             foreach ($patches as $patch) {
                 /** @var Patch $patch */
+                $patch->extra['provenance'] = "patches-file:" . $patches_file;
                 $collection->addPatch($patch);
             }
         }

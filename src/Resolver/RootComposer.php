@@ -27,6 +27,7 @@ class RootComposer extends ResolverBase
         foreach ($this->findPatchesInJson($extra['patches']) as $package => $patches) {
             foreach ($patches as $patch) {
                 /** @var Patch $patch */
+                $patch->extra['provenance'] = "root";
                 $collection->addPatch($patch);
             }
         }

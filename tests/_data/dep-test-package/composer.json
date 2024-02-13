@@ -1,16 +1,13 @@
 {
-    "name": "cweagans/dep-test-package",
-    "description": "Project for use in cweagans/composer-patches acceptance tests.",
-    "type": "project",
-    "license": "BSD-2-Clause",
-    "require": {
-        "drupal/drupal": "8.2.0"
-    },
-    "extra": {
-        "patches": {
-            "drupal/drupal": {
-                "Add a startup config for the PHP web server": "https://www.drupal.org/files/issues/add_a_startup-1543858-58.patch"
-            }
-        }
+  "name": "cweagans/dep-test-package",
+  "description": "Project for use in cweagans/composer-patches acceptance tests.",
+  "type": "project",
+  "license": "BSD-3-Clause",
+  "extra": {
+    "patches": {
+      "cweagans/composer-patches-testrepo": {
+        "Add a file": "https://patch-diff.githubusercontent.com/raw/cweagans/composer-patches-testrepo/pull/1.patch"
+      }
     }
+  }
 }

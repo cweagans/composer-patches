@@ -16,6 +16,7 @@ class CoreResolverProvider extends BaseResolverProvider
         return [
             new RootComposer($this->composer, $this->io, $this->plugin),
             new PatchesFile($this->composer, $this->io, $this->plugin),
+            new Dependencies($this->composer, $this->io, $this->plugin),
         ];
     }
 }
