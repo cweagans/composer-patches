@@ -50,7 +50,7 @@ class Patch implements JsonSerializable
     public ?string $localPath;
 
     /**
-     * This is unused in the main plugin, but can be used as a place for other plugins to store data about a patch.
+     * Can be used as a place for other plugins to store data about a patch.
      *
      * This should be treated as an associative array and should contain only scalar values.
      *
