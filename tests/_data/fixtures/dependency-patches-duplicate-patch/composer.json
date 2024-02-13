@@ -1,0 +1,33 @@
+{
+  "name": "cweagans/composer-patches-test-project",
+  "description": "Project for use in cweagans/composer-patches acceptance tests.",
+  "type": "project",
+  "license": "BSD-3-Clause",
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../../../../"
+    },
+    {
+      "type": "path",
+      "url": "../../dep-test-package"
+    }
+  ],
+  "require": {
+    "cweagans/composer-patches": "*@dev",
+    "cweagans/composer-patches-testrepo": "~1.0",
+    "cweagans/dep-test-package": "*@dev"
+  },
+  "config": {
+    "allow-plugins": {
+      "cweagans/composer-patches": true
+    }
+  },
+  "extra": {
+    "patches": {
+      "cweagans/composer-patches-testrepo": {
+        "Add a file": "https://patch-diff.githubusercontent.com/raw/cweagans/composer-patches-testrepo/pull/1.patch"
+      }
+    }
+  }
+}
