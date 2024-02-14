@@ -41,9 +41,10 @@ class Patcher
     public function applyPatch(Patch $patch, string $path): bool
     {
         foreach ($this->getPatchers() as $patcher) {
-            if (in_array(get_class($patcher), $this->disabledPatchers, true)) {
+            $class = "\\" . get_class($patcher);
+            if (in_array($class, $this->disabledPatchers, true)) {
                 $this->io->write(
-                    '<info>  - Skipping patcher ' . get_class($patcher) . '</info>',
+                    '<info>  - Skipping patcher ' . $class . '</info>',
                     true,
                     IOInterface::VERBOSE
                 );

@@ -24,7 +24,7 @@ class CoreResolverProviderTest extends Unit
 
         $resolvers = $resolverProvider->getResolvers();
 
-        $this->assertCount(2, $resolvers);
+        $this->assertCount(3, $resolvers);
         $this->assertContainsOnlyInstancesOf(ResolverInterface::class, $resolvers);
     }
 }

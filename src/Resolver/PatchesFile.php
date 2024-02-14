@@ -18,8 +18,8 @@ class PatchesFile extends ResolverBase
      */
     public function resolve(PatchCollection $collection): void
     {
-        $patches_file = $this->plugin->getConfig('patches-file');
-        $valid_patches_file = file_exists(realpath($patches_file)) && is_readable(realpath($patches_file));
+        $patches_file_path = $this->plugin->getConfig('patches-file');
+        $valid_patches_file = file_exists(realpath($patches_file_path)) && is_readable(realpath($patches_file_path));
 
         // If we don't have a valid patches file, exit early.
         if (!$valid_patches_file) {
@@ -27,11 +27,12 @@ class PatchesFile extends ResolverBase
         }
 
         $this->io->write('  - <info>Resolving patches from patches file.</info>');
-        $patches_file = $this->readPatchesFile($patches_file);
+        $patches_file = $this->readPatchesFile($patches_file_path);
 
         foreach ($this->findPatchesInJson($patches_file) as $package => $patches) {
             foreach ($patches as $patch) {
                 /** @var Patch $patch */
+                $patch->extra['provenance'] = "patches-file:" . $patches_file_path;
                 $collection->addPatch($patch);
             }
         }

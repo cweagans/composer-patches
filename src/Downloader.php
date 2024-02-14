@@ -52,9 +52,10 @@ class Downloader
         }
 
         foreach ($this->getDownloaders() as $downloader) {
-            if (in_array(get_class($downloader), $this->disabledDownloaders, true)) {
+            $class = "\\" . get_class($downloader);
+            if (in_array($class, $this->disabledDownloaders, true)) {
                 $this->io->write(
-                    '<info>  - Skipping downloader ' . get_class($downloader) . '</info>',
+                    '<info>  - Skipping downloader ' . $class . '</info>',
                     true,
                     IOInterface::VERBOSE
                 );

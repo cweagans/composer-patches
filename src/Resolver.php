@@ -45,9 +45,11 @@ class Resolver
         // Let each resolver discover patches and add them to the PatchCollection.
         /** @var ResolverInterface $resolver */
         foreach ($this->getPatchResolvers() as $resolver) {
-            if (in_array(get_class($resolver), $this->disabledResolvers, true)) {
+            $class = "\\" . get_class($resolver);
+
+            if (in_array($class, $this->disabledResolvers, true)) {
                 $this->io->write(
-                    '<info>  - Skipping resolver ' . get_class($resolver) . '</info>',
+                    '<info>  - Skipping resolver ' . $class . '</info>',
                     true,
                     IOInterface::VERBOSE
                 );
