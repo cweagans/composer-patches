@@ -49,6 +49,27 @@ Technically, this value can be a path to a file that is nested in a deeper direc
 
 ---
 
+### `ignore-dependency-patches`
+
+```json
+{
+    [...],
+    "extra": {
+        "composer-patches": {
+            "ignore-dependency-patches": [
+                "some/package",
+            ]
+        }
+    }
+}
+```
+
+**Default value**: empty
+
+`ignore-dependency-patches` allows you to ignore patches defined by the listed dependencies. For instance, if your project requires `drupal/core` and `some/package`, and `some/package` defines a patch for `drupal/core`, listing `some/package` in `ignore-dependency-patches` would cause that patch to be ignored. This does _not_ affect the _target_ of those patches. For instance, listing `drupal/core` here would not cause patches _to_ `drupal/core` to be ignored.
+
+---
+
 ### `default-patch-depth`
 
 ```json
@@ -81,7 +102,8 @@ You probably don't need to change this value. Instead, consider setting a packag
         "composer-patches": {
             "disable-resolvers": [
                 "\\cweagans\\Composer\\Resolver\\RootComposer",
-                "\\cweagans\\Composer\\Resolver\\PatchesFile"
+                "\\cweagans\\Composer\\Resolver\\PatchesFile",
+                "\\cweagans\\Composer\\Resolver\\Dependencies"
             ]
         }
     }
