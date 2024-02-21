@@ -320,6 +320,9 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             return;
         }
 
+        // Relock patches on package install/update.
+        $this->createNewPatchesLock();
+
         // If there aren't any patches, there's nothing to do.
         if (empty($this->patchCollection->getPatchesForPackage($package->getName()))) {
             $this->io->write(
