@@ -7,14 +7,14 @@ on:
   schedule:
     - cron: "0 2 * * *"
   release:
-    types: [ published ]
+    types: [published]
 jobs:
   test:
     runs-on: "ubuntu-22.04"
     strategy:
       matrix:
-        php: [ "8.0", "8.1", "8.2" ]
-        coverage: [ "none" ]
+        php: ["8.0", "8.1", "8.2", "8.3"]
+        coverage: ["none"]
         include:
           - php: "8.2"
             coverage: "xdebug"
