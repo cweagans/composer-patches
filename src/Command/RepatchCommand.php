@@ -20,7 +20,7 @@ class RepatchCommand extends PatchesCommandBase
             'install-options',
             'o',
             InputOption::VALUE_REQUIRED,
-            'Allows you to set the parameters for the composer install.'
+            'Allows you to set the options for the composer install.'
         );
         $this->setAliases(['prp']);
     }
