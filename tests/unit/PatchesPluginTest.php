@@ -40,12 +40,13 @@ class PatchesPluginTest extends Unit
      */
     public function testGetPatchesLockFilePath()
     {
-        $path = Patches::getPatchesLockFilePath();
+        $plugin = new Patches();
+        $path = $plugin->getPatchesLockFilePath();
         $filename = pathinfo($path, \PATHINFO_BASENAME);
         $this->assertEquals('patches.lock.json', $filename);
 
         putenv('COMPOSER=mycomposer.json');
-        $path = Patches::getPatchesLockFilePath();
+        $path = $plugin->getPatchesLockFilePath();
         $filename = pathinfo($path, \PATHINFO_BASENAME);
         $this->assertEquals('mycomposer-patches.lock.json', $filename);
     }

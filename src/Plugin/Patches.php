@@ -86,23 +86,6 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
     protected JsonFile $lockFile;
 
     /**
-     * Get the path to the current patches lock file.
-     */
-    public static function getPatchesLockFilePath(): string
-    {
-        $composer_file = \Composer\Factory::getComposerFile();
-
-        $dir = dirname(realpath($composer_file));
-        $base = pathinfo($composer_file, \PATHINFO_FILENAME);
-
-        if ($base === 'composer') {
-            return "$dir/patches.lock.json";
-        }
-
-        return "$dir/$base-patches.lock.json";
-    }
-
-    /**
      * Apply plugin modifications to composer
      *
      * @param Composer $composer
@@ -115,12 +98,6 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         $this->executor = new ProcessExecutor($this->io);
         $this->patches = array();
         $this->installedPatches = array();
-        $this->lockFile = new JsonFile(
-            static::getPatchesLockFilePath(),
-            null,
-            $this->io
-        );
-        $this->locker = new Locker($this->lockFile);
         $this->configuration = [
             'disable-resolvers' => [
                 'type' => 'list',
@@ -146,12 +123,44 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                 'type' => 'string',
                 'default' => 'patches.json',
             ],
+            'patches-lock-file' => [
+                'type' => 'string',
+                'default' => 'patches.lock.json',
+            ],
             "ignore-dependency-patches" => [
                 'type' => 'list',
                 'default' => [],
             ],
         ];
         $this->configure($this->composer->getPackage()->getExtra(), 'composer-patches');
+        $this->lockFile = new JsonFile(
+            $this->getPatchesLockFilePath(),
+            null,
+            $this->io
+        );
+        $this->locker = new Locker($this->lockFile);
+    }
+
+    /**
+     * Get the path to the current patches lock file.
+     */
+    public function getPatchesLockFilePath(): string
+    {
+        $composer_file = \Composer\Factory::getComposerFile();
+
+        $dir = dirname(realpath($composer_file));
+        $base = pathinfo($composer_file, \PATHINFO_FILENAME);
+
+        $lock_file = $this->getConfig('patches-lock-file');
+        if (!is_string($lock_file)) {
+            $lock_file = 'patches-lock-file';
+        }
+
+        if ($base === 'composer') {
+            return "$dir/$lock_file";
+        }
+
+        return "$dir/$base-$lock_file";
     }
 
     /**
