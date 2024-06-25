@@ -152,9 +152,6 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         $base = pathinfo($composer_file, \PATHINFO_FILENAME);
 
         $lock_file = $this->getConfig('patches-lock-file');
-        if (!is_string($lock_file)) {
-            $lock_file = 'patches-lock-file';
-        }
 
         if ($base === 'composer') {
             return "$dir/$lock_file";
