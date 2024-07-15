@@ -30,13 +30,13 @@ body:
   - type: textarea
     attributes:
       render: shell
-      label: "Contents of `composer.json`"
+      label: "Full contents of `composer.json`"
     validations:
       required: true
   - type: textarea
     attributes:
       render: shell
-      label: "Contents of `patches.lock.json`"
+      label: "Full contents of `patches.lock.json`"
     validations:
       required: true
   - type: textarea
