@@ -49,6 +49,27 @@ Technically, this value can be a path to a file that is nested in a deeper direc
 
 ---
 
+### `allow-dependency-patches`
+
+```json
+{
+    [...],
+    "extra": {
+        "composer-patches": {
+            "allow-dependency-patches": [
+                "some/package",
+            ]
+        }
+    }
+}
+```
+
+**Default value**: null
+
+`allow-dependency-patches` allows you to explicitly apply patches defined by only the listed dependencies. For instance, if your project requires `some/packageA` and `some/packageB`, and both packages define patches, listing `some/packageA` in `allow-dependency-patches` would cause that only `some/packageA` will be evaluated while `some/packageB` will be ignored. If set `allow-dependency-patches: []`, no package will be evaluated. This does _not_ affect the _target_ of those patches. For instance, listing `drupal/core` here would not cause patches _to_ `drupal/core` to be ignored.
+
+---
+
 ### `ignore-dependency-patches`
 
 ```json

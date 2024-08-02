@@ -24,21 +24,42 @@ class Dependencies extends ResolverBase
             return;
         }
 
-        $this->io->write('  - <info>Resolving patches from dependencies.</info>');
-
+        // Using both config keys, if $allowed_dependencies is set, it takes precedence
+        $allowed_dependencies = $this->plugin->getConfig('allow-dependency-patches');
         $ignored_dependencies = $this->plugin->getConfig('ignore-dependency-patches');
+
+        // First check, if we do allow dependency patches at all.
+        if ($allowed_dependencies === []) {
+            $this->io->write('  - <info>No patches from dependencies are allowed.</info>');
+            return;
+        }
+
+        $this->io->write('  - <info>Resolving patches from dependencies.</info>');
 
         $lockdata = $locker->getLockData();
         foreach ($lockdata['packages'] as $p) {
-            // If we're supposed to skip gathering patches from a dependency, do that.
-            if (in_array($p['name'], $ignored_dependencies)) {
-                continue;
+            $allowed = in_array($p['name'], $allowed_dependencies ?? []);
+            $ignored = in_array($p['name'], $ignored_dependencies);
+
+            // Allowed dependencies is not set in composer.json, and we're not
+            // supposed to skip gathering patches from this dependency
+            if (is_null($allowed_dependencies) && !$ignored) {
+                $this->lookForPatches($p, $collection);
             }
 
-            // Find patches in the composer.json for dependencies.
-            if (!isset($p['extra']) || !isset($p['extra']['patches'])) {
-                continue;
+            // Allowed dependencies are set, act only on allowed, if they're not
+            // ignored also.
+            if ($allowed && !$ignored) {
+                $this->lookForPatches($p, $collection);
             }
+        }
+    }
+
+    private function lookForPatches(array $p, PatchCollection $collection): void
+    {
+
+        // Find patches in the composer.json for dependencies.
+        if (isset($p['extra']['patches'])) {
             foreach ($this->findPatchesInJson($p['extra']['patches']) as $package => $patches) {
                 foreach ($patches as $patch) {
                     $patch->extra['provenance'] = "dependency:" . $package;
@@ -47,8 +68,11 @@ class Dependencies extends ResolverBase
                     $collection->addPatch($patch);
                 }
             }
+        }
 
-            // TODO: Also find patches in a configured patches.json for the dependency.
+        // Find patches in a patch-file for dependencies.
+        if (isset($p['extra']['composer-patches']['patches-file'])) {
+            // @todo Handle patch files.
         }
     }
 }
