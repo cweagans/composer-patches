@@ -23,6 +23,7 @@ use Composer\Script\ScriptEvents;
 use Composer\Installer\PackageEvent;
 use Composer\Util\ProcessExecutor;
 use Composer\Util\HttpDownloader;
+use Composer\Util\Filesystem;
 use Symfony\Component\Process\Process;
 
 class Patches implements PluginInterface, EventSubscriberInterface {
@@ -402,6 +403,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     }
     // Attempt to apply with git apply.
     $patched = $this->applyPatchWithGit($install_path, $patch_levels, $filename);
+    $patched = $this->applyPatchWithGitInit($install_path, $patch_levels, $filename);
 
     // In some rare cases, git will fail to apply a patch, fallback to using
     // the 'patch' command.
@@ -565,6 +567,46 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     }
     return $patched;
   }
+
+  /**
+   * Attempts to apply a patch with git apply by creating a new repository.
+   *
+   * @param $install_path
+   * @param $patch_levels
+   * @param $filename
+   *
+   * @return bool
+   *   TRUE if patch was applied, FALSE otherwise.
+   */
+  protected function applyPatchWithGitInit($install_path, $patch_levels, $filename) {
+    // Do not use git apply unless the install path is itself a git repo
+    // @see https://stackoverflow.com/a/27283285
+    if (is_dir($install_path . '/.git')) {
+      return FALSE;
+    }
+
+    $this->io->write("Creating temporary git repo in $install_path to apply patch", true, IOInterface::VERBOSE);
+
+    // Create a temporary git repository.
+    $status = $this->executeCommand(
+        'git -C %s init --initial-branch=temp',
+        $install_path
+    );
+
+    // If we couldn't create the Git repo, bail out.
+    if (!$status) {
+        return false;
+    }
+
+    // Use the git patcher to apply the patch.
+    $patched = $this->applyPatchWithGit($install_path, $patch_levels, $filename);
+
+    // Clean up the git repo.
+    (new Filesystem($this->executor))->removeDirectory($install_path . '/.git');
+
+    return $patched;
+  }
+
 
   /**
    * Indicates if a package has been patched.
