@@ -26,7 +26,16 @@ class Downloader
         $this->io = $io;
         $this->disabledDownloaders = $disabledDownloaders;
 
-        $this->cacheDir = $composer->getConfig()->get('cache-dir') . '/patches';
+        // If --no-cache is passed to Composer, we need a different location to
+        // download patches to. When --no-cache is passed, $composer_cache is
+        // set to /dev/null.
+        $composer_cache = $composer->getConfig()->get('cache-dir');
+        if (!is_dir($composer_cache)) {
+            $composer_cache = sys_get_temp_dir();
+        }
+
+        // If the cache directory doesn't exist, create it.
+        $this->cacheDir = $composer_cache . '/patches';
         if (!is_dir($this->cacheDir)) {
             mkdir($this->cacheDir);
         }
