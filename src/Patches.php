@@ -422,6 +422,9 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     // If the patch *still* isn't applied, then give up and throw an Exception.
     // Otherwise, let the user know it worked.
     if (!$patched) {
+      if (!$this->executeCommand("command -v patch")) {
+        throw new \Exception("The 'patch' command does not exist. Cannot apply the patch $patch_url.");;
+      }
       throw new \Exception("Cannot apply patch $patch_url");
     }
   }
