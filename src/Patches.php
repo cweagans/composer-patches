@@ -407,9 +407,11 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     // the 'patch' command.
     if (!$patched) {
       foreach ($patch_levels as $patch_level) {
+        // --forward checks for previously applied patch and
+        // does not ask for reverse-apply (via `read` prompt)
         // --no-backup-if-mismatch here is a hack that fixes some
         // differences between how patch works on windows and unix.
-        if ($patched = $this->executeCommand("patch %s --no-backup-if-mismatch -d %s < %s", $patch_level, $install_path, $filename)) {
+        if ($patched = $this->executeCommand("patch %s --forward --no-backup-if-mismatch -d %s < %s", $patch_level, $install_path, $filename)) {
           break;
         }
       }
