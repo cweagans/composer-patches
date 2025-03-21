@@ -20,7 +20,7 @@ class GitPatcher extends PatcherBase
 
         // Dry run first.
         $status = $this->executeCommand(
-            '%s -C %s apply --check --verbose -p%s %s',
+            '%s -C %s apply --check -p%s %s',
             $this->patchTool(),
             $path,
             $patch->depth,
@@ -28,19 +28,24 @@ class GitPatcher extends PatcherBase
         );
         if (str_starts_with($this->executor->getErrorOutput(), 'Skipped')) {
             // Git will indicate success but silently skip patches in some scenarios.
-            //
             // @see https://github.com/cweagans/composer-patches/pull/165
             $status = false;
         }
 
-        // If the check failed, then don't proceed with actually applying the patch.
+        // If the check failed, check if patch was already applied.
         if (!$status) {
-            return false;
+            return $this->executeCommand(
+                '%s -C %s apply --check --reverse --verbose -p%s %s',
+                $this->patchTool(),
+                $path,
+                $patch->depth,
+                $patch->localPath
+            );
         }
 
         // Otherwise, we can try to apply the patch.
         return $this->executeCommand(
-            '%s -C %s apply -p%s --verbose %s',
+            '%s -C %s apply --verbose -p%s %s',
             $this->patchTool(),
             $path,
             $patch->depth,
