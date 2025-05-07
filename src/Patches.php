@@ -110,6 +110,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
       foreach ($packages as $package) {
         $extra = $package->getExtra();
         if (isset($extra['patches'])) {
+          $extra['patches'] = $this->resolveRelativePathPatches($package, $extra['patches']);
           if (isset($patches_ignore[$package->getName()])) {
             foreach ($patches_ignore[$package->getName()] as $package_name => $patches) {
               if (isset($extra['patches'][$package_name])) {
@@ -157,6 +158,39 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     }
   }
 
+  /**
+   * Resolve package relative paths of local patches to project root relative paths.
+   *
+   * This simply checks for a ./ prefix and replaces it with the project root
+   * relative install path of the package.
+   * In order to avoid directory traversal it is verified that the realpath of
+   * the patch file is within the package directory.
+   *
+   * @param PackageInterface $package
+   * @param array $patches
+   *
+   * @return array
+   */
+  protected function resolveRelativePathPatches(PackageInterface $package, $patches) {
+    $resolvedPatches = array();
+    $vendorDir = $this->composer->getConfig()->get('vendor-dir');
+    $packagePath = str_replace(dirname($vendorDir) . '/', '', $this->composer->getInstallationManager()->getInstallPath($package));
+    foreach ($patches as $packageName => $patches) {
+      foreach ($patches as $description => $path) {
+        if (strpos($path, './') === 0) {
+          $path = './' . $packagePath . '/' . substr($path, 2);
+          // Check for jailbreaks.
+          if (($realpath = realpath($path)) && !strpos($realpath, realpath($packagePath)) === 0) {
+            $this->io->writeError('Directory traversal detected in patch ' . $path . ' of package ' . $package->getName() . '.');
+          }
+
+        }
+        $resolvedPatches[$packageName][$description] = $path;
+      }
+    }
+    return $resolvedPatches;
+  }
+  
   /**
    * Gather patches from dependencies and store them for later use.
    *
