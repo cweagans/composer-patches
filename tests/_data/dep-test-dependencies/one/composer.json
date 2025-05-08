@@ -1,0 +1,13 @@
+{
+  "name": "cweagans/dep-test-dependencies-one",
+  "description": "Project for use in cweagans/composer-patches acceptance tests.",
+  "type": "project",
+  "license": "BSD-3-Clause",
+  "extra": {
+    "patches": {
+      "cweagans/composer-patches-testrepo": {
+        "Local File Patch From Dependency": "./patches/dependency-local-file-patch.patch"
+      }
+    }
+  }
+}

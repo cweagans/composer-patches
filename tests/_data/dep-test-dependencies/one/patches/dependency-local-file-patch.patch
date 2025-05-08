@@ -1,0 +1,26 @@
+From 12e18c424dfa788b7b872f67aa2fb598cb427959 Mon Sep 17 00:00:00 2001
+From: Cameron Eagans <me@cweagans.net>
+Date: Wed, 1 Feb 2023 16:40:53 -0700
+Subject: [PATCH] Add a different file from a local patch in a dependency
+
+---
+ src/LocalPatchFromDependency.php | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+ create mode 100644 src/LocalPatchFromDependency.php
+
+diff --git a/src/LocalPatchFromDependency.php b/src/LocalPatchFromDependency.php
+new file mode 100644
+index 0000000..06fc6d4
+--- /dev/null
++++ b/src/LocalPatchFromDependency.php
+@@ -0,0 +1,10 @@
++<?php
++
++namespace cweagans\ComposerPatchesTest;
++
++class LocalPatchFromDependency
++{
++    public static function doNothing()
++    {
++    }
++}

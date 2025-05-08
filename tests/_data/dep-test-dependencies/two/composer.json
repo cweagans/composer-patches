@@ -1,0 +1,13 @@
+{
+  "name": "cweagans/dep-test-dependencies-two",
+  "description": "Project for use in cweagans/composer-patches acceptance tests.",
+  "type": "project",
+  "license": "BSD-3-Clause",
+  "extra": {
+    "patches": {
+      "cweagans/composer-patches-testrepo": {
+        "Add a file": "https://patch-diff.githubusercontent.com/raw/cweagans/composer-patches-testrepo/pull/1.patch"
+      }
+    }
+  }
+}
