@@ -175,8 +175,8 @@ class Patches implements PluginInterface, EventSubscriberInterface {
     $resolvedPatches = array();
     $vendorDir = $this->composer->getConfig()->get('vendor-dir');
     $packagePath = str_replace(dirname($vendorDir) . '/', '', $this->composer->getInstallationManager()->getInstallPath($package));
-    foreach ($patches as $packageName => $patches) {
-      foreach ($patches as $description => $path) {
+    foreach ($patches as $packageName => $packagePatches) {
+      foreach ($packagePatches as $description => $path) {
         if (strpos($path, './') === 0) {
           $path = './' . $packagePath . '/' . substr($path, 2);
           // Check for jailbreaks.
