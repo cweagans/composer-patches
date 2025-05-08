@@ -231,6 +231,7 @@ class Patches implements PluginInterface, EventSubscriberInterface {
               }
             }
           }
+          $extra['patches'] = $this->resolveRelativePathPatches($package, $extra['patches']);
           $this->patches = $this->arrayMergeRecursiveDistinct($this->patches, $extra['patches']);
         }
         // Unset installed patches for this package
