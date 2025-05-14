@@ -6,6 +6,7 @@ use Codeception\Test\Unit;
 use Codeception\Util\Stub;
 use Composer\Composer;
 use Composer\Config;
+use Composer\Downloader\TransportException;
 use Composer\IO\NullIO;
 use Composer\Plugin\PluginInterface;
 use cweagans\Composer\Downloader\ComposerDownloader;
@@ -66,7 +67,15 @@ class ComposerDownloaderTest extends Unit
         $patch->localPath = '';
         $patch->sha256 = 'an incorrect hash';
         $this->expectException(HashMismatchException::class);
-        $downloader->download($patch);
+        try {
+            $downloader->download($patch);
+        } catch (TransportException $e) {
+            // Check for a "429 Too Many Requests" response, often due to rate limiting,
+            // and skip the test if encountered.
+            if ($this->getStatusCode() === 429) {
+                $this->makeTestSkipped($e->getMessage());
+            }
+        }
     }
 
     /**
