@@ -29,7 +29,7 @@ class FreeformPatcher extends PatcherBase
         // If we have dry-run args, do a dry-run.
         if (!empty($dryRunArgs)) {
             $status = $this->executeCommand(
-                '%s ' . $args,
+                '%s ' . $dryRunArgs,
                 $patchTool,
                 $patch->depth,
                 $path,
