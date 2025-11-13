@@ -39,7 +39,7 @@ class Dependencies extends ResolverBase
             if (!isset($p['extra']) || !isset($p['extra']['patches'])) {
                 continue;
             }
-            foreach ($this->findPatchesInJson($p['extra']['patches']) as $package => $patches) {
+            foreach ($this->findPatchesInJson($p['extra']['patches']) as $patches) {
                 foreach ($patches as $patch) {
                     $patch->extra['provenance'] = "dependency:" . $p['name'];
 
