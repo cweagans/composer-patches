@@ -29,7 +29,7 @@ class ComposerDownloader extends DownloaderBase
             mkdir($patches_dir);
         }
 
-        if (str_starts_with($patch->extra['provenance'], 'dependency:')) {
+        if (isset($patch->extra['provenance']) && str_starts_with($patch->extra['provenance'], 'dependency:')) {
             $url = 'vendor/' . substr($patch->extra['provenance'], 11) . '/' . $patch->url;
             if (file_exists($url)) {
                 $downloader->copy($url, $filename);
