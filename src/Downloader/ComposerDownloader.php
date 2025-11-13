@@ -29,17 +29,16 @@ class ComposerDownloader extends DownloaderBase
             mkdir($patches_dir);
         }
 
+        $url_to_copy = $patch->url;
+
         if (isset($patch->extra['provenance']) && str_starts_with($patch->extra['provenance'], 'dependency:')) {
-            $url = 'vendor/' . substr($patch->extra['provenance'], 11) . '/' . $patch->url;
-            if (file_exists($url)) {
-                $downloader->copy($url, $filename);
-            } else {
-                $downloader->copy($patch->url, $filename);
+            $local_url = 'vendor/' . substr($patch->extra['provenance'], 11) . '/' . $patch->url;
+            if (file_exists($local_url)) {
+                $url_to_copy = $local_url;
             }
-        } else {
-            $downloader->copy($patch->url, $filename);
         }
 
+        $downloader->copy($url_to_copy, $filename);
         $patch->localPath = $filename;
 
         $hash = hash_file('sha256', $filename);
