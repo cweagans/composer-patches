@@ -14,4 +14,4 @@ $I->canSeeInComposerOutput('Resolving patches from dependencies');
 $I->canSeeInComposerOutput('Patching cweagans/composer-patches-testrepo');
 $I->seeFileFound('OneMoreTest.php', 'vendor/cweagans/composer-patches-testrepo/src');
 $I->openFile('patches.lock.json');
-$I->seeInThisFile('5f539e947d097d79e97006f958916c362df0fd19ba7011b1b54b69f02d5f9958');
+$I->seeInThisFile('0c52e193d6ec1047f99ddd32c59c27527e56c0d57bfc3af45b5fe1db0abb077a');

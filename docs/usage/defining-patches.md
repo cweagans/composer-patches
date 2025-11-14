@@ -134,9 +134,11 @@ If you're defining patches in `patches.json` (or some other separate patches fil
 
 Packages required by your project can define patches as well. They can do so by defining patches in their root `composer.json` file. Defining patches in a separate `patches.json` in a dependency is currently unsupported.
 
-{{< callout title="Patch paths are always relative to the root of your project" >}}
-Patches defined by a dependency should always use a publicly accessible URL, rather than a local file path. Composer Patches _will not_ attempt to modify file paths so that the patch file can be found within the installed location of a dependency.
-{{< /callout >}}
+When a dependency defines a patch, the path can be a publicly accessible URL or a local file path.
+
+If a local path is provided, Composer Patches will first attempt to resolve the path relative to the dependency's root (i.e., the directory containing its composer.json).
+
+If the patch file is not found there, it will fall back to checking for the file relative to the root of your main project.
 
 
 ## Duplicate patches
