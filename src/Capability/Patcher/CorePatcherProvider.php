@@ -5,6 +5,7 @@ namespace cweagans\Composer\Capability\Patcher;
 use cweagans\Composer\Patcher\FreeformPatcher;
 use cweagans\Composer\Patcher\GitPatcher;
 use cweagans\Composer\Patcher\GitInitPatcher;
+use cweagans\Composer\Patcher\PatchPatcher;
 
 class CorePatcherProvider extends BasePatcherProvider
 {
@@ -16,7 +17,8 @@ class CorePatcherProvider extends BasePatcherProvider
         return [
             new GitPatcher($this->composer, $this->io, $this->plugin),
             new GitInitPatcher($this->composer, $this->io, $this->plugin),
-            new FreeformPatcher($this->composer, $this->io, $this->plugin)
+            new FreeformPatcher($this->composer, $this->io, $this->plugin).
+            new PatchPatcher($this->composer, $this->io, $this->plugin)
         ];
     }
 }
