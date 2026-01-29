@@ -23,11 +23,7 @@ class ComposerDownloader extends DownloaderBase
             return;
         }
 
-        $patches_dir = sys_get_temp_dir() . '/composer-patches/';
-        $filename = uniqid($patches_dir) . ".patch";
-        if (!is_dir($patches_dir)) {
-            mkdir($patches_dir);
-        }
+        $filename = tempnam(sys_get_temp_dir(), 'composer-patches-');
 
         $downloader->copy($patch->url, $filename);
         $patch->localPath = $filename;
