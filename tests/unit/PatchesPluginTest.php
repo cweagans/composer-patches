@@ -40,12 +40,20 @@ class PatchesPluginTest extends Unit
      */
     public function testGetPatchesLockFilePath()
     {
-        $path = Patches::getPatchesLockFilePath();
+        $package = new RootPackage('cweagans/composer-patches', '0.0.0.0', '0.0.0');
+        $io = new NullIO();
+        $composer = new Composer();
+        $composer->setPackage($package);
+
+        $plugin = new Patches();
+        $plugin->activate($composer, $io);
+
+        $path = $plugin->getPatchesLockFilePath();
         $filename = pathinfo($path, \PATHINFO_BASENAME);
         $this->assertEquals('patches.lock.json', $filename);
 
         putenv('COMPOSER=mycomposer.json');
-        $path = Patches::getPatchesLockFilePath();
+        $path = $plugin->getPatchesLockFilePath();
         $filename = pathinfo($path, \PATHINFO_BASENAME);
         $this->assertEquals('mycomposer-patches.lock.json', $filename);
     }
