@@ -358,7 +358,13 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
                 IOInterface::DEBUG
             );
 
-            $this->apply($patch, $install_path);
+            try {
+                $this->apply($patch, $install_path);
+            }
+            catch (Exception $e) {
+                $this->io->write("<error>{$e->getMessage()}</error>");
+                exit(1);
+            }
         }
 
         $this->io->write(
