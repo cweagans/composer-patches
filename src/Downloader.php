@@ -31,7 +31,7 @@ class Downloader
         // set to /dev/null.
         $composer_cache = $composer->getConfig()->get('cache-dir');
         if (!is_dir($composer_cache)) {
-            $composer_cache = sys_get_temp_dir();
+            $composer_cache = rtrim(sys_get_temp_dir(), '/');
         }
 
         // If the cache directory doesn't exist, create it.
