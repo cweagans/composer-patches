@@ -18,13 +18,12 @@ class ComposerDownloaderTest extends Unit
     {
         parent::setUp();
 
-        // Needed so we get full coverage in the ComposerDownloader class.
-        $patches_dir = rtrim(sys_get_temp_dir(), '/') . '/composer-patches/';
-        if (is_dir($patches_dir)) {
-            foreach (glob($patches_dir . '*.patch') as $patch) {
-                unlink($patch);
+        // Clean up any leftover temp files from previous test runs.
+        $tempDir = rtrim(sys_get_temp_dir(), '/');
+        foreach (glob($tempDir . '/composer-patches-*') as $file) {
+            if (is_file($file)) {
+                unlink($file);
             }
-            rmdir($patches_dir);
         }
     }
 
