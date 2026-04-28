@@ -235,4 +235,4 @@ The relevant Composer documentation for this parameter can be found [here](https
 
 Some projects require the use of multiple `composer.json` files (along with their respective `composer.lock` and `patches.lock.json`). Composer Patches will create a different `patches.lock.json` file in the event that this environment variable is set. In the example above, `composer-123-patches.lock.json` would be the lock file that is used for patches.
 
-The lockfile does not follow the `COMPOSER` value when `patches-lock-file` is defined.
+If [`patches.lock.json`]({{< relref "../usage/configuration.md#patches-lock-file" >}}) and `COMPOSER` are both set, the `COMPOSER` value is prepended to the patches lock file name.
