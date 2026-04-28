@@ -28,6 +28,25 @@ Technically, this value can be a path to a file that is nested in a deeper direc
 
 ---
 
+### `patches-lock-file`
+
+```json
+{
+    [...],
+    "extra": {
+        "composer-patches": {
+            "patches-lock-file": "mypatches.lock.json"
+        }
+    }
+}
+```
+
+**Default value**: `patches.lock.json`
+
+`package-depths` allows you to specify overrides for the lockfile name and location.
+
+---
+
 ### `package-depths`
 
 ```json
@@ -215,3 +234,5 @@ COMPOSER=composer-123.json composer install
 The relevant Composer documentation for this parameter can be found [here](https://getcomposer.org/doc/03-cli.md#composer).
 
 Some projects require the use of multiple `composer.json` files (along with their respective `composer.lock` and `patches.lock.json`). Composer Patches will create a different `patches.lock.json` file in the event that this environment variable is set. In the example above, `composer-123-patches.lock.json` would be the lock file that is used for patches.
+
+The lockfile does not follow the `COMPOSER` value when `patches-lock-file` is defined.
