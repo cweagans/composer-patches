@@ -1,6 +1,6 @@
 ---
 title: Terminology
-weight: 30
+weight: 40
 ---
 
 {{< lead text="There are a few terms specific to this plugin. Understanding them before proceeding may help with understanding." >}}
