@@ -6,7 +6,8 @@
   "extra": {
     "patches": {
       "cweagans/composer-patches-testrepo": {
-        "Add a file": "https://patch-diff.githubusercontent.com/raw/cweagans/composer-patches-testrepo/pull/1.patch"
+        "Add a file": "https://patch-diff.githubusercontent.com/raw/cweagans/composer-patches-testrepo/pull/1.patch",
+        "Test a relative patch": "patches/relative.patch"
       }
     }
   }

@@ -1,0 +1,7 @@
+diff --git c/relative_test.txt w/relative_test.txt
+new file mode 100644
+index 0000000000..dddb704f29
+--- /dev/null
++++ w/relative_test.txt
+@@ -0,0 +1 @@
++relative test

@@ -12,6 +12,8 @@ use cweagans\Composer\PatchCollection;
 
 class Dependencies extends ResolverBase
 {
+    public const string RELATIVE_PATCH_PROVIDER = 'cweagans-composer-patches-relative-patch-provider';
+
     /**
      * {@inheritDoc}
      */
@@ -42,7 +44,9 @@ class Dependencies extends ResolverBase
             foreach ($this->findPatchesInJson($p['extra']['patches']) as $patches) {
                 foreach ($patches as $patch) {
                     $patch->extra['provenance'] = "dependency:" . $p['name'];
-
+                    if (!str_contains($patch->url, '://')) {
+                        $patch->extra[self::RELATIVE_PATCH_PROVIDER] = $p['name'];
+                    }
                     /** @var Patch $patch */
                     $collection->addPatch($patch);
                 }
