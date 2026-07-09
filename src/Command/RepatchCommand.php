@@ -7,6 +7,7 @@ namespace cweagans\Composer\Command;
 use Composer\DependencyResolver\Operation\UninstallOperation;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class RepatchCommand extends PatchesCommandBase
@@ -15,6 +16,12 @@ class RepatchCommand extends PatchesCommandBase
     {
         $this->setName('patches-repatch');
         $this->setDescription('Delete, re-download, and re-patch each dependency with any patches defined.');
+        $this->addOption(
+            'install-options',
+            'o',
+            InputOption::VALUE_REQUIRED,
+            'Allows you to set the options for the composer install.'
+        );
         $this->setAliases(['prp']);
     }
 
@@ -54,7 +61,17 @@ class RepatchCommand extends PatchesCommandBase
             $this->requireComposer()->getLoop()->wait($promises);
         }
 
-        $input = new ArrayInput(['command' => 'install']);
+        $parameters = ['command' => 'install'];
+
+        if (!empty($input->getOption('install-options'))) {
+            $installOptions = explode(' ', $input->getOption('install-options'));
+
+            foreach ($installOptions as $installOption) {
+                $parameters[$installOption] = true;
+            }
+        }
+
+        $input = new ArrayInput($parameters);
         $application = $this->getApplication();
         $application->setAutoExit(false);
         $application->run($input, $output);
