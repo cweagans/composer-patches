@@ -343,7 +343,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             $this->io->write(
                 "    - Downloading and applying patch <info>{$patch->url}</info> ({$patch->description})",
                 true,
-                IOInterface::VERBOSE
+                IOInterface::NORMAL
             );
 
             $this->io->write("      - Downloading patch <info>{$patch->url}</info>", true, IOInterface::DEBUG);
