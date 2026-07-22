@@ -18,22 +18,26 @@ class PatchesFile extends ResolverBase
      */
     public function resolve(PatchCollection $collection): void
     {
-        $patches_file_path = $this->plugin->getConfig('patches-file');
-        $valid_patches_file = file_exists(realpath($patches_file_path)) && is_readable(realpath($patches_file_path));
-
-        // If we don't have a valid patches file, exit early.
-        if (!$valid_patches_file) {
-            return;
+        $patch_files = $this->plugin->getConfig('patch-files');
+        if ($patches_file_path = $this->plugin->getConfig('patches-file')) {
+            $patch_files[] = $patches_file_path;
+            $this->io->write('<warning>`patches-file` config key is deprecated. Use patch-files list instead.</warning>');
         }
+        foreach ($patch_files as $patch_file) {
+            if (!file_exists(realpath($patch_file)) && !is_readable(realpath($patch_file))) {
+                $this->io->write("<warning>Patches file '$patch_file' is not readable.</warning>");
+                continue;
+            }
 
-        $this->io->write('  - <info>Resolving patches from patches file.</info>');
-        $patches_file = $this->readPatchesFile($patches_file_path);
+            $this->io->write("  - <info>Resolving patches from patches file '$patch_file'.</info>");
+            $patches_file = $this->readPatchesFile($patch_file);
 
-        foreach ($this->findPatchesInJson($patches_file) as $package => $patches) {
-            foreach ($patches as $patch) {
-                /** @var Patch $patch */
-                $patch->extra['provenance'] = "patches-file:" . $patches_file_path;
-                $collection->addPatch($patch);
+            foreach ($this->findPatchesInJson($patches_file) as $package => $patches) {
+                foreach ($patches as $patch) {
+                    /** @var Patch $patch */
+                    $patch->extra['provenance'] = "patches-file:" . $patch_file;
+                    $collection->addPatch($patch);
+                }
             }
         }
     }
