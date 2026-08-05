@@ -20,7 +20,7 @@ To use the freeform patcher, you must use the [expanded format]({{< relref "defi
                 {
                     "description": "This is another patch",
                     "url": "https://www.example.com/different/path/to/file.patch"
-                    "depth": 123
+                    "depth": 123,
                     "extra": {
                         "freeform": {
                             "executable": "/path/to/your/executable",
@@ -66,7 +66,7 @@ If your patcher is capable of testing whether or not a patch can be applied (for
                 {
                     "description": "This is another patch",
                     "url": "https://www.example.com/different/path/to/file.patch"
-                    "depth": 123
+                    "depth": 123,
                     "extra": {
                         "freeform": {
                             "executable": "/path/to/your/executable",
