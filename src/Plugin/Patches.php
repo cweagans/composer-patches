@@ -148,7 +148,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             ],
             "allow-dependency-patches" => [
                 'type' => 'list',
-                'default' => null,
+                'default' => [],
             ],
             "ignore-dependency-patches" => [
                 'type' => 'list',
