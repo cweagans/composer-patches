@@ -11,7 +11,6 @@ use Composer\Plugin\PluginInterface;
 use cweagans\Composer\Downloader\ComposerDownloader;
 use cweagans\Composer\Downloader\Exception\HashMismatchException;
 use cweagans\Composer\Patch;
-use cweagans\Composer\Plugin\Patches;
 
 class ComposerDownloaderTest extends Unit
 {
@@ -20,7 +19,7 @@ class ComposerDownloaderTest extends Unit
         parent::setUp();
 
         // Needed so we get full coverage in the ComposerDownloader class.
-        $patches_dir = sys_get_temp_dir() . '/composer-patches/';
+        $patches_dir = rtrim(sys_get_temp_dir(), '/') . '/composer-patches/';
         if (is_dir($patches_dir)) {
             foreach (glob($patches_dir . '*.patch') as $patch) {
                 unlink($patch);

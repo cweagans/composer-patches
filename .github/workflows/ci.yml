@@ -19,7 +19,7 @@ jobs:
           - php: "8.2"
             coverage: "xdebug"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
         with:
           ini-file: development
@@ -28,7 +28,7 @@ jobs:
           # Tests don't run in PHP 8.0 due to pcntl_signal_dispatch being disabled ¯\_(ツ)_/¯
           ini-values: disable_functions=""
       - name: Composer install
-        uses: "ramsey/composer-install@v3"
+        uses: "ramsey/composer-install@v4"
         with:
           composer-options: "--optimize-autoloader"
       - name: Run tests
