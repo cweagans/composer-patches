@@ -33,9 +33,9 @@ class Dependencies extends ResolverBase
         $allowed_dependencies = $this->plugin->getConfig('allow-dependency-patches');
 
         $allowed_dependencies_regex =
-            $allowed_dependencies ? static::packageNamesToRegexp($allowed_dependencies) : null;
+            $allowed_dependencies ? BasePackage::packageNamesToRegexp($allowed_dependencies) : null;
         $ignored_dependencies_regex =
-            $ignored_dependencies ? static::packageNamesToRegexp($ignored_dependencies) : null;
+            $ignored_dependencies ? BasePackage::packageNamesToRegexp($ignored_dependencies) : null;
 
         $lockdata = $locker->getLockData();
         foreach ($lockdata['packages'] as $p) {
@@ -82,26 +82,5 @@ class Dependencies extends ResolverBase
 
             // TODO: Also find patches in a configured patches.json for the dependency.
         }
-    }
-
-    /**
-     * Build a regexp from package names, expanding * globs as required.
-     *
-     * @param string[] $packageNames
-     * @return non-empty-string
-     *
-     * @see \Composer\Package\BasePackage::packageNamesToRegexp()
-     *   Reimplemented here to support composer-plugin-api 2.0/2.1.
-     */
-    protected static function packageNamesToRegexp(array $packageNames): string
-    {
-        $packageNames = array_map(
-            static function ($packageName): string {
-                return BasePackage::packageNameToRegexp($packageName, '%s');
-            },
-            $packageNames
-        );
-
-        return sprintf('{^(?:%s)$}iD', implode('|', $packageNames));
     }
 }
