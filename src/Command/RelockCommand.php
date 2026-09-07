@@ -13,8 +13,7 @@ class RelockCommand extends PatchesCommandBase
     protected function configure(): void
     {
         $this->setName('patches-relock');
-        $filename = pathinfo(Patches::getPatchesLockFilePath(), \PATHINFO_BASENAME);
-        $this->setDescription("Find all patches defined in the project and re-write $filename.");
+        $this->setDescription("Find all patches defined in the project and re-write the patches lock file.");
         $this->setAliases(['prl']);
     }
 
@@ -29,7 +28,8 @@ class RelockCommand extends PatchesCommandBase
             unlink($plugin->getLockFile()->getPath());
         }
         $plugin->createNewPatchesLock();
-        $output->write('  - <info>patches.lock.json</info> has been recreated successfully.', true);
+        $filename = pathinfo($plugin->getPatchesLockFilePath(), \PATHINFO_BASENAME);
+        $output->write("  - <info>$filename</info> has been recreated successfully.", true);
         return 0;
     }
 }
