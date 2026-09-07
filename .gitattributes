@@ -6,6 +6,7 @@
 .github/             export-ignore
 .gitignore           export-ignore
 codeception.dist.yml export-ignore
+composer.lock        export-ignore
 docs/                export-ignore
 grumphp.yml          export-ignore
 LICENSE.md           export-ignore
