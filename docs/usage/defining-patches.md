@@ -35,6 +35,12 @@ basis for a patch, download the patch, include it in your project, and apply the
 
 This is the format that you may be familiar with from previous versions of Composer Patches. In your `composer.json`, this is an object with descriptions as keys and patch URLs for values. While this format is more convenient, it has some shortcomings - namely that only a description and URL can be specified. If this works for you/your project, you can keep using this format.
 
+{{< warning title="The compact mode does not guarantee the order of patches when applying them" >}}
+The JSON format does not guarantee the order of keys for a JSON object. If patches must be applied in a specific
+order to provide the expected result (because a patch modifies a file on the result of a previous patch), use
+the expanded format to configure them.
+{{< /warning >}}
+
 ### Expanded format
 
 ```json
