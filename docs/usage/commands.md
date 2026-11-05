@@ -15,6 +15,14 @@ weight: 50
 
 `patches-repatch` causes all patched dependencies to be deleted and re-installed, which causes patches to be re-applied to those dependencies. This command should be used when changing the list of patches in your project. See the [recommended workflows]({{< relref "recommended-workflows.md" >}}) page for details.
 
+### Options
+
+* `--install-options="<options>"`: Pass options to `composer install`. Include `=` (`--install-options="..."`) when passing dash-prefixed flags, and quote multiple flags or repeat the option:
+
+  ```shell
+  composer patches-repatch --install-options="--no-dev --optimize-autoloader"
+  ```
+
 ---
 
 ## `composer patches-doctor`

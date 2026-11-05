@@ -7,11 +7,25 @@
     {
       "type": "path",
       "url": "../../../../"
+    },
+    {
+      "type": "package",
+      "package": {
+        "name": "cweagans/dev-dummy-package",
+        "version": "1.0.0",
+        "dist": {
+          "url": "../../../../LICENSE.md",
+          "type": "file"
+        }
+      }
     }
   ],
   "require": {
     "cweagans/composer-patches": "*@dev",
     "cweagans/composer-patches-testrepo": "~1.0"
+  },
+  "require-dev": {
+    "cweagans/dev-dummy-package": "1.0.0"
   },
   "extra": {
     "patches": {
