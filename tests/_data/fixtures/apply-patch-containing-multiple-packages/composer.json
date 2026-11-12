@@ -1,0 +1,38 @@
+{
+  "name": "cweagans/composer-patches-test-project",
+  "description": "Project for use in cweagans/composer-patches acceptance tests.",
+  "type": "project",
+  "license": "BSD-3-Clause",
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../../../../"
+    }
+  ],
+  "require": {
+    "cweagans/composer-patches": "*@dev",
+    "symfony/var-dumper": "^6.4",
+    "symfony/yaml": "^6.4"
+  },
+  "extra": {
+    "patches": {
+      "*": [
+        {
+          "description": "Add OneMoreTest.php to two packages",
+          "url": "./fileWithMultiplePackages.patch",
+          "depth": 1
+        },
+        {
+          "description": "Add AnotherTest.php to two packages",
+          "url": "./fileWithMultiplePackages2.patch",
+          "depth": 1
+        }
+      ]
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "cweagans/composer-patches": true
+    }
+  }
+}
