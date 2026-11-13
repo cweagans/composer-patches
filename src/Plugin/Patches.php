@@ -285,7 +285,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
 
         $status = $patcher->applyPatch($patch, $install_path);
         if ($status === false) {
-            $e = new Exception("No available patcher was able to apply patch {$patch->url} to {$patch->package}");
+            $e = new Exception("Couldn't apply patch {$patch->url} to {$patch->package}. Please check if you can apply the patch manually.");
 
             $this->composer->getEventDispatcher()->dispatch(
                 PatchEvents::POST_PATCH_APPLY_ERROR,
