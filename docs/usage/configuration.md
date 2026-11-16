@@ -49,6 +49,48 @@ Technically, this value can be a path to a file that is nested in a deeper direc
 
 ---
 
+### `allow-dependency-patches`
+
+```json5
+{
+    // [...],
+    "extra": {
+        "composer-patches": {
+            "allow-dependency-patches": [
+                "some/package",
+                "drupal/*",
+            ]
+        }
+    }
+}
+```
+
+**Default value**: empty
+
+`allow-dependency-patches` allows you to restrict the patch selection to only packages specified here.
+
+An empty value for this configuration option will allow all patches to be applied.
+
+This is useful if you want to apply patches from a subset of your project's dependencies.
+
+For instance, if your project requires `some/packageA` and `some/packageB`, and both packages define patches, listing
+`some/packageA` in `allow-dependency-patches` would cause only `some/packageA` to be evaluated for patches while 
+`some/packageB` will be ignored.
+
+This does _not_ affect the _target_ of those patches. For instance, listing `drupal/core` here would not cause 
+patches _to_ `drupal/core` to be ignored.
+
+When a package is included in both `ignore-dependency-patches` and `allow-dependency-patches`, the ignore rule takes
+precedence, and the package will be ignored.
+
+Wildcard patterns like `vendor/*` are also supported.
+
+This configuration relies on the `\cweagans\Composer\Resolver\Dependencies` resolver to work.
+
+If you would like to ignore all dependency patches, then the resolver should be disabled.
+
+---
+
 ### `ignore-dependency-patches`
 
 ```json
@@ -58,6 +100,7 @@ Technically, this value can be a path to a file that is nested in a deeper direc
         "composer-patches": {
             "ignore-dependency-patches": [
                 "some/package",
+                "drupal/*"
             ]
         }
     }
@@ -67,6 +110,12 @@ Technically, this value can be a path to a file that is nested in a deeper direc
 **Default value**: empty
 
 `ignore-dependency-patches` allows you to ignore patches defined by the listed dependencies. For instance, if your project requires `drupal/core` and `some/package`, and `some/package` defines a patch for `drupal/core`, listing `some/package` in `ignore-dependency-patches` would cause that patch to be ignored. This does _not_ affect the _target_ of those patches. For instance, listing `drupal/core` here would not cause patches _to_ `drupal/core` to be ignored.
+
+Wildcard patterns like `vendor/*` are also supported.
+
+It relies on the `\cweagans\Composer\Resolver\Dependencies` resolver to work.
+
+If you would like to ignore all dependency patches, then the resolver should be disabled.
 
 ---
 
