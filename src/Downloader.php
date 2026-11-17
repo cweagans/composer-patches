@@ -75,7 +75,10 @@ class Downloader
 
             if (isset($patch->localPath)) {
                 $cachedPatch = $this->cacheDir . '/' . $patch->sha256 . '.patch';
-                if (rename($patch->localPath, $cachedPatch)) {
+                // Not rename(): across filesystems it falls back to copy + chown(), which fails when the temp file
+                // belongs to a group the user is not in (on BSD a new file inherits the group of its directory).
+                if (copy($patch->localPath, $cachedPatch)) {
+                    unlink($patch->localPath);
                     $patch->localPath = $cachedPatch;
                 }
                 return;
