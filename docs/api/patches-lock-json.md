@@ -10,11 +10,22 @@ If the [`COMPOSER`]({{< relref "../usage/configuration.md#composer" >}}) environ
 `patches.lock.json` is the mechanism that Composer Patches now uses to maintain a known-good list of patches to apply to the project. For external projects, the structure of `patches.lock.json` may also be treated as an API. If you're considering `patches.lock.json` as a data source for your project, there are a few things that you should keep in mind:
 
 * `patches.lock.json` should be considered **read-only** for external uses.
-* The general structure of `patches.lock.json` will not change. You can rely on a JSON file structured like so:
+* The general structure of `patches.lock.json` will not change. The `patches` object maps package names to arrays of patch definitions. You can rely on a JSON file structured like so:
 ```json
 {
     "_hash": "[the hash]",
-    "patches": [{patch definition}, {patch definition}, ...]
+    "patches": {
+        "vendor/package": [
+            {
+                "package": "vendor/package",
+                "description": "Example patch",
+                "url": "patches/example.patch",
+                "sha256": "[the patch hash]",
+                "depth": 1,
+                "extra": {}
+            }
+        ]
+    }
 }
 ```
 * Each patch definition will look like the [expanded format]({{< relref "../usage/defining-patches.md#expanded-format" >}}) that users can put into their `composer.json` or external patches file.
