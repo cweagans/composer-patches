@@ -18,6 +18,15 @@ use cweagans\Composer\Plugin\Patches;
 class PatchesPluginTest extends Unit
 {
     /**
+     * Reset `COMPSER` env value after each test to prevent contamination.
+     */
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        putenv('COMPOSER=');
+    }
+
+    /**
      * Test plugin activation.
      *
      * Despite not actually asserting anything, this test ensures that if the
@@ -40,14 +49,51 @@ class PatchesPluginTest extends Unit
      */
     public function testGetPatchesLockFilePath()
     {
-        $path = Patches::getPatchesLockFilePath();
+        $package = new RootPackage('cweagans/composer-patches', '0.0.0.0', '0.0.0');
+        $io = new NullIO();
+        $composer = new Composer();
+        $composer->setPackage($package);
+
+        $plugin = new Patches();
+        $plugin->activate($composer, $io);
+
+        $path = $plugin->getPatchesLockFilePath();
         $filename = pathinfo($path, \PATHINFO_BASENAME);
         $this->assertEquals('patches.lock.json', $filename);
 
         putenv('COMPOSER=mycomposer.json');
-        $path = Patches::getPatchesLockFilePath();
+        $path = $plugin->getPatchesLockFilePath();
         $filename = pathinfo($path, \PATHINFO_BASENAME);
         $this->assertEquals('mycomposer-patches.lock.json', $filename);
+    }
+
+    /**
+     * Test that override patches-lock-file file does apply.
+     */
+    public function testConfigurePatchesLockFilePath()
+    {
+        $package = new RootPackage('cweagans/composer-patches', '0.0.0.0', '0.0.0');
+        $package->setExtra([
+            'composer-patches' => [
+                'patches-lock-file' => 'test-patches.lock.json',
+            ],
+        ]);
+
+        $io = new NullIO();
+        $composer = new Composer();
+        $composer->setPackage($package);
+
+        $plugin = new Patches();
+        $plugin->activate($composer, $io);
+
+        $path = $plugin->getPatchesLockFilePath();
+        $filename = pathinfo($path, \PATHINFO_BASENAME);
+        $this->assertEquals('test-patches.lock.json', $filename);
+
+        putenv('COMPOSER=mycomposer.json');
+        $path = $plugin->getPatchesLockFilePath();
+        $filename = pathinfo($path, \PATHINFO_BASENAME);
+        $this->assertEquals('mycomposer-test-patches.lock.json', $filename);
     }
 
     /**
